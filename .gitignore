@@ -1,0 +1,26 @@
+# Agent/user conversation artifacts
+CLAUDE.md
+INTRO.md
+.scratch/
+docs/
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Environment / secrets
+.env
+
+# OS / editor
+.DS_Store
+Thumbs.db
