@@ -9,8 +9,12 @@ dependencies = [
     "uvicorn[standard]>=0.34",
     "pydantic-settings>=2.7",
     "psycopg[binary]>=3.2",
+    "pgvector>=0.3",
     "httpx>=0.28",
 ]
+
+[project.scripts]
+ingest = "lexme.ingestion.cli:main"
 
 [dependency-groups]
 dev = [

@@ -1,7 +1,14 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help up up-d down down-v build logs ps health embed test lint fmt fe-install
+-include .env
+POSTGRES_USER ?= lexme
+POSTGRES_DB ?= lexme
+DB_CONTAINER := lexme_v2-db-1
+TEST_DB := lexme_test
+TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
+
+.PHONY: help up up-d down down-v build logs ps health embed ingest test test-integration lint fmt fe-install
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -36,8 +43,17 @@ embed: ## Ask TEI for an embedding (smoke test)
 		-H 'Content-Type: application/json' \
 		-d '{"inputs": "arrendamiento de vivienda"}'
 
-test: ## Run the API test suite
+ingest: ## Build or refresh the vivienda corpus inside the api container
+	$(COMPOSE) exec api ingest --manifest /verticales/vivienda/manifest.json
+
+test: ## Run the API test suite (DB integration tests skip unless configured)
 	cd api && uv run pytest
+
+test-integration: ## Run the full suite including DB tests against a lexme_test database
+	docker exec $(DB_CONTAINER) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -tc \
+		"SELECT 1 FROM pg_database WHERE datname='$(TEST_DB)'" | grep -q 1 || \
+		docker exec $(DB_CONTAINER) psql -U $(POSTGRES_USER) -d $(POSTGRES_DB) -c "CREATE DATABASE $(TEST_DB)"
+	cd api && LEXME_TEST_DATABASE_URL=$(TEST_DB_URL) uv run pytest
 
 lint: ## Lint the API package
 	cd api && uv run ruff check .
