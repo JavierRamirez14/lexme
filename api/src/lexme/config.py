@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     database_url: str
     tei_url: str = "http://tei:80"
     frontend_origin: str = "http://localhost:5173"
+    gemini_api_key: str = ""
+    openrouter_api_key: str = ""
 
 
 @lru_cache

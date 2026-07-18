@@ -11,6 +11,7 @@ import uvicorn
 
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/lexme_test")
 
+from lexme.llm import FakeLlmClient
 from lexme.main import app
 
 STARTUP_TIMEOUT_SECONDS = 10
@@ -36,6 +37,17 @@ def _wait_until_accepting_connections(host: str, port: int) -> None:
         except OSError:
             time.sleep(CONNECT_RETRY_INTERVAL_SECONDS)
     raise TimeoutError(f"server did not start accepting connections on {host}:{port}")
+
+
+@pytest.fixture
+def fake_llm() -> FakeLlmClient:
+    """The suite's single LLM substitution point: a deterministic, network-free client.
+
+    Every component that needs a model is wired through :class:`LlmClient`, so a
+    test programs replies per task here and lets retrieval, verification, the
+    checklist cross-check and the code gates run for real.
+    """
+    return FakeLlmClient()
 
 
 @pytest.fixture
