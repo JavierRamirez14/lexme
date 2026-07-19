@@ -1,21 +1,34 @@
-"""Integration tests for the Mode 1 deterministic gate.
+"""Integration tests for the Mode 1 agentic graph over the seeded corpus.
 
-Real retrieval, real citation verification and the real code gate run against the
-seeded LAU corpus; only the LLM is faked, so every outcome is produced by the
-system's own logic over a programmed synthesis.
+Real hybrid retrieval, real citation verification and the real deterministic gate
+run against the seeded LAU corpus; only the LLM is faked, so router, planner,
+self-critique and synthesis are programmed while every decision that matters --
+what to retrieve, what verifies, which outcome to return -- is the system's own.
 """
 
 import psycopg
 
 from lexme.llm import FakeLlmClient
-from lexme.mode1 import AbstentionReason, Outcome, answer_question
-from lexme.mode1.models import Mode1Synthesis
+from lexme.mode1 import AbstentionReason, Outcome, SubQueryVerdict, answer_question
+from lexme.mode1.graph.critique import CRITIQUE_TASK
+from lexme.mode1.graph.planner import PLANNING_TASK
+from lexme.mode1.graph.router import ROUTER_TASK
 from lexme.mode1.synthesis import SYNTHESIS_TASK
-from lexme.verification import CitationVerdict, CorpusReader, ProposedCitation
+from lexme.verification import CitationVerdict, CorpusReader
 from tests.conftest import DeterministicEmbedder
-from tests.mode1.conftest import AS_OF, in_force_text
+from tests.mode1.conftest import (
+    AS_OF,
+    critique_of,
+    in_force_text,
+    in_scope,
+    out_of_scope,
+    plan_of,
+    program_single_sufficient,
+    synthesis_of,
+)
 
 QUESTION = "¿cuál es el plazo mínimo del arrendamiento de vivienda?"
+QUOTE = "La duración del arrendamiento será libremente pactada por las partes"
 FABRICATED = "El arrendador podrá desalojar al inquilino en cualquier momento sin preaviso."
 
 
@@ -24,10 +37,11 @@ def _run(
     embedder: DeterministicEmbedder,
     corpus: CorpusReader,
     llm: FakeLlmClient,
+    question: str = QUESTION,
 ):
-    """Run the pipeline with the test's wiring and today's target date fixed."""
+    """Run the agentic graph with the test's wiring and today's target date fixed."""
     return answer_question(
-        QUESTION,
+        question,
         connection=conn,
         embedder=embedder,
         corpus=corpus,
@@ -37,21 +51,18 @@ def _run(
     )
 
 
-def test_a_verbatim_citation_yields_an_answer(
+def test_a_grounded_question_yields_a_cited_answer_with_assumptions(
     seeded_corpus: psycopg.Connection,
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
 ) -> None:
-    quote = "La duración del arrendamiento será libremente pactada por las partes"
-    assert quote in in_force_text(seeded_corpus, "a9")
-    fake_llm.queue(
-        SYNTHESIS_TASK,
-        Mode1Synthesis(
-            fundamento=[ProposedCitation(block_id="a9", text=quote)],
-            explicacion="El plazo mínimo se pacta libremente, con una duración mínima protegida.",
-            accion=["Revisa la fecha de tu contrato", "Habla con tu arrendador"],
-        ),
+    assert QUOTE in in_force_text(seeded_corpus, "a9")
+    program_single_sufficient(
+        fake_llm,
+        query_text=QUESTION,
+        citation=("a9", QUOTE),
+        assumptions=("Asumo vivienda habitual y no de temporada.",),
     )
 
     response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
@@ -60,7 +71,32 @@ def test_a_verbatim_citation_yields_an_answer(
     assert response.answer is not None
     assert response.answer.fundamento[0].block_id == "a9"
     assert response.answer.fundamento[0].verdict is CitationVerdict.VERIFIED_DIRECT
-    assert response.answer.fundamento[0].anchor.eli.endswith("/eli/es/l/1994/11/24/29")
+    assert response.answer.asunciones == ["Asumo vivienda habitual y no de temporada."]
+    assert response.agentic is not None
+    assert len(response.agentic.subqueries) == 1
+    assert response.agentic.subqueries[0].verdict is SubQueryVerdict.SUFFICIENT
+
+
+def test_an_out_of_scope_question_is_rejected_before_retrieval(
+    fake_llm: FakeLlmClient,
+) -> None:
+    fake_llm.queue(ROUTER_TASK, out_of_scope("Eso es tráfico, no alquiler de vivienda."))
+
+    response = answer_question(
+        "¿cómo recurro una multa de tráfico?",
+        connection=None,
+        embedder=None,
+        corpus=None,
+        llm=fake_llm,
+        vertical="vivienda",
+        target_date=AS_OF,
+    )
+
+    assert response.outcome is Outcome.ROUTER_REJECTION
+    assert response.rejection is not None
+    assert "tráfico" in response.rejection.message
+    assert response.agentic is None
+    assert [call.task for call in fake_llm.calls] == [ROUTER_TASK]
 
 
 def test_a_fabricated_citation_forces_an_honest_abstention(
@@ -69,14 +105,7 @@ def test_a_fabricated_citation_forces_an_honest_abstention(
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
 ) -> None:
-    fake_llm.queue(
-        SYNTHESIS_TASK,
-        Mode1Synthesis(
-            fundamento=[ProposedCitation(block_id="a9", text=FABRICATED)],
-            explicacion="...",
-            accion=[],
-        ),
-    )
+    program_single_sufficient(fake_llm, query_text=QUESTION, citation=("a9", FABRICATED))
 
     response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
 
@@ -92,18 +121,10 @@ def test_a_discarded_citation_never_appears_beside_a_valid_one(
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
 ) -> None:
-    quote = "La duración del arrendamiento será libremente pactada por las partes"
-    fake_llm.queue(
-        SYNTHESIS_TASK,
-        Mode1Synthesis(
-            fundamento=[
-                ProposedCitation(block_id="a9", text=quote),
-                ProposedCitation(block_id="a9", text=FABRICATED),
-            ],
-            explicacion="El plazo mínimo se pacta libremente.",
-            accion=[],
-        ),
-    )
+    fake_llm.queue(ROUTER_TASK, in_scope())
+    fake_llm.queue(PLANNING_TASK, plan_of((QUESTION, "Responder la pregunta.", True)))
+    fake_llm.queue(CRITIQUE_TASK, critique_of(("sq1", SubQueryVerdict.SUFFICIENT, "")))
+    fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE), ("a9", FABRICATED)))
 
     response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
 
@@ -114,31 +135,114 @@ def test_a_discarded_citation_never_appears_beside_a_valid_one(
     assert response.citation_verdicts[CitationVerdict.DISCARDED.value] == 1
 
 
-def test_empty_evidence_abstains_before_calling_the_model(
-    corpus_db: psycopg.Connection,
+def test_a_compound_question_decomposes_into_judged_subqueries(
+    seeded_corpus: psycopg.Connection,
     deterministic_embedder: DeterministicEmbedder,
+    corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
 ) -> None:
-    reader = _EmptyCorpusReader()
-
-    response = answer_question(
-        QUESTION,
-        connection=corpus_db,
-        embedder=deterministic_embedder,
-        corpus=reader,
-        llm=fake_llm,
-        vertical="vivienda",
-        target_date=AS_OF,
+    fake_llm.queue(ROUTER_TASK, in_scope())
+    fake_llm.queue(
+        PLANNING_TASK,
+        plan_of(
+            ("duración plazo mínimo arrendamiento vivienda", "Plazo mínimo.", True),
+            ("fianza depósito arrendamiento vivienda", "Importe de la fianza.", True),
+        ),
     )
+    fake_llm.queue(
+        CRITIQUE_TASK,
+        critique_of(
+            ("sq1", SubQueryVerdict.SUFFICIENT, ""),
+            ("sq2", SubQueryVerdict.SUFFICIENT, ""),
+        ),
+    )
+    fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
+
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+
+    assert response.agentic is not None
+    assert [sub.id for sub in response.agentic.subqueries] == ["sq1", "sq2"]
+    assert all(sub.verdict is SubQueryVerdict.SUFFICIENT for sub in response.agentic.subqueries)
+    assert all(sub.retrieval is not None for sub in response.agentic.subqueries)
+
+
+def test_the_self_critique_loop_iterates_then_stops_when_grounded(
+    seeded_corpus: psycopg.Connection,
+    deterministic_embedder: DeterministicEmbedder,
+    corpus_reader: CorpusReader,
+    fake_llm: FakeLlmClient,
+) -> None:
+    fake_llm.queue(ROUTER_TASK, in_scope())
+    fake_llm.queue(PLANNING_TASK, plan_of(("plazo arrendamiento", "Plazo mínimo.", True)))
+    fake_llm.queue(
+        CRITIQUE_TASK,
+        critique_of(("sq1", SubQueryVerdict.INSUFFICIENT, QUESTION)),
+        critique_of(("sq1", SubQueryVerdict.SUFFICIENT, "")),
+    )
+    fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
+
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+
+    assert response.outcome is Outcome.ANSWER
+    assert response.agentic is not None
+    assert len(response.agentic.passes) == 2
+    assert response.agentic.first_pass_sufficient == 0
+    assert response.agentic.final_sufficient == 1
+    assert response.agentic.agentic_delta == 1
+
+
+def test_the_self_critique_loop_stops_at_three_passes(
+    seeded_corpus: psycopg.Connection,
+    deterministic_embedder: DeterministicEmbedder,
+    corpus_reader: CorpusReader,
+    fake_llm: FakeLlmClient,
+) -> None:
+    fake_llm.queue(ROUTER_TASK, in_scope())
+    fake_llm.queue(PLANNING_TASK, plan_of((QUESTION, "Plazo mínimo.", True)))
+    fake_llm.queue(
+        CRITIQUE_TASK,
+        *[critique_of(("sq1", SubQueryVerdict.INSUFFICIENT, QUESTION)) for _ in range(3)],
+    )
+    fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
+
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
 
     assert response.outcome is Outcome.ABSTENTION
     assert response.abstention is not None
-    assert response.abstention.reason is AbstentionReason.NO_EVIDENCE
-    assert fake_llm.calls == []
+    assert response.abstention.reason is AbstentionReason.INSUFFICIENT_CORE
+    assert response.agentic is not None
+    assert len(response.agentic.passes) == 3
+    assert [call.task for call in fake_llm.calls].count(CRITIQUE_TASK) == 3
 
 
-class _EmptyCorpusReader:
-    """A corpus reader that resolves nothing, standing in for an empty corpus."""
+def test_a_peripheral_gap_yields_a_partial_answer_with_declared_gaps(
+    seeded_corpus: psycopg.Connection,
+    deterministic_embedder: DeterministicEmbedder,
+    corpus_reader: CorpusReader,
+    fake_llm: FakeLlmClient,
+) -> None:
+    fake_llm.queue(ROUTER_TASK, in_scope())
+    fake_llm.queue(
+        PLANNING_TASK,
+        plan_of(
+            ("duración plazo mínimo arrendamiento vivienda", "Plazo mínimo.", True),
+            ("subvenciones ayudas alquiler joven", "Ayudas al alquiler.", False),
+        ),
+    )
+    fake_llm.queue(
+        CRITIQUE_TASK,
+        *[
+            critique_of(
+                ("sq1", SubQueryVerdict.SUFFICIENT, ""),
+                ("sq2", SubQueryVerdict.INSUFFICIENT, "ayudas alquiler"),
+            )
+            for _ in range(3)
+        ],
+    )
+    fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
 
-    def resolve_block(self, norm_id: str, block_id: str, target_date: object) -> None:
-        return None
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+
+    assert response.outcome is Outcome.PARTIAL_ANSWER
+    assert response.answer is not None
+    assert response.answer.huecos_declarados == ["Ayudas al alquiler."]

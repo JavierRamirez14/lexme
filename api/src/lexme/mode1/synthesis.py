@@ -28,28 +28,41 @@ _SYSTEM_PROMPT = (
     "- accion: pasos prácticos acotados a informarse, negociar o vigilar plazos. "
     "No redactes documentos legales ni prometas resultados.\n"
     "Si la evidencia no permite responder con una cita literal, devuelve "
-    "'fundamento' vacío en lugar de forzar una respuesta."
+    "'fundamento' vacío en lugar de forzar una respuesta. Si se te indican huecos "
+    "sin base, no los rellenes: mantén la respuesta dentro de lo que la evidencia "
+    "respalda y no afirmes nada sobre esos huecos."
 )
 
 
-def synthesize(llm: LlmClient, question: str, evidence: Sequence[RetrievedBlock]) -> Mode1Synthesis:
+def synthesize(
+    llm: LlmClient,
+    question: str,
+    evidence: Sequence[RetrievedBlock],
+    *,
+    gaps: Sequence[str] = (),
+) -> Mode1Synthesis:
     """Run the synthesis task over ``question`` and ``evidence``.
 
-    Returns the model's proposed three-layer answer. The reply is parsed into
-    :class:`Mode1Synthesis` by the LLM interface; the citations it contains are
-    unverified until the caller runs them through the verifier.
+    ``gaps`` names the parts of the plan left ungrounded, so the model keeps the
+    answer within what the evidence supports instead of filling them in. Returns
+    the model's proposed three-layer answer; the citations are unverified until the
+    caller runs them through the verifier.
     """
     messages = [
         Message("system", _SYSTEM_PROMPT),
-        Message("user", _render_prompt(question, evidence)),
+        Message("user", _render_prompt(question, evidence, gaps)),
     ]
     return llm.complete_structured(SYNTHESIS_TASK, messages, Mode1Synthesis)
 
 
-def _render_prompt(question: str, evidence: Sequence[RetrievedBlock]) -> str:
-    """Build the user message: the question followed by the retrieved evidence."""
+def _render_prompt(question: str, evidence: Sequence[RetrievedBlock], gaps: Sequence[str]) -> str:
+    """Build the user message: the question, the evidence, and any declared gaps."""
     blocks = "\n\n".join(_render_block(block) for block in evidence)
-    return f"Pregunta del inquilino:\n{question}\n\nEvidencia recuperada:\n{blocks}"
+    prompt = f"Pregunta del inquilino:\n{question}\n\nEvidencia recuperada:\n{blocks}"
+    if gaps:
+        gap_lines = "\n".join(f"- {gap}" for gap in gaps)
+        prompt += f"\n\nHuecos sin base (no los rellenes):\n{gap_lines}"
+    return prompt
 
 
 def _render_block(block: RetrievedBlock) -> str:

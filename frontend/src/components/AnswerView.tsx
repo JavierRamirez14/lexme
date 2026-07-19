@@ -48,6 +48,21 @@ export function AnswerView({ answer }: AnswerViewProps) {
           </ul>
         </section>
       )}
+
+      {answer.asunciones.length > 0 && (
+        <section className={styles.assumptions} aria-labelledby="asunciones-heading">
+          <h2 className={styles.assumptionsHeading} id="asunciones-heading">
+            Asunciones que he hecho
+          </h2>
+          <ul className={styles.assumptionList}>
+            {answer.asunciones.map((assumption, index) => (
+              <li key={index} className={styles.assumption}>
+                {assumption}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }

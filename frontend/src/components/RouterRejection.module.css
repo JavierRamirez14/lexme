@@ -1,0 +1,40 @@
+.rejection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background-color: var(--color-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.icon {
+  font-size: var(--text-2xl);
+  color: var(--color-accent);
+  line-height: 1;
+}
+
+.title {
+  font-size: var(--text-xl);
+  color: var(--color-ink);
+}
+
+.message {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+  color: var(--color-ink);
+  max-width: var(--width-reading);
+}
+
+.scope {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-accent-strong);
+}

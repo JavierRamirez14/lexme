@@ -1,10 +1,11 @@
-"""The Mode 1 answer contract: what the synthesizer proposes and what code returns.
+"""The Mode 1 answer contract: what the graph proposes and what code returns.
 
-The synthesizer emits three layers plus the citations it wants to make; the
-verifier and the deterministic gate turn that proposal into either a
-:class:`Answer` carrying only verified citations or an :class:`Abstention`. The
-outcome is a code decision, never the model's, so the outcome and the abstention
-reason are typed here rather than left to prose.
+The agentic graph classifies scope, decomposes the question into sub-queries,
+retrieves and self-critiques them across passes, synthesizes a three-layer answer
+and verifies every citation. The terminal outcome -- a full answer, a partial
+answer, an honest abstention or an out-of-scope rejection -- is a code decision
+over the critique verdicts and the surviving citations, never the model's own
+judgement, so the outcomes and the abstention reasons are typed here.
 """
 
 from enum import StrEnum
@@ -12,6 +13,28 @@ from enum import StrEnum
 from pydantic import BaseModel, field_validator
 
 from lexme.verification import CitationVerdict, ProposedCitation, VerifiedAnchor
+
+
+class RouterScope(StrEnum):
+    """Whether the question is inside the vertical's scope, decided by the router."""
+
+    IN_SCOPE = "dentro"
+    OUT_OF_SCOPE = "fuera"
+
+
+class QueryType(StrEnum):
+    """The router's shallow classification of intent, tuning downstream prompts."""
+
+    INFORMATIONAL = "informativa"
+    SITUATIONAL = "situacional"
+    PROCEDURAL = "procedimental"
+
+
+class SubQueryVerdict(StrEnum):
+    """The self-critique's per-sub-query ruling: does its evidence let us cite?"""
+
+    SUFFICIENT = "suficiente"
+    INSUFFICIENT = "insuficiente"
 
 
 class Mode1Synthesis(BaseModel):
@@ -41,16 +64,19 @@ class VerifiedCitation(BaseModel):
 
 
 class Answer(BaseModel):
-    """The three-layer answer as returned: verified foundation, then plain layers.
+    """The three-layer answer as returned, plus the assumptions and declared gaps.
 
-    ``fundamento`` never contains a discarded citation. ``explicacion`` and
-    ``accion`` are the model's prose, shown only because at least one citation
-    held; the action layer is bounded to informing and negotiating.
+    ``fundamento`` never contains a discarded citation. ``asunciones`` are the
+    non-critical interpretation choices the planner made explicit instead of
+    asking. ``huecos_declarados`` names what a partial answer could not ground;
+    it is empty for a full answer.
     """
 
     fundamento: list[VerifiedCitation]
     explicacion: str
     accion: list[str]
+    asunciones: list[str] = []
+    huecos_declarados: list[str] = []
 
 
 class AbstentionReason(StrEnum):
@@ -58,12 +84,20 @@ class AbstentionReason(StrEnum):
 
     NO_EVIDENCE = "sin_evidencia"
     NO_VERIFIABLE_CITATION = "sin_cita_verificable"
+    INSUFFICIENT_CORE = "sin_base_nuclear"
 
 
 class Abstention(BaseModel):
     """An honest non-answer: a machine reason plus user-facing message and scope."""
 
     reason: AbstentionReason
+    message: str
+    scope_reminder: str
+
+
+class RouterRejection(BaseModel):
+    """An out-of-scope rejection decided before any retrieval, with the scope note."""
+
     message: str
     scope_reminder: str
 
@@ -76,7 +110,7 @@ class RankedBlockRef(BaseModel):
 
 
 class RetrievalTrace(BaseModel):
-    """The dense, lexical and fused rankings behind an answer, in order.
+    """The dense, lexical and fused rankings behind one sub-query, in order.
 
     Exposing the intermediate rankings makes the hybrid retrieval measurable: the
     fused order is visibly a fusion of the two retriever orders.
@@ -87,11 +121,59 @@ class RetrievalTrace(BaseModel):
     fused: list[RankedBlockRef]
 
 
+class SubQueryReport(BaseModel):
+    """One decomposed sub-query as shown to the client: intent, evidence, verdict.
+
+    ``verdict`` is ``None`` until the first critique pass rules on it. ``evidence``
+    is the fused top-k handed to synthesis; ``retrieval`` is that sub-query's own
+    hybrid trace.
+    """
+
+    id: str
+    text: str
+    purpose: str
+    is_critical: bool
+    verdict: SubQueryVerdict | None = None
+    evidence: list[RankedBlockRef] = []
+    retrieval: RetrievalTrace | None = None
+
+
+class PassReport(BaseModel):
+    """One self-critique pass: which sub-queries held, which did not, and evidence.
+
+    ``evidence_count`` is the total number of evidence blocks across all
+    sub-queries at the end of this pass; comparing it across passes is the raw
+    signal behind the agentic delta.
+    """
+
+    pass_number: int
+    sufficient_ids: list[str]
+    insufficient_ids: list[str]
+    evidence_count: int
+
+
+class AgenticTrace(BaseModel):
+    """The measurable record of the agentic run, read by the UI and the harness.
+
+    ``agentic_delta`` is the growth in grounded sub-queries from the first pass to
+    the last -- the evidence that iterating earned something over a single shot.
+    """
+
+    query_type: QueryType | None = None
+    subqueries: list[SubQueryReport] = []
+    passes: list[PassReport] = []
+    first_pass_sufficient: int = 0
+    final_sufficient: int = 0
+    agentic_delta: int = 0
+
+
 class Outcome(StrEnum):
     """The deterministic terminal states of a Mode 1 query."""
 
     ANSWER = "respuesta"
+    PARTIAL_ANSWER = "respuesta_parcial"
     ABSTENTION = "abstencion"
+    ROUTER_REJECTION = "rechazo_router"
 
 
 class AskRequest(BaseModel):
@@ -109,14 +191,17 @@ class AskRequest(BaseModel):
 
 
 class AskResponse(BaseModel):
-    """The full Mode 1 result: outcome, one of answer/abstention, and telemetry.
+    """The full Mode 1 result: outcome, the matching payload, and agentic telemetry.
 
-    Exactly one of ``answer`` and ``abstention`` is set, per ``outcome``.
+    Exactly one of ``answer`` / ``abstention`` / ``rejection`` is set, per
+    ``outcome``. ``agentic`` carries the decomposition and per-pass telemetry for
+    every outcome except an out-of-scope rejection (which runs before planning).
     ``citation_verdicts`` is the per-verdict count for this run.
     """
 
     outcome: Outcome
     answer: Answer | None = None
     abstention: Abstention | None = None
-    retrieval: RetrievalTrace
-    citation_verdicts: dict[str, int]
+    rejection: RouterRejection | None = None
+    agentic: AgenticTrace | None = None
+    citation_verdicts: dict[str, int] = {}

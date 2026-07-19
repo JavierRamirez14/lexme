@@ -28,13 +28,25 @@
   min-height: 1px;
 }
 
-.loading {
+.running {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.runningCaption {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5);
+  margin: 0;
   color: var(--color-ink-soft);
   font-size: var(--text-sm);
+}
+
+.done {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
 }
 
 .spinner {
