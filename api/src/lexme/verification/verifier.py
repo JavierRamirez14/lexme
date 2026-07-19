@@ -55,9 +55,7 @@ def verify_citations(
     for block in evidence:
         evidence_by_id.setdefault(block.block_id, block)
 
-    results = [
-        _verify_one(citation, evidence, evidence_by_id, resolver) for citation in citations
-    ]
+    results = [_verify_one(citation, evidence, evidence_by_id, resolver) for citation in citations]
     _log_summary(results)
     return results
 

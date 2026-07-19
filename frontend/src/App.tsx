@@ -1,42 +1,14 @@
-import { useEffect, useState } from "react";
+import { AppShell } from "./components/AppShell";
+import { Mode1Page } from "./mode1/Mode1Page";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
-
-type HealthState = "loading" | "ok" | "degraded" | "unreachable";
-
+/**
+ * The application root: the reusable shell wrapping the active mode. Mode 1 is
+ * the only surface for now; later modes render inside the same shell.
+ */
 export function App() {
-  const [health, setHealth] = useState<HealthState>("loading");
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function checkHealth() {
-      try {
-        const response = await fetch(`${API_URL}/health`);
-        const body = (await response.json()) as { status?: string };
-        if (!cancelled) {
-          setHealth(body.status === "ok" ? "ok" : "degraded");
-        }
-      } catch {
-        if (!cancelled) {
-          setHealth("unreachable");
-        }
-      }
-    }
-
-    checkHealth();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: "2rem", maxWidth: 640 }}>
-      <h1>Lexme</h1>
-      <p>Agentic RAG over Spanish legislation — skeleton stub.</p>
-      <p>
-        API health: <strong>{health}</strong>
-      </p>
-    </main>
+    <AppShell activeMode="consulta">
+      <Mode1Page />
+    </AppShell>
   );
 }

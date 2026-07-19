@@ -56,9 +56,7 @@ class FakeCorpusReader:
             redactions=[_Redaction(effective, text) for effective, text in versions],
         )
 
-    def resolve_block(
-        self, norm_id: str, block_id: str, target_date: date
-    ) -> ResolvedBlock | None:
+    def resolve_block(self, norm_id: str, block_id: str, target_date: date) -> ResolvedBlock | None:
         """Return the redaction in force at ``target_date`` with its anchor, or ``None``."""
         record = self._blocks.get((norm_id, block_id))
         if record is None:

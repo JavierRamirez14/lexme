@@ -1,0 +1,76 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.headerInner {
+  width: min(100%, var(--width-shell));
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  margin-right: auto;
+}
+
+.wordmark {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+}
+
+.tagline {
+  font-size: var(--text-xs);
+  color: var(--color-ink-faint);
+}
+
+.main {
+  flex: 1;
+  width: min(100%, var(--width-shell));
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-5);
+}
+
+.footer {
+  border-top: 1px solid transparent;
+}
+
+.footerInner {
+  width: min(100%, var(--width-shell));
+  margin: 0 auto;
+  padding: 0 var(--space-5) var(--space-4);
+}
+
+@media (max-width: 40rem) {
+  .headerInner {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .brand {
+    margin-right: 0;
+  }
+
+  .headerInner :global(nav) {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+}

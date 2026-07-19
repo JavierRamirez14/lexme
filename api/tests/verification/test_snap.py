@@ -46,8 +46,6 @@ def test_snap_requires_every_ellipsis_segment_to_align() -> None:
 
 
 def test_snap_rejoins_aligned_segments_with_the_canonical_ellipsis() -> None:
-    result = snap_citation(
-        ["la renta sera la que", "estipulen las partes en el"], BLOCK
-    )
+    result = snap_citation(["la renta sera la que", "estipulen las partes en el"], BLOCK)
     assert result is not None
     assert result.text == "la renta sera la que […] estipulen las partes en el"

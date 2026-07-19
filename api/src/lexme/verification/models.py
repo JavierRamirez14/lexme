@@ -91,9 +91,7 @@ class CorpusReader(Protocol):
     anchor, so the verifier never assembles an anchor from LLM-supplied fields.
     """
 
-    def resolve_block(
-        self, norm_id: str, block_id: str, target_date: date
-    ) -> ResolvedBlock | None:
+    def resolve_block(self, norm_id: str, block_id: str, target_date: date) -> ResolvedBlock | None:
         """Return the block's redaction in force at ``target_date`` with its anchor.
 
         Returns ``None`` when the norm/block is unknown or has no redaction in

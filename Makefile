@@ -8,7 +8,7 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest test test-integration lint fmt fe-install
+.PHONY: help up up-d down down-v build logs ps health embed ingest ask test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -46,6 +46,11 @@ embed: ## Ask TEI for an embedding (smoke test)
 ingest: ## Build or refresh the vivienda corpus inside the api container
 	$(COMPOSE) exec api ingest --manifest /verticales/vivienda/manifest.json
 
+ask: ## Ask Mode 1 a question (smoke test): make ask Q="tu pregunta"
+	curl -s -X POST http://localhost:8000/ask \
+		-H 'Content-Type: application/json' \
+		-d '{"question": "$(Q)"}'
+
 test: ## Run the API test suite (DB integration tests skip unless configured)
 	cd api && uv run pytest
 
@@ -63,3 +68,6 @@ fmt: ## Format the API package
 
 fe-install: ## Install frontend dependencies
 	cd frontend && npm install
+
+fe-build: ## Type-check and build the frontend
+	cd frontend && npm run build

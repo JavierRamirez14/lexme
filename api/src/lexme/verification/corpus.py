@@ -20,17 +20,13 @@ class PsycopgCorpusReader:
         """Bind the reader to an open corpus connection."""
         self._connection = connection
 
-    def resolve_block(
-        self, norm_id: str, block_id: str, target_date: date
-    ) -> ResolvedBlock | None:
+    def resolve_block(self, norm_id: str, block_id: str, target_date: date) -> ResolvedBlock | None:
         """Resolve the block at ``target_date`` and hydrate its anchor, or ``None``.
 
         The prose (``text_content``) is what citations quote, so it is what the
         verifier matches against.
         """
-        version = repository.get_version_in_force(
-            self._connection, norm_id, block_id, target_date
-        )
+        version = repository.get_version_in_force(self._connection, norm_id, block_id, target_date)
         if version is None:
             return None
         anchor = repository.get_citation_anchor(self._connection, norm_id, block_id)
