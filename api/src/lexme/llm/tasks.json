@@ -2,42 +2,42 @@
   "tasks": {
     "mode1_router": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash-lite",
+      "model": "gemini-flash-lite-latest",
       "temperature": 0.0
     },
     "mode1_planning": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-3.5-flash",
       "temperature": 0.0
     },
     "mode1_selfcritique": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-3.5-flash",
       "temperature": 0.0
     },
     "mode1_synthesis": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-3.5-flash",
       "temperature": 0.0
     },
     "mode2_triage": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-3.5-flash",
       "temperature": 0.0
     },
     "mode2_segmentation": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-3.5-flash",
       "temperature": 0.0
     },
     "mode2_clause_classification": {
       "provider": "gemini",
-      "model": "gemini-2.5-flash",
+      "model": "gemini-3.5-flash",
       "temperature": 0.0
     },
     "judge": {
       "provider": "openrouter",
-      "model": "meta-llama/llama-3.3-70b-instruct:free",
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
       "temperature": 0.0
     }
   }
