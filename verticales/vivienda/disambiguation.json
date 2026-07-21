@@ -1,0 +1,21 @@
+{
+  "vertical": "vivienda",
+  "branches": [
+    {
+      "id": "fecha_firma",
+      "question": "¿En qué fecha firmaste el contrato? La LAU ha cambiado varias veces (la última reforma grande entró en vigor el 6 de marzo de 2019) y a tu contrato se le aplica la redacción vigente el día de la firma, no la de hoy.",
+      "answer_kind": "fecha",
+      "sets_target_date": true,
+      "fact_template": "El contrato se firmó el {answer}, así que le aplica la redacción vigente ese día.",
+      "assumption": "Asumo un contrato firmado con la redacción vigente hoy; si lo firmaste antes de una reforma, el régimen aplicable puede ser otro."
+    },
+    {
+      "id": "uso_vivienda",
+      "question": "¿El piso es tu vivienda habitual, o se trata de un alquiler de temporada o de uso distinto del de vivienda?",
+      "answer_kind": "texto",
+      "sets_target_date": false,
+      "fact_template": "Sobre el uso de la vivienda, el inquilino indica: {answer}.",
+      "assumption": "Asumo arrendamiento de vivienda habitual; si es de temporada o de uso distinto, el régimen de plazos y prórrogas cambia."
+    }
+  ]
+}

@@ -7,9 +7,10 @@ what to retrieve, what verifies, which outcome to return -- is the system's own.
 """
 
 import psycopg
+from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from lexme.llm import FakeLlmClient
-from lexme.mode1 import AbstentionReason, Outcome, SubQueryVerdict, answer_question
+from lexme.mode1 import AbstentionReason, Outcome, SubQueryVerdict
 from lexme.mode1.graph.critique import CRITIQUE_TASK
 from lexme.mode1.graph.planner import PLANNING_TASK
 from lexme.mode1.graph.router import ROUTER_TASK
@@ -17,7 +18,7 @@ from lexme.mode1.synthesis import SYNTHESIS_TASK
 from lexme.verification import CitationVerdict, CorpusReader
 from tests.conftest import DeterministicEmbedder
 from tests.mode1.conftest import (
-    AS_OF,
+    build_run,
     critique_of,
     in_force_text,
     in_scope,
@@ -37,18 +38,11 @@ def _run(
     embedder: DeterministicEmbedder,
     corpus: CorpusReader,
     llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
     question: str = QUESTION,
 ):
-    """Run the agentic graph with the test's wiring and today's target date fixed."""
-    return answer_question(
-        question,
-        connection=conn,
-        embedder=embedder,
-        corpus=corpus,
-        llm=llm,
-        vertical="vivienda",
-        target_date=AS_OF,
-    )
+    """Run the agentic graph with the test's wiring and its clock fixed."""
+    return build_run(conn, embedder, corpus, llm, checkpointer).answer(question)
 
 
 def test_a_grounded_question_yields_a_cited_answer_with_assumptions(
@@ -56,6 +50,7 @@ def test_a_grounded_question_yields_a_cited_answer_with_assumptions(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     assert QUOTE in in_force_text(seeded_corpus, "a9")
     program_single_sufficient(
@@ -65,7 +60,7 @@ def test_a_grounded_question_yields_a_cited_answer_with_assumptions(
         assumptions=("Asumo vivienda habitual y no de temporada.",),
     )
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.outcome is Outcome.ANSWER
     assert response.answer is not None
@@ -79,17 +74,12 @@ def test_a_grounded_question_yields_a_cited_answer_with_assumptions(
 
 def test_an_out_of_scope_question_is_rejected_before_retrieval(
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     fake_llm.queue(ROUTER_TASK, out_of_scope("Eso es tráfico, no alquiler de vivienda."))
 
-    response = answer_question(
-        "¿cómo recurro una multa de tráfico?",
-        connection=None,
-        embedder=None,
-        corpus=None,
-        llm=fake_llm,
-        vertical="vivienda",
-        target_date=AS_OF,
+    response = build_run(None, None, None, fake_llm, checkpointer).answer(
+        "¿cómo recurro una multa de tráfico?"
     )
 
     assert response.outcome is Outcome.ROUTER_REJECTION
@@ -104,10 +94,11 @@ def test_a_fabricated_citation_forces_an_honest_abstention(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     program_single_sufficient(fake_llm, query_text=QUESTION, citation=("a9", FABRICATED))
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.outcome is Outcome.ABSTENTION
     assert response.abstention is not None
@@ -120,13 +111,14 @@ def test_a_discarded_citation_never_appears_beside_a_valid_one(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     fake_llm.queue(ROUTER_TASK, in_scope())
     fake_llm.queue(PLANNING_TASK, plan_of((QUESTION, "Responder la pregunta.", True)))
     fake_llm.queue(CRITIQUE_TASK, critique_of(("sq1", SubQueryVerdict.SUFFICIENT, "")))
     fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE), ("a9", FABRICATED)))
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.outcome is Outcome.ANSWER
     assert response.answer is not None
@@ -140,6 +132,7 @@ def test_a_compound_question_decomposes_into_judged_subqueries(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     fake_llm.queue(ROUTER_TASK, in_scope())
     fake_llm.queue(
@@ -158,7 +151,7 @@ def test_a_compound_question_decomposes_into_judged_subqueries(
     )
     fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.agentic is not None
     assert [sub.id for sub in response.agentic.subqueries] == ["sq1", "sq2"]
@@ -171,6 +164,7 @@ def test_the_self_critique_loop_iterates_then_stops_when_grounded(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     fake_llm.queue(ROUTER_TASK, in_scope())
     fake_llm.queue(PLANNING_TASK, plan_of(("plazo arrendamiento", "Plazo mínimo.", True)))
@@ -181,7 +175,7 @@ def test_the_self_critique_loop_iterates_then_stops_when_grounded(
     )
     fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.outcome is Outcome.ANSWER
     assert response.agentic is not None
@@ -196,6 +190,7 @@ def test_the_self_critique_loop_stops_at_three_passes(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     fake_llm.queue(ROUTER_TASK, in_scope())
     fake_llm.queue(PLANNING_TASK, plan_of((QUESTION, "Plazo mínimo.", True)))
@@ -205,7 +200,7 @@ def test_the_self_critique_loop_stops_at_three_passes(
     )
     fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.outcome is Outcome.ABSTENTION
     assert response.abstention is not None
@@ -220,6 +215,7 @@ def test_a_peripheral_gap_yields_a_partial_answer_with_declared_gaps(
     deterministic_embedder: DeterministicEmbedder,
     corpus_reader: CorpusReader,
     fake_llm: FakeLlmClient,
+    checkpointer: BaseCheckpointSaver,
 ) -> None:
     fake_llm.queue(ROUTER_TASK, in_scope())
     fake_llm.queue(
@@ -241,7 +237,7 @@ def test_a_peripheral_gap_yields_a_partial_answer_with_declared_gaps(
     )
     fake_llm.queue(SYNTHESIS_TASK, synthesis_of(("a9", QUOTE)))
 
-    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm)
+    response = _run(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
 
     assert response.outcome is Outcome.PARTIAL_ANSWER
     assert response.answer is not None

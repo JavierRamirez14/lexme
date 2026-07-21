@@ -14,6 +14,7 @@ from lexme.mode1.models import (
     AgenticTrace,
     Answer,
     AskResponse,
+    Clarification,
     Outcome,
     PassReport,
     RankedBlockRef,
@@ -53,7 +54,7 @@ def build_agentic_trace(state: Mode1State) -> AgenticTrace:
     )
 
 
-def build_response(state: Mode1State) -> AskResponse:
+def build_response(state: Mode1State, thread_id: str) -> AskResponse:
     """Build the final response from a completed run's state.
 
     An out-of-scope rejection carries no agentic trace (it ran before planning);
@@ -62,6 +63,7 @@ def build_response(state: Mode1State) -> AskResponse:
     if state.outcome is Outcome.ROUTER_REJECTION:
         return AskResponse(
             outcome=Outcome.ROUTER_REJECTION,
+            thread_id=thread_id,
             rejection=RouterRejection(
                 message=state.router_message or "",
                 scope_reminder=SCOPE_REMINDER,
@@ -72,6 +74,7 @@ def build_response(state: Mode1State) -> AskResponse:
     if state.outcome is Outcome.ABSTENTION:
         return AskResponse(
             outcome=Outcome.ABSTENTION,
+            thread_id=thread_id,
             abstention=_abstention(state),
             agentic=trace,
             citation_verdicts=state.citation_verdicts,
@@ -79,19 +82,38 @@ def build_response(state: Mode1State) -> AskResponse:
 
     return AskResponse(
         outcome=state.outcome or Outcome.ANSWER,
+        thread_id=thread_id,
         answer=_answer(state),
         agentic=trace,
         citation_verdicts=state.citation_verdicts,
     )
 
 
+def build_clarification_response(
+    state: Mode1State, clarification: Clarification, thread_id: str
+) -> AskResponse:
+    """Build the paused response carrying the one question the run is waiting on.
+
+    The agentic trace travels with it, so the client can keep showing the work
+    done so far while the user answers.
+    """
+    return AskResponse(
+        outcome=Outcome.CLARIFICATION,
+        thread_id=thread_id,
+        clarification=clarification,
+        agentic=build_agentic_trace(state),
+    )
+
+
 def _answer(state: Mode1State) -> Answer:
-    """Assemble the answer, listing the assumptions and any peripheral gaps."""
+    """Assemble the answer, situated in time and listing assumptions and gaps."""
     synthesis = state.synthesis
     return Answer(
         fundamento=state.verified,
         explicacion=synthesis.explicacion if synthesis else "",
         accion=synthesis.accion if synthesis else [],
+        fecha_objetivo=state.target_date,
+        avisos_vigencia=state.notices,
         asunciones=state.assumptions,
         huecos_declarados=_declared_gaps(state),
     )

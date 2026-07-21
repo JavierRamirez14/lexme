@@ -8,7 +8,7 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest ask ask-stream test test-integration lint fmt fe-install fe-build
+.PHONY: help up up-d down down-v build logs ps health embed ingest ask ask-resume ask-stream ask-resume-stream test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -51,10 +51,20 @@ ask: ## Ask Mode 1 a question (smoke test): make ask Q="tu pregunta"
 		-H 'Content-Type: application/json' \
 		-d '{"question": "$(Q)"}'
 
+ask-resume: ## Reply to Mode 1's disambiguating question: make ask-resume T=<thread_id> A="2017-05-04"
+	curl -s -X POST http://localhost:8000/ask/resume \
+		-H 'Content-Type: application/json' \
+		-d '{"thread_id": "$(T)", "answer": "$(A)"}'
+
 ask-stream: ## Stream the agentic run as SSE: make ask-stream Q="tu pregunta"
 	curl -sN -X POST http://localhost:8000/ask/stream \
 		-H 'Content-Type: application/json' \
 		-d '{"question": "$(Q)"}'
+
+ask-resume-stream: ## Stream the resumed run as SSE: make ask-resume-stream T=<thread_id> A="2017-05-04"
+	curl -sN -X POST http://localhost:8000/ask/resume/stream \
+		-H 'Content-Type: application/json' \
+		-d '{"thread_id": "$(T)", "answer": "$(A)"}'
 
 test: ## Run the API test suite (DB integration tests skip unless configured)
 	cd api && uv run pytest

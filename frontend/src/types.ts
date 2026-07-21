@@ -5,7 +5,12 @@
  * `/ask/stream` (whose `step` events carry an `AgenticTrace` snapshot).
  */
 
-export type Outcome = "respuesta" | "respuesta_parcial" | "abstencion" | "rechazo_router";
+export type Outcome =
+  | "respuesta"
+  | "respuesta_parcial"
+  | "abstencion"
+  | "rechazo_router"
+  | "desambiguacion";
 
 export type QueryType = "informativa" | "situacional" | "procedimental";
 
@@ -32,12 +37,33 @@ export interface VerifiedCitation {
   anchor: VerifiedAnchor;
 }
 
+export type NoticeCode =
+  | "fecha_objetivo_pasada"
+  | "redaccion_superada"
+  | "modificacion_reciente";
+
+export interface InForceNotice {
+  code: NoticeCode;
+  message: string;
+  block_id: string | null;
+}
+
 export interface Answer {
   fundamento: VerifiedCitation[];
   explicacion: string;
   accion: string[];
+  fecha_objetivo: string;
+  avisos_vigencia: InForceNotice[];
   asunciones: string[];
   huecos_declarados: string[];
+}
+
+export type AnswerKind = "fecha" | "texto";
+
+export interface Clarification {
+  branch_id: string;
+  question: string;
+  answer_kind: AnswerKind;
 }
 
 export type AbstentionReason =
@@ -95,9 +121,11 @@ export interface AgenticTrace {
 
 export interface AskResponse {
   outcome: Outcome;
+  thread_id: string;
   answer: Answer | null;
   abstention: Abstention | null;
   rejection: RouterRejection | null;
+  clarification: Clarification | null;
   agentic: AgenticTrace | null;
   citation_verdicts: Record<string, number>;
 }

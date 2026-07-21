@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     """Runtime configuration for the API."""
 
     database_url: str
+    verticals_dir: str = "/verticales"
     tei_url: str = "http://tei:80"
     frontend_origin: str = "http://localhost:5173"
     gemini_api_key: str = ""

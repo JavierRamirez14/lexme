@@ -1,8 +1,9 @@
 /**
  * The one place the SPA talks to the API. Wraps `/ask/stream` (the live agentic
- * run, read as Server-Sent Events over `fetch`) and `/health`, maps transport and
- * HTTP errors to typed results, and reads the base URL from the Vite env so the
- * same build works in dev and in compose.
+ * run, read as Server-Sent Events over `fetch`), its `/ask/resume/stream`
+ * counterpart for a run that paused to ask something, and `/health`. It maps
+ * transport and HTTP errors to typed results, and reads the base URL from the
+ * Vite env so the same build works in dev and in compose.
  */
 
 import type { AgenticTrace, AskResponse } from "../types";
@@ -29,12 +30,36 @@ export async function askQuestionStream(
   handlers: StreamHandlers,
   signal?: AbortSignal,
 ): Promise<void> {
+  await streamRun("/ask/stream", { question }, handlers, signal);
+}
+
+/**
+ * Answer the disambiguating question a paused run asked and let it continue on the
+ * same `threadId`, narrated exactly like the first leg. An empty `answer` is a
+ * valid reply: the run proceeds on a stated assumption instead.
+ */
+export async function resumeQuestionStream(
+  threadId: string,
+  answer: string,
+  handlers: StreamHandlers,
+  signal?: AbortSignal,
+): Promise<void> {
+  await streamRun("/ask/resume/stream", { thread_id: threadId, answer }, handlers, signal);
+}
+
+/** POST `body` to an SSE endpoint and drive `handlers` with the events it sends. */
+async function streamRun(
+  path: string,
+  body: object,
+  handlers: StreamHandlers,
+  signal?: AbortSignal,
+): Promise<void> {
   let response: Response;
   try {
-    response = await fetch(`${API_URL}/ask/stream`, {
+    response = await fetch(`${API_URL}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify(body),
       signal,
     });
   } catch {

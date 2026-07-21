@@ -3,15 +3,19 @@
 The agentic graph classifies scope, decomposes the question into sub-queries,
 retrieves and self-critiques them across passes, synthesizes a three-layer answer
 and verifies every citation. The terminal outcome -- a full answer, a partial
-answer, an honest abstention or an out-of-scope rejection -- is a code decision
-over the critique verdicts and the surviving citations, never the model's own
-judgement, so the outcomes and the abstention reasons are typed here.
+answer, an honest abstention, an out-of-scope rejection or a pause to ask one
+disambiguating question -- is a code decision over the critique verdicts and the
+surviving citations, never the model's own judgement, so the outcomes and the
+abstention reasons are typed here.
 """
 
+from datetime import date
 from enum import StrEnum
 
 from pydantic import BaseModel, field_validator
 
+from lexme.mode1.branches import AnswerKind
+from lexme.mode1.notices import InForceNotice
 from lexme.verification import CitationVerdict, ProposedCitation, VerifiedAnchor
 
 
@@ -64,17 +68,21 @@ class VerifiedCitation(BaseModel):
 
 
 class Answer(BaseModel):
-    """The three-layer answer as returned, plus the assumptions and declared gaps.
+    """The three-layer answer as returned, situated in time and in the user's case.
 
-    ``fundamento`` never contains a discarded citation. ``asunciones`` are the
-    non-critical interpretation choices the planner made explicit instead of
-    asking. ``huecos_declarados`` names what a partial answer could not ground;
-    it is empty for a full answer.
+    ``fundamento`` never contains a discarded citation. ``fecha_objetivo`` is the
+    date the corpus was resolved at, so the reader can never mistake the law of
+    then for the law of now, and ``avisos_vigencia`` carries the code-derived
+    warnings about that distance. ``asunciones`` are the interpretation choices
+    stated instead of asked; ``huecos_declarados`` names what a partial answer
+    could not ground, and is empty for a full answer.
     """
 
     fundamento: list[VerifiedCitation]
     explicacion: str
     accion: list[str]
+    fecha_objetivo: date
+    avisos_vigencia: list[InForceNotice] = []
     asunciones: list[str] = []
     huecos_declarados: list[str] = []
 
@@ -100,6 +108,19 @@ class RouterRejection(BaseModel):
 
     message: str
     scope_reminder: str
+
+
+class Clarification(BaseModel):
+    """The single question the graph pauses to ask before it can answer the case.
+
+    Raised only for a critical branch of the vertical -- a fact that changes which
+    legal regime applies -- and only once per run. ``answer_kind`` tells the client
+    what to collect, so a date branch is answered with a date rather than prose.
+    """
+
+    branch_id: str
+    question: str
+    answer_kind: AnswerKind
 
 
 class RankedBlockRef(BaseModel):
@@ -168,12 +189,17 @@ class AgenticTrace(BaseModel):
 
 
 class Outcome(StrEnum):
-    """The deterministic terminal states of a Mode 1 query."""
+    """The deterministic states a Mode 1 request can end in.
+
+    ``CLARIFICATION`` is the only non-terminal one: the run is paused mid-graph
+    waiting for the user's answer and resumes on the same thread.
+    """
 
     ANSWER = "respuesta"
     PARTIAL_ANSWER = "respuesta_parcial"
     ABSTENTION = "abstencion"
     ROUTER_REJECTION = "rechazo_router"
+    CLARIFICATION = "desambiguacion"
 
 
 class AskRequest(BaseModel):
@@ -193,15 +219,38 @@ class AskRequest(BaseModel):
 class AskResponse(BaseModel):
     """The full Mode 1 result: outcome, the matching payload, and agentic telemetry.
 
-    Exactly one of ``answer`` / ``abstention`` / ``rejection`` is set, per
-    ``outcome``. ``agentic`` carries the decomposition and per-pass telemetry for
-    every outcome except an out-of-scope rejection (which runs before planning).
+    Exactly one of ``answer`` / ``abstention`` / ``rejection`` / ``clarification``
+    is set, per ``outcome``. ``agentic`` carries the decomposition and per-pass
+    telemetry for every outcome except an out-of-scope rejection (which runs
+    before planning). ``thread_id`` identifies the paused run to resume it, and is
+    carried on every response so a client never has to track it itself.
     ``citation_verdicts`` is the per-verdict count for this run.
     """
 
     outcome: Outcome
+    thread_id: str
     answer: Answer | None = None
     abstention: Abstention | None = None
     rejection: RouterRejection | None = None
+    clarification: Clarification | None = None
     agentic: AgenticTrace | None = None
     citation_verdicts: dict[str, int] = {}
+
+
+class ResumeRequest(BaseModel):
+    """A user's reply to the disambiguating question, against the paused run.
+
+    A blank ``answer`` is a legitimate "I would rather not say": the run resumes
+    with the branch's assumption stated explicitly instead of an answer.
+    """
+
+    thread_id: str
+    answer: str = ""
+
+    @field_validator("thread_id")
+    @classmethod
+    def _reject_blank(cls, value: str) -> str:
+        """Reject an empty thread id at the API boundary."""
+        if not value.strip():
+            raise ValueError("thread_id must not be blank")
+        return value

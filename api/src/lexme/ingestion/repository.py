@@ -106,6 +106,25 @@ def get_version_in_force(
         ).fetchone()
 
 
+def get_effective_dates(conn: psycopg.Connection, norm_id: str, block_id: str) -> list[date]:
+    """Return the effective dates of every stored redaction of a block, oldest first.
+
+    The whole amendment history, not only the versions in force at some date, so
+    callers can tell that a cited redaction has been superseded since.
+    """
+    rows = conn.execute(
+        """
+        SELECT v.effective_date
+        FROM versions v
+        JOIN blocks b ON b.id = v.block_id
+        WHERE b.norm_id = %s AND b.block_id = %s
+        ORDER BY v.effective_date
+        """,
+        (norm_id, block_id),
+    ).fetchall()
+    return [row[0] for row in rows]
+
+
 def get_citation_anchor(
     conn: psycopg.Connection, norm_id: str, block_id: str
 ) -> CitationAnchor | None:

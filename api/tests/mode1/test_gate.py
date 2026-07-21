@@ -71,6 +71,7 @@ def _state(*subqueries: SubQueryState, verified: bool = True) -> Mode1State:
     return Mode1State(
         question="q",
         vertical="vivienda",
+        today=AS_OF,
         target_date=AS_OF,
         subqueries=list(subqueries),
         verified=[_verified()] if verified else [],

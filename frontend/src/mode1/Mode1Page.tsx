@@ -1,19 +1,29 @@
 import { useRef, useState } from "react";
-import { askQuestionStream, AskError } from "../api/client";
+import { askQuestionStream, resumeQuestionStream, AskError } from "../api/client";
+import type { StreamHandlers } from "../api/client";
 import { AgenticTrace } from "../components/AgenticTrace";
 import { AnswerView } from "../components/AnswerView";
 import { Abstention } from "../components/Abstention";
+import { ClarificationTurn } from "../components/ClarificationTurn";
 import { PartialAnswer } from "../components/PartialAnswer";
 import { QueryForm } from "../components/QueryForm";
 import { RouterRejection } from "../components/RouterRejection";
-import type { AgenticTrace as AgenticTraceData, AskResponse } from "../types";
+import { Turn } from "../components/Turn";
+import type { AgenticTrace as AgenticTraceData, AskResponse, Clarification } from "../types";
 import styles from "./Mode1Page.module.css";
 
 type RequestState =
   | { phase: "idle" }
   | { phase: "streaming"; step: string; trace: AgenticTraceData }
+  | { phase: "asking"; clarification: Clarification; threadId: string; trace: AgenticTraceData }
   | { phase: "done"; response: AskResponse; trace: AgenticTraceData | null }
   | { phase: "error"; message: string };
+
+/** The disambiguating question and the reply to it, kept once it has been answered. */
+interface Exchange {
+  clarification: Clarification;
+  answer: string;
+}
 
 const EMPTY_TRACE: AgenticTraceData = {
   query_type: null,
@@ -25,17 +35,23 @@ const EMPTY_TRACE: AgenticTraceData = {
 };
 
 /**
- * Mode 1: the consultation surface. Streams the agentic run over SSE, showing the
- * graph work live, then renders the terminal state -- a cited answer, a partial
- * answer, an honest abstention or an out-of-scope rejection -- each in its own
- * component. Only the latest request wins, so a fast follow-up cancels the one in
- * flight.
+ * Mode 1: the consultation surface, read as a conversation. It streams the
+ * agentic run over SSE, showing the graph work live, and then either renders the
+ * terminal state -- a cited answer, a partial answer, an honest abstention or an
+ * out-of-scope rejection -- or, when the run paused to ask one disambiguating
+ * question, shows that question as the assistant's turn and resumes the very same
+ * run in place once it is answered. The exchange stays on screen after the reply,
+ * so the answer is read against the case it was narrowed to. Only the latest
+ * request wins, so a fast follow-up cancels the one in flight.
  */
 export function Mode1Page() {
+  const [question, setQuestion] = useState<string | null>(null);
+  const [exchange, setExchange] = useState<Exchange | null>(null);
   const [state, setState] = useState<RequestState>({ phase: "idle" });
   const controllerRef = useRef<AbortController | null>(null);
 
-  async function submit(question: string) {
+  /** Stream one leg of a consultation and route wherever it ends. */
+  async function run(leg: (handlers: StreamHandlers, signal: AbortSignal) => Promise<void>) {
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
@@ -43,8 +59,7 @@ export function Mode1Page() {
 
     let latestTrace: AgenticTraceData = EMPTY_TRACE;
     try {
-      await askQuestionStream(
-        question,
+      await leg(
         {
           onStep: (step, agentic) => {
             latestTrace = agentic;
@@ -54,7 +69,7 @@ export function Mode1Page() {
           },
           onResult: (response) => {
             if (!controller.signal.aborted) {
-              setState({ phase: "done", response, trace: response.agentic ?? latestTrace });
+              setState(resultState(response, latestTrace));
             }
           },
         },
@@ -70,6 +85,21 @@ export function Mode1Page() {
     }
   }
 
+  async function submit(asked: string) {
+    setQuestion(asked);
+    setExchange(null);
+    await run((handlers, signal) => askQuestionStream(asked, handlers, signal));
+  }
+
+  async function answerClarification(
+    clarification: Clarification,
+    threadId: string,
+    answer: string,
+  ) {
+    setExchange({ clarification, answer });
+    await run((handlers, signal) => resumeQuestionStream(threadId, answer, handlers, signal));
+  }
+
   return (
     <div className={styles.page}>
       <section className={styles.intro}>
@@ -82,7 +112,24 @@ export function Mode1Page() {
 
       <QueryForm loading={state.phase === "streaming"} onSubmit={submit} />
 
-      <div className={styles.result} aria-live="polite">
+      <div className={styles.conversation} aria-live="polite">
+        {question !== null && state.phase !== "idle" && (
+          <Turn speaker="user" label="Tu consulta">
+            {question}
+          </Turn>
+        )}
+
+        {exchange && (
+          <>
+            <Turn speaker="assistant" label="Lexme necesita un dato">
+              {exchange.clarification.question}
+            </Turn>
+            <Turn speaker="user" label="Tu respuesta">
+              {exchange.answer || "Prefiero no decirlo."}
+            </Turn>
+          </>
+        )}
+
         {state.phase === "streaming" && (
           <div className={styles.running}>
             <p className={styles.runningCaption}>
@@ -90,6 +137,18 @@ export function Mode1Page() {
               Procesando tu consulta…
             </p>
             <AgenticTrace trace={state.trace} step={state.step} running />
+          </div>
+        )}
+
+        {state.phase === "asking" && (
+          <div className={styles.done}>
+            <AgenticTrace trace={state.trace} step="done" running={false} />
+            <ClarificationTurn
+              clarification={state.clarification}
+              onAnswer={(answer) =>
+                answerClarification(state.clarification, state.threadId, answer)
+              }
+            />
           </div>
         )}
 
@@ -104,6 +163,19 @@ export function Mode1Page() {
       </div>
     </div>
   );
+}
+
+/** Map a finished stream to the state that renders it: paused to ask, or done. */
+function resultState(response: AskResponse, trace: AgenticTraceData): RequestState {
+  if (response.outcome === "desambiguacion" && response.clarification) {
+    return {
+      phase: "asking",
+      clarification: response.clarification,
+      threadId: response.thread_id,
+      trace: response.agentic ?? trace,
+    };
+  }
+  return { phase: "done", response, trace: response.agentic ?? trace };
 }
 
 /** Render a finished run: the process trace (when any) above its terminal state. */

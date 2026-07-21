@@ -8,6 +8,7 @@ enforces it afterwards, but stating it up front reduces the repairs needed.
 """
 
 from collections.abc import Sequence
+from datetime import date
 
 from lexme.llm import LlmClient, Message
 from lexme.mode1.models import Mode1Synthesis
@@ -30,7 +31,10 @@ _SYSTEM_PROMPT = (
     "Si la evidencia no permite responder con una cita literal, devuelve "
     "'fundamento' vacío en lugar de forzar una respuesta. Si se te indican huecos "
     "sin base, no los rellenes: mantén la respuesta dentro de lo que la evidencia "
-    "respalda y no afirmes nada sobre esos huecos."
+    "respalda y no afirmes nada sobre esos huecos.\n"
+    "La evidencia es la redacción vigente en la fecha que se te indica, que puede "
+    "no ser hoy: responde situado en esa fecha y no adviertas por tu cuenta sobre "
+    "cambios posteriores de la ley, de eso se encarga el sistema."
 )
 
 
@@ -39,26 +43,44 @@ def synthesize(
     question: str,
     evidence: Sequence[RetrievedBlock],
     *,
+    target_date: date,
     gaps: Sequence[str] = (),
+    facts: Sequence[str] = (),
 ) -> Mode1Synthesis:
     """Run the synthesis task over ``question`` and ``evidence``.
 
-    ``gaps`` names the parts of the plan left ungrounded, so the model keeps the
-    answer within what the evidence supports instead of filling them in. Returns
-    the model's proposed three-layer answer; the citations are unverified until the
-    caller runs them through the verifier.
+    ``target_date`` is the date the evidence was resolved at, so the prose is
+    written in that moment rather than in an implicit present. ``gaps`` names the
+    parts of the plan left ungrounded, so the model keeps the answer within what
+    the evidence supports instead of filling them in; ``facts`` are the case
+    details the user supplied when the run stopped to ask. Returns the model's
+    proposed three-layer answer; the citations are unverified until the caller
+    runs them through the verifier.
     """
     messages = [
         Message("system", _SYSTEM_PROMPT),
-        Message("user", _render_prompt(question, evidence, gaps)),
+        Message("user", _render_prompt(question, evidence, target_date, gaps, facts)),
     ]
     return llm.complete_structured(SYNTHESIS_TASK, messages, Mode1Synthesis)
 
 
-def _render_prompt(question: str, evidence: Sequence[RetrievedBlock], gaps: Sequence[str]) -> str:
-    """Build the user message: the question, the evidence, and any declared gaps."""
+def _render_prompt(
+    question: str,
+    evidence: Sequence[RetrievedBlock],
+    target_date: date,
+    gaps: Sequence[str],
+    facts: Sequence[str],
+) -> str:
+    """Build the user message: the question, its date, the evidence, facts and gaps."""
     blocks = "\n\n".join(_render_block(block) for block in evidence)
-    prompt = f"Pregunta del inquilino:\n{question}\n\nEvidencia recuperada:\n{blocks}"
+    prompt = (
+        f"Pregunta del inquilino:\n{question}\n\n"
+        f"Fecha a la que hay que situar la respuesta: {target_date.isoformat()}\n\n"
+        f"Evidencia recuperada:\n{blocks}"
+    )
+    if facts:
+        fact_lines = "\n".join(f"- {fact}" for fact in facts)
+        prompt += f"\n\nDatos del caso que ha confirmado el inquilino:\n{fact_lines}"
     if gaps:
         gap_lines = "\n".join(f"- {gap}" for gap in gaps)
         prompt += f"\n\nHuecos sin base (no los rellenes):\n{gap_lines}"

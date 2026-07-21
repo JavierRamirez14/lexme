@@ -1,3 +1,4 @@
+import { formatDate } from "../format";
 import type { CitationVerdict, VerifiedCitation } from "../types";
 import styles from "./Citation.module.css";
 
@@ -7,14 +8,6 @@ const VERDICT_LABELS: Record<CitationVerdict, string> = {
   reparada_anclaje: "Verificada (reubicada)",
   descartada: "Descartada",
 };
-
-function formatDate(iso: string): string {
-  const date = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(date.getTime())) {
-    return iso;
-  }
-  return new Intl.DateTimeFormat("es-ES", { dateStyle: "long" }).format(date);
-}
 
 interface CitationProps {
   citation: VerifiedCitation;

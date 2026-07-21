@@ -1,5 +1,6 @@
 import type { Answer } from "../types";
 import { Citation } from "./Citation";
+import { InForceBanner } from "./InForceBanner";
 import styles from "./AnswerView.module.css";
 
 interface AnswerViewProps {
@@ -10,11 +11,15 @@ interface AnswerViewProps {
  * The three-layer answer, in descending authority: the cited foundation first
  * and most prominent, then the plain-language explanation, then the bounded
  * "what you can do" steps. The order and weight make the hierarchy legible --
- * everything downstream rests on the verified citations at the top.
+ * everything downstream rests on the verified citations at the top. When the
+ * answer is not situated in today's law, the in-force banner says so above all
+ * of it, before the reader has taken any of it as current.
  */
 export function AnswerView({ answer }: AnswerViewProps) {
   return (
     <article className={styles.answer}>
+      <InForceBanner answer={answer} />
+
       <section className={styles.layer} aria-labelledby="fundamento-heading">
         <h2 className={styles.foundationHeading} id="fundamento-heading">
           Fundamento

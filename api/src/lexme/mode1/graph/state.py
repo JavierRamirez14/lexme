@@ -11,6 +11,7 @@ from datetime import date
 
 from pydantic import BaseModel, ConfigDict
 
+from lexme.mode1.dates import DatePrecision, TargetDate
 from lexme.mode1.graph.steps import Step
 from lexme.mode1.models import (
     AbstentionReason,
@@ -21,6 +22,7 @@ from lexme.mode1.models import (
     SubQueryVerdict,
     VerifiedCitation,
 )
+from lexme.mode1.notices import CitedBlock, InForceNotice
 from lexme.retrieval.models import BlockKey, RetrievedBlock
 
 MAX_SUBQUERIES = 4
@@ -80,13 +82,20 @@ class Mode1State(BaseModel):
     ``current_step`` is the human-readable stage name the SSE stream emits after
     each node. The terminal ``outcome`` and ``abstention_reason`` are set only by
     the router (for a rejection) or the gate.
+
+    ``today`` is the run's clock, injected rather than read, and ``target_date``
+    is the date the corpus is resolved at: they start equal and diverge when the
+    planner reads a past date out of the question or the user answers the
+    signing-date branch.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     question: str
     vertical: str
+    today: date
     target_date: date
+    target_date_precision: DatePrecision = DatePrecision.NONE
 
     current_step: str = Step.START
 
@@ -97,6 +106,10 @@ class Mode1State(BaseModel):
     subqueries: list[SubQueryState] = []
     assumptions: list[str] = []
 
+    unresolved_branch_ids: list[str] = []
+    clarification_asked: bool = False
+    case_facts: list[str] = []
+
     passes: list[PassRecord] = []
     pass_number: int = 0
 
@@ -104,8 +117,32 @@ class Mode1State(BaseModel):
     verified: list[VerifiedCitation] = []
     citation_verdicts: dict[str, int] = {}
 
+    notices: list[InForceNotice] = []
+
     outcome: Outcome | None = None
     abstention_reason: AbstentionReason | None = None
+
+    @property
+    def anchor(self) -> TargetDate:
+        """The date the corpus is resolved at, with how precisely it was stated."""
+        return TargetDate(value=self.target_date, precision=self.target_date_precision)
+
+    @property
+    def cited_blocks(self) -> list[CitedBlock]:
+        """Each verified citation paired with the norm its evidence block belongs to."""
+        norm_ids = {
+            block.block_id: block.norm_id for sub in self.subqueries for block in sub.evidence
+        }
+        return [
+            CitedBlock(
+                norm_id=norm_ids[citation.block_id],
+                block_id=citation.block_id,
+                title=citation.anchor.title,
+                effective_date=citation.anchor.effective_date,
+            )
+            for citation in self.verified
+            if citation.block_id in norm_ids
+        ]
 
     @property
     def total_evidence(self) -> int:

@@ -41,14 +41,21 @@ def synthesize_node(state: Mode1State, *, deps: Mode1Deps) -> dict:
             "current_step": Step.SYNTHESIZING,
         }
 
-    synthesis = synthesize(deps.llm, state.question, evidence, gaps=_gaps(state))
+    synthesis = synthesize(
+        deps.llm,
+        state.question,
+        evidence,
+        target_date=state.target_date,
+        gaps=_gaps(state),
+        facts=state.case_facts,
+    )
     results = _verify(synthesis, evidence, deps.corpus, state.target_date)
     verified = [_to_verified(result) for result in results if _held(result)]
     return {
         "synthesis": synthesis,
         "verified": verified,
         "citation_verdicts": summarize(results),
-        "current_step": "sintetizando",
+        "current_step": Step.SYNTHESIZING,
     }
 
 
