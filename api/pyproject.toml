@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 ingest = "lexme.ingestion.cli:main"
+validate-checklist = "lexme.checklist.cli:main"
 
 [dependency-groups]
 dev = [

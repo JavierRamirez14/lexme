@@ -8,16 +8,16 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest ask ask-resume ask-stream ask-resume-stream test test-integration lint fmt fe-install fe-build
+.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 
-up: ## Start the full stack in the foreground
-	$(COMPOSE) up
+up: ## Rebuild changed images and start the full stack detached
+	$(COMPOSE) up -d --build
 
-up-d: ## Start the full stack detached
+up-d: ## Start the full stack detached (no rebuild)
 	$(COMPOSE) up -d
 
 down: ## Stop the stack
@@ -45,6 +45,9 @@ embed: ## Ask TEI for an embedding (smoke test)
 
 ingest: ## Build or refresh the vivienda corpus inside the api container
 	$(COMPOSE) exec api ingest --manifest /verticales/vivienda/manifest.json
+
+validate-checklist: ## Validate the vivienda checklist against the ingested corpus
+	$(COMPOSE) exec api validate-checklist --vertical vivienda
 
 ask: ## Ask Mode 1 a question (smoke test): make ask Q="tu pregunta"
 	curl -s -X POST http://localhost:8000/ask \

@@ -1,0 +1,246 @@
+{
+  "vertical": "vivienda",
+  "norm_id": "BOE-A-1994-26003",
+  "items": [
+    {
+      "id": "CHK-01",
+      "right": "Plazo mínimo con prórroga obligatoria (5 años, 7 si el arrendador es persona jurídica).",
+      "anchors": ["a9"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no fija el plazo mínimo, pero la ley te lo garantiza igualmente: puedes permanecer hasta 5 años (7 si el arrendador es una empresa), prorrogando por anualidades, aunque figure un plazo menor. Ten en cuenta que, para no renovar al vencimiento, debes avisar con 30 días de antelación.",
+      "citation": {
+        "block_id": "a9",
+        "text": "se prorrogará obligatoriamente por plazos anuales hasta que el arrendamiento alcance una duración mínima de cinco años, o de siete años si el arrendador fuese persona jurídica"
+      }
+    },
+    {
+      "id": "CHK-02",
+      "right": "Prórroga tácita tras el mínimo, hasta 3 años más.",
+      "anchors": ["a10"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no menciona la prórroga tácita, pero la ley la aplica: cumplido el plazo mínimo, si ninguna de las partes avisa con la antelación debida, el contrato se prorroga por anualidades hasta 3 años más.",
+      "citation": {
+        "block_id": "a10",
+        "text": "el contrato se prorrogará obligatoriamente por plazos anuales hasta un máximo de tres años más"
+      }
+    },
+    {
+      "id": "CHK-03",
+      "right": "Derecho de desistimiento del inquilino tras 6 meses, con 30 días de preaviso.",
+      "anchors": ["a11"],
+      "character": "mixto",
+      "silence_tone": "favorable",
+      "absence_template": "El contrato no pacta indemnización por desistimiento, y eso te favorece: puedes dejar el contrato pasados 6 meses avisando con 30 días, y al no haberse pactado, el arrendador no puede reclamarte indemnización alguna.",
+      "citation": {
+        "block_id": "a11",
+        "text": "El arrendatario podrá desistir del contrato de arrendamiento, una vez que hayan transcurrido al menos seis meses, siempre que se lo comunique al arrendador con una antelación mínima de treinta días"
+      }
+    },
+    {
+      "id": "CHK-04",
+      "right": "Continuidad del cónyuge o conviviente ante desistimiento o abandono del arrendatario.",
+      "anchors": ["a12"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no lo recoge, pero la ley protege a tu cónyuge o pareja conviviente: si te vas, puede continuar el arrendamiento. Ten en cuenta que debe manifestar su voluntad de continuar dentro del plazo legal.",
+      "citation": {
+        "block_id": "a12",
+        "text": "el arrendamiento podrá continuar en beneficio del cónyuge que conviva con aquel"
+      }
+    },
+    {
+      "id": "CHK-05",
+      "right": "Continuidad del contrato ante venta de la vivienda (subrogación del comprador).",
+      "anchors": ["a14"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo dice, pero la ley te ampara: si el piso se vende, el comprador queda subrogado y te respeta el contrato durante el plazo mínimo legal.",
+      "citation": {
+        "block_id": "a14",
+        "text": "El adquirente de una vivienda arrendada quedará subrogado en los derechos y obligaciones del arrendador"
+      }
+    },
+    {
+      "id": "CHK-06",
+      "right": "Continuidad del cónyuge atribuido de la vivienda ante separación o divorcio.",
+      "anchors": ["a15"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no lo contempla, pero la ley lo permite: en caso de separación o divorcio, el cónyuge al que se atribuya la vivienda puede continuar el arrendamiento. Recuerda que hay que comunicarlo al arrendador en plazo, aportando la resolución judicial.",
+      "citation": {
+        "block_id": "a15",
+        "text": "el cónyuge no arrendatario podrá continuar en el uso de la vivienda arrendada cuando le sea atribuida"
+      }
+    },
+    {
+      "id": "CHK-07",
+      "right": "Subrogación por muerte del arrendatario a favor de ciertos convivientes.",
+      "anchors": ["a16"],
+      "character": "mixto",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no lo menciona, pero la ley permite que, al fallecer el arrendatario, ciertos convivientes se subroguen en el contrato. Atención: es un derecho que se pierde si no se notifica al arrendador dentro de los 3 meses siguientes al fallecimiento.",
+      "citation": {
+        "block_id": "a16",
+        "text": "El arrendamiento se extinguirá si en el plazo de tres meses desde la muerte del arrendatario el arrendador no recibe notificación por escrito del hecho del fallecimiento"
+      }
+    },
+    {
+      "id": "CHK-08",
+      "right": "Límite a la actualización anual de la renta al IPC; sin pacto expreso, no sube.",
+      "anchors": ["a18"],
+      "character": "mixto",
+      "silence_tone": "favorable",
+      "absence_template": "El contrato no incluye cláusula de actualización, y eso te favorece: sin pacto expreso la renta no sube. Y aunque se hubiera pactado, la subida no puede superar el límite legal ligado al IPC.",
+      "citation": {
+        "block_id": "a18",
+        "text": "En defecto de pacto expreso, no se aplicará actualización de rentas a los contratos"
+      }
+    },
+    {
+      "id": "CHK-09",
+      "right": "Derecho a recibo del pago y máximo una mensualidad de renta anticipada.",
+      "anchors": ["a17"],
+      "character": "mixto",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo detalla, pero la ley te asiste: tienes derecho a recibo del pago y no se te puede exigir más de una mensualidad de renta por adelantado.",
+      "citation": {
+        "block_id": "a17",
+        "text": "El arrendador queda obligado a entregar recibo del pago, salvo que se hubiera pactado que éste se realice mediante procedimientos que acrediten el efectivo cumplimiento"
+      }
+    },
+    {
+      "id": "CHK-10",
+      "right": "Elevación de renta por mejoras topada en el 20 % de la renta vigente.",
+      "anchors": ["a19"],
+      "character": "mixto",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo regula, pero la ley pone límites: si el arrendador hace obras de mejora, la subida de renta no puede exceder el 20 % de la renta vigente.",
+      "citation": {
+        "block_id": "a19",
+        "text": "sin que pueda exceder el aumento de la renta del veinte por ciento de la renta vigente en aquel momento"
+      }
+    },
+    {
+      "id": "CHK-11",
+      "right": "Gastos de gestión inmobiliaria y de formalización, a cargo del arrendador.",
+      "anchors": ["a20"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no lo aclara, pero la ley es tajante: la comisión de la agencia y los gastos de formalización los paga el arrendador, no tú. Conviene saberlo por si se te cobran indebidamente.",
+      "citation": {
+        "block_id": "a20",
+        "text": "Los gastos de gestión inmobiliaria y los de formalización del contrato serán a cargo del arrendador"
+      }
+    },
+    {
+      "id": "CHK-12",
+      "right": "Repercusión de gastos generales solo con pacto escrito y cuantía anual determinada.",
+      "anchors": ["a20"],
+      "character": "mixto",
+      "silence_tone": "favorable",
+      "absence_template": "El contrato no repercute los gastos generales, y eso te favorece: sin un pacto por escrito que fije su importe anual, no tienes que pagarlos.",
+      "citation": {
+        "block_id": "a20",
+        "text": "este pacto deberá constar por escrito y determinar el importe anual de dichos gastos a la fecha del contrato"
+      }
+    },
+    {
+      "id": "CHK-13",
+      "right": "Reparaciones para conservar la habitabilidad, a cargo del arrendador y sin subir la renta.",
+      "anchors": ["a21"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no reparte con claridad las reparaciones, pero la ley lo hace: el arrendador debe realizar las necesarias para mantener la vivienda habitable, sin subirte la renta por ello. Tú solo asumes las pequeñas reparaciones por desgaste ordinario.",
+      "citation": {
+        "block_id": "a21",
+        "text": "El arrendador está obligado a realizar, sin derecho a elevar por ello la renta, todas las reparaciones que sean necesarias para conservar la vivienda en las condiciones de habitabilidad"
+      }
+    },
+    {
+      "id": "CHK-14",
+      "right": "Obras de mejora del arrendador: preaviso de 3 meses, desistimiento y reducción de renta.",
+      "anchors": ["a22"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo prevé, pero la ley te protege: ante obras de mejora, el arrendador debe avisarte con 3 meses de antelación, y podrás desistir del contrato o exigir reducción de renta e indemnización por las molestias.",
+      "citation": {
+        "block_id": "a22",
+        "text": "deberá notificar por escrito al arrendatario, al menos con tres meses de antelación, su naturaleza, comienzo, duración y coste previsible"
+      }
+    },
+    {
+      "id": "CHK-15",
+      "right": "Vivienda inhabitable por obras: suspender el contrato o desistir sin indemnización.",
+      "anchors": ["a26"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo regula, pero la ley te da opciones: si las obras de conservación hacen la vivienda inhabitable, puedes suspender el contrato dejando de pagar renta, o desistir sin indemnización.",
+      "citation": {
+        "block_id": "a26",
+        "text": "tendrá el arrendatario la opción de suspender el contrato o de desistir del mismo, sin indemnización alguna"
+      }
+    },
+    {
+      "id": "CHK-16",
+      "right": "Obras de accesibilidad por discapacidad o edad, previa notificación escrita.",
+      "anchors": ["a24"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo menciona, pero la ley te lo reconoce: con notificación escrita al arrendador, puedes hacer las obras de accesibilidad necesarias para ti o para convivientes con discapacidad o mayores de setenta años.",
+      "citation": {
+        "block_id": "a24",
+        "text": "previa notificación escrita al arrendador, podrá realizar en el interior de la vivienda aquellas obras o actuaciones necesarias"
+      }
+    },
+    {
+      "id": "CHK-17",
+      "right": "Derecho de adquisición preferente (tanteo y retracto) salvo renuncia pactada.",
+      "anchors": ["a25"],
+      "character": "dispositivo",
+      "silence_tone": "ex_lege_con_carga",
+      "absence_template": "El contrato no lo excluye, así que conservas el derecho de adquisición preferente: si el arrendador vende, tienes preferencia para comprar. Recuerda que, para ejercerlo, hay que actuar en el plazo de 30 días desde la notificación.",
+      "citation": {
+        "block_id": "a25",
+        "text": "tendrá el arrendatario derecho de adquisición preferente sobre la misma"
+      }
+    },
+    {
+      "id": "CHK-18",
+      "right": "Fianza legal de una mensualidad y tope a las garantías adicionales.",
+      "anchors": ["a36"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "La fianza es obligatoria por ley y su cuantía no depende del pacto: en vivienda equivale a una mensualidad de renta, y cualquier garantía adicional está topada por la ley.",
+      "citation": {
+        "block_id": "a36",
+        "text": "será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas"
+      }
+    },
+    {
+      "id": "CHK-19",
+      "right": "Límite al precio del subarriendo: no puede exceder del arrendamiento.",
+      "anchors": ["a8"],
+      "character": "imperativo",
+      "silence_tone": "ex_lege_informativo",
+      "absence_template": "El contrato no lo trata, pero la ley lo limita: el subarriendo requiere consentimiento escrito del arrendador y su precio no puede superar el del arrendamiento.",
+      "citation": {
+        "block_id": "a8",
+        "text": "El precio del subarriendo no podrá exceder, en ningún caso, del que corresponda al arrendamiento"
+      }
+    },
+    {
+      "id": "CHK-20",
+      "right": "Nulidad de las renuncias en perjuicio del inquilino (regla de cierre).",
+      "anchors": ["a6"],
+      "character": "imperativo",
+      "silence_tone": "no_aplica",
+      "absence_template": "Regla de cierre, no un derecho omitible: cualquier cláusula que te haga renunciar a los derechos que la LAU te reconoce, o que los empeore, es nula y se tiene por no puesta. Es el fundamento legal de todo hallazgo de cláusula abusiva.",
+      "citation": {
+        "block_id": "a6",
+        "text": "Son nulas, y se tendrán por no puestas, las estipulaciones que modifiquen en perjuicio del arrendatario o subarrendatario las normas del presente Título"
+      }
+    }
+  ]
+}

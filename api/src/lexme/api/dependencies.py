@@ -20,6 +20,7 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from pgvector.psycopg import register_vector
 
+from lexme.checklist import Checklist, checklist_path, load_checklist
 from lexme.config import Settings, get_settings
 from lexme.ingestion.embeddings import TeiEmbedder
 from lexme.llm import LlmClient, build_llm_client
@@ -97,6 +98,20 @@ def get_branches(
 ) -> tuple[CriticalBranch, ...]:
     """Return the vertical's critical-branch package, loaded from its data directory."""
     return _branches(settings.verticals_dir, vertical)
+
+
+@lru_cache
+def _checklist(verticals_dir: str, vertical: str) -> Checklist:
+    """Load and cache a vertical's checklist package; it changes only on redeploy."""
+    return load_checklist(checklist_path(verticals_dir, vertical))
+
+
+def get_checklist(
+    settings: Settings = Depends(get_settings),
+    vertical: str = Depends(get_vertical),
+) -> Checklist:
+    """Return the vertical's legal-default checklist, loaded from its data directory."""
+    return _checklist(settings.verticals_dir, vertical)
 
 
 @lru_cache
