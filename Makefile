@@ -8,7 +8,7 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream test test-integration lint fmt fe-install fe-build
+.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -68,6 +68,9 @@ ask-resume-stream: ## Stream the resumed run as SSE: make ask-resume-stream T=<t
 	curl -sN -X POST http://localhost:8000/ask/resume/stream \
 		-H 'Content-Type: application/json' \
 		-d '{"thread_id": "$(T)", "answer": "$(A)"}'
+
+contract: ## Analyze a contract (smoke test): make contract F=path/to/contrato.pdf
+	curl -s -X POST http://localhost:8000/contract/analyze -F "file=@$(F)"
 
 test: ## Run the API test suite (DB integration tests skip unless configured)
 	cd api && uv run pytest

@@ -31,6 +31,14 @@ from lexme.mode1 import (
     VersionHistory,
     load_branches,
 )
+from lexme.mode2 import (
+    Mode2Deps,
+    PdfWordExtractor,
+    ScopePackage,
+    TextExtractor,
+    load_scope,
+)
+from lexme.mode2.scope import SCOPE_FILENAME
 from lexme.retrieval import QueryEmbedder
 from lexme.verification import CorpusReader, PsycopgCorpusReader
 
@@ -128,6 +136,40 @@ def _checkpointer() -> BaseCheckpointSaver:
 def get_checkpointer() -> BaseCheckpointSaver:
     """Return the shared checkpoint store paused runs are stored in."""
     return _checkpointer()
+
+
+@lru_cache
+def _scope(verticals_dir: str, vertical: str) -> ScopePackage:
+    """Load and cache a vertical's Mode 2 scope package; it changes only on redeploy."""
+    return load_scope(Path(verticals_dir) / vertical / SCOPE_FILENAME)
+
+
+def get_scope(
+    settings: Settings = Depends(get_settings),
+    vertical: str = Depends(get_vertical),
+) -> ScopePackage:
+    """Return the vertical's Mode 2 scope package, loaded from its data directory."""
+    return _scope(settings.verticals_dir, vertical)
+
+
+@lru_cache
+def _text_extractor() -> TextExtractor:
+    """Build the stateless PDF/Word extractor once and reuse it across requests."""
+    return PdfWordExtractor()
+
+
+def get_text_extractor() -> TextExtractor:
+    """Return the shared document text extractor."""
+    return _text_extractor()
+
+
+def get_mode2_deps(
+    llm: LlmClient = Depends(get_llm_client),
+    extractor: TextExtractor = Depends(get_text_extractor),
+    scope: ScopePackage = Depends(get_scope),
+) -> Mode2Deps:
+    """Bundle this request's collaborators for the Mode 2 contract pipeline."""
+    return Mode2Deps(llm=llm, extractor=extractor, scope=scope)
 
 
 def get_today() -> date:

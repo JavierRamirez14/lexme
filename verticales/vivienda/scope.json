@@ -1,0 +1,5 @@
+{
+  "vertical": "vivienda",
+  "current_redaction_effective_from": "2019-03-06",
+  "excluded_uses": ["temporada", "uso_distinto"]
+}

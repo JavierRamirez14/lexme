@@ -1,0 +1,32 @@
+.stop {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background-color: var(--color-notice-soft);
+  border: 1px solid var(--color-notice-border);
+  border-radius: var(--radius-lg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.icon {
+  font-size: var(--text-lg);
+  color: var(--color-notice);
+}
+
+.title {
+  font-size: var(--text-lg);
+  color: var(--color-ink);
+}
+
+.message {
+  max-width: var(--width-reading);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--color-ink-soft);
+}

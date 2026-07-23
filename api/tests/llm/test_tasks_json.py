@@ -15,8 +15,8 @@ def test_judge_is_a_different_provider_family_than_the_generator() -> None:
 
     generator = registry.resolve("mode1_synthesis")
     judge = registry.resolve("judge")
-    assert generator.provider == "gemini"
-    assert judge.provider == "openrouter"
+    assert generator.provider == "openrouter"
+    assert judge.provider == "gemini"
     assert judge.provider != generator.provider
 
 

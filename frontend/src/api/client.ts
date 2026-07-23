@@ -7,6 +7,7 @@
  */
 
 import type { AgenticTrace, AskResponse } from "../types";
+import type { ContractAnalysis } from "../mode2/types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
 
@@ -105,6 +106,34 @@ function dispatch(frame: string, handlers: StreamHandlers): void {
     const payload = JSON.parse(data) as { step: string; agentic: AgenticTrace };
     handlers.onStep(payload.step, payload.agentic);
   }
+}
+
+/**
+ * Upload a lease to `/contract/analyze` and return its analysis. The document is
+ * sent as multipart form data and never leaves this request; the API holds it in
+ * memory and persists nothing. Throws `AskError` on a transport or HTTP failure.
+ */
+export async function analyzeContract(
+  file: File,
+  signal?: AbortSignal,
+): Promise<ContractAnalysis> {
+  const body = new FormData();
+  body.append("file", file);
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/contract/analyze`, {
+      method: "POST",
+      body,
+      signal,
+    });
+  } catch {
+    if (signal?.aborted) throw new AskError("cancelado");
+    throw new AskError("No se pudo contactar con el servicio.");
+  }
+  if (!response.ok) {
+    throw new AskError(`El servicio respondió con un error (${response.status}).`);
+  }
+  return (await response.json()) as ContractAnalysis;
 }
 
 /** Probe the API health endpoint, collapsing the result to a display status. */

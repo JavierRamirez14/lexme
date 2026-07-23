@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from lexme.api.ask import router as ask_router
+from lexme.api.contract import router as contract_router
 from lexme.api.health import router as health_router
 from lexme.config import get_settings
 
@@ -20,6 +21,7 @@ def create_app() -> FastAPI:
     )
     app.include_router(health_router)
     app.include_router(ask_router)
+    app.include_router(contract_router)
     return app
 
 

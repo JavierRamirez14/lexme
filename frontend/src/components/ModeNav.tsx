@@ -6,29 +6,24 @@ interface Mode {
   id: ModeId;
   label: string;
   hint: string;
-  enabled: boolean;
 }
 
 const MODES: Mode[] = [
-  { id: "consulta", label: "Consulta", hint: "Pregunta en lenguaje natural", enabled: true },
-  {
-    id: "contrato",
-    label: "Revisar contrato",
-    hint: "Disponible próximamente",
-    enabled: false,
-  },
+  { id: "consulta", label: "Consulta", hint: "Pregunta en lenguaje natural" },
+  { id: "contrato", label: "Revisar contrato", hint: "Sube tu contrato y obtén su ficha" },
 ];
 
 interface ModeNavProps {
   active: ModeId;
+  onSelect: (mode: ModeId) => void;
 }
 
 /**
- * The switch between the two product modes. Mode 2 is present but disabled until
- * its ticket lands, so the shell already shows where it will live without
- * pretending it works.
+ * The switch between the two product modes. Both are live now; selecting one
+ * swaps the surface rendered inside the shell. The active tab is marked for
+ * assistive tech with `aria-current`.
  */
-export function ModeNav({ active }: ModeNavProps) {
+export function ModeNav({ active, onSelect }: ModeNavProps) {
   return (
     <nav className={styles.nav} aria-label="Modos">
       {MODES.map((mode) => (
@@ -37,11 +32,10 @@ export function ModeNav({ active }: ModeNavProps) {
           type="button"
           className={styles.tab}
           aria-current={mode.id === active ? "page" : undefined}
-          disabled={!mode.enabled}
           title={mode.hint}
+          onClick={() => onSelect(mode.id)}
         >
           <span className={styles.label}>{mode.label}</span>
-          {!mode.enabled && <span className={styles.badge}>pronto</span>}
         </button>
       ))}
     </nav>
