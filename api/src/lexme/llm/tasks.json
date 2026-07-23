@@ -30,6 +30,11 @@
       "model": "nvidia/nemotron-3-super-120b-a12b:free",
       "temperature": 0.0
     },
+    "mode2_clause_mapping": {
+      "provider": "openrouter",
+      "model": "nvidia/nemotron-3-super-120b-a12b:free",
+      "temperature": 0.0
+    },
     "mode2_clause_classification": {
       "provider": "openrouter",
       "model": "nvidia/nemotron-3-super-120b-a12b:free",

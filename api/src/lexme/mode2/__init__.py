@@ -10,6 +10,8 @@ persisted. The model proposes; the gates, in code, decide.
 """
 
 from lexme.mode2.anchor import AnchoredSpan, anchor_clauses
+from lexme.mode2.classify import CLASSIFICATION_TASK, ClauseClassification, classify_clause
+from lexme.mode2.crosscheck import cross_check
 from lexme.mode2.extraction import (
     ExtractedText,
     PdfWordExtractor,
@@ -17,6 +19,7 @@ from lexme.mode2.extraction import (
     UnsupportedDocumentError,
 )
 from lexme.mode2.gates import GateOutcome, apply_gates
+from lexme.mode2.mapping import MAPPING_TASK, ClauseMap, DocumentMapping, map_clauses
 from lexme.mode2.models import (
     Clause,
     ContractAnalysis,
@@ -29,6 +32,16 @@ from lexme.mode2.models import (
     TenancyUse,
 )
 from lexme.mode2.pipeline import Mode2Deps, analyze_contract
+from lexme.mode2.retrieval import ClauseRetriever, HybridClauseRetriever
+from lexme.mode2.risk import (
+    AbsenceFinding,
+    ClauseFinding,
+    CoverageStatus,
+    ProposedClauseLevel,
+    RiskLevel,
+    RiskMap,
+)
+from lexme.mode2.riskmap import build_risk_map
 from lexme.mode2.scope import ScopeError, ScopePackage, load_scope
 from lexme.mode2.segmentation import (
     SEGMENTATION_TASK,
@@ -40,21 +53,34 @@ from lexme.mode2.summary import build_summary
 from lexme.mode2.triage import TRIAGE_TASK, TriageResult, triage_document
 
 __all__ = [
+    "CLASSIFICATION_TASK",
+    "MAPPING_TASK",
     "SEGMENTATION_TASK",
     "TRIAGE_TASK",
+    "AbsenceFinding",
     "AnchoredSpan",
     "Clause",
+    "ClauseClassification",
+    "ClauseFinding",
+    "ClauseMap",
+    "ClauseRetriever",
     "ContractAnalysis",
     "ContractSheet",
+    "CoverageStatus",
+    "DocumentMapping",
     "ExecutiveSummary",
     "ExtractedText",
     "GateOutcome",
+    "HybridClauseRetriever",
     "Mode2Deps",
     "Mode2Outcome",
     "PdfWordExtractor",
     "ProposedClause",
+    "ProposedClauseLevel",
     "Rejection",
     "RejectionReason",
+    "RiskLevel",
+    "RiskMap",
     "ScopeError",
     "ScopePackage",
     "SegmentationProposal",
@@ -66,8 +92,12 @@ __all__ = [
     "analyze_contract",
     "anchor_clauses",
     "apply_gates",
+    "build_risk_map",
     "build_summary",
+    "classify_clause",
+    "cross_check",
     "load_scope",
+    "map_clauses",
     "segment_document",
     "triage_document",
 ]

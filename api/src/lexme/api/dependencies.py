@@ -32,6 +32,8 @@ from lexme.mode1 import (
     load_branches,
 )
 from lexme.mode2 import (
+    ClauseRetriever,
+    HybridClauseRetriever,
     Mode2Deps,
     PdfWordExtractor,
     ScopePackage,
@@ -163,13 +165,33 @@ def get_text_extractor() -> TextExtractor:
     return _text_extractor()
 
 
+def get_clause_retriever(
+    connection: psycopg.Connection = Depends(get_db_connection),
+    embedder: QueryEmbedder = Depends(get_embedder),
+) -> ClauseRetriever:
+    """Return the hybrid retriever Mode 2 grounds off-checklist clauses through."""
+    return HybridClauseRetriever(connection, embedder)
+
+
 def get_mode2_deps(
     llm: LlmClient = Depends(get_llm_client),
     extractor: TextExtractor = Depends(get_text_extractor),
     scope: ScopePackage = Depends(get_scope),
+    checklist: Checklist = Depends(get_checklist),
+    corpus: CorpusReader = Depends(get_corpus_reader),
+    retriever: ClauseRetriever = Depends(get_clause_retriever),
+    vertical: str = Depends(get_vertical),
 ) -> Mode2Deps:
     """Bundle this request's collaborators for the Mode 2 contract pipeline."""
-    return Mode2Deps(llm=llm, extractor=extractor, scope=scope)
+    return Mode2Deps(
+        llm=llm,
+        extractor=extractor,
+        scope=scope,
+        checklist=checklist,
+        corpus=corpus,
+        retriever=retriever,
+        vertical=vertical,
+    )
 
 
 def get_today() -> date:

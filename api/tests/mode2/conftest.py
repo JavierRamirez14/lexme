@@ -10,7 +10,7 @@ genuine files.
 """
 
 import io
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
 from datetime import date
 
 import pytest
@@ -18,19 +18,34 @@ from docx import Document
 from pypdf import PdfWriter
 
 from lexme.api.dependencies import (
+    get_clause_retriever,
+    get_corpus_reader,
     get_llm_client,
     get_scope,
     get_text_extractor,
     get_today,
 )
+from lexme.checklist import (
+    Checklist,
+    ChecklistCitation,
+    ChecklistItem,
+    RuleCharacter,
+    SilenceTone,
+)
 from lexme.llm import FakeLlmClient
 from lexme.main import app
 from lexme.mode2 import ExtractedText, ScopePackage, TenancyUse
+from lexme.mode2.classify import ClauseClassification
+from lexme.mode2.mapping import ClauseMap, DocumentMapping
+from lexme.mode2.risk import ProposedClauseLevel
 from lexme.mode2.segmentation import ProposedClause, SegmentationProposal
 from lexme.mode2.triage import TriageResult
+from lexme.retrieval import RetrievedBlock
+from lexme.verification import ProposedCitation, ResolvedBlock, VerifiedAnchor
 
 TODAY = date(2024, 6, 1)
 CURRENT_REDACTION_FROM = date(2019, 3, 6)
+NORM_ID = "BOE-A-1994-26003"
 
 
 @pytest.fixture
@@ -39,6 +54,97 @@ def scope() -> ScopePackage:
     return ScopePackage(
         current_redaction_effective_from=CURRENT_REDACTION_FROM,
         excluded_uses=frozenset({TenancyUse.SEASONAL, TenancyUse.NON_DWELLING}),
+    )
+
+
+class FakeCorpus:
+    """A :class:`CorpusReader` over an in-memory ``block_id -> ResolvedBlock`` map."""
+
+    def __init__(self, blocks: dict[str, ResolvedBlock] | None = None) -> None:
+        self._blocks = dict(blocks or {})
+
+    def resolve_block(self, norm_id: str, block_id: str, target_date: date) -> ResolvedBlock | None:
+        return self._blocks.get(block_id)
+
+
+class FakeRetriever:
+    """A :class:`ClauseRetriever` that returns programmed blocks and records queries."""
+
+    def __init__(self, blocks: Sequence[RetrievedBlock] = ()) -> None:
+        self._blocks = list(blocks)
+        self.queries: list[str] = []
+
+    def retrieve(
+        self, clause_text: str, *, vertical: str, target_date: date
+    ) -> list[RetrievedBlock]:
+        self.queries.append(clause_text)
+        return list(self._blocks)
+
+
+def resolved_block(block_id: str, text: str, *, title: str = "Artículo") -> ResolvedBlock:
+    """A resolved corpus block with a hydrated anchor, for the fake corpus."""
+    return ResolvedBlock(
+        text=text,
+        anchor=VerifiedAnchor(
+            eli=f"https://www.boe.es/eli/es/l/1994/11/24/29/{block_id}",
+            consolidated_html_url="https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003",
+            block_id=block_id,
+            title=title,
+            effective_date=date(2023, 5, 26),
+        ),
+    )
+
+
+def checklist_item(
+    item_id: str,
+    right: str,
+    block_id: str,
+    citation_text: str,
+    *,
+    character: RuleCharacter = RuleCharacter.IMPERATIVE,
+    silence_tone: SilenceTone = SilenceTone.EX_LEGE_INFORMATIVE,
+    absence_template: str = "La ley te lo reconoce aunque el contrato calle.",
+) -> ChecklistItem:
+    """One checklist item wired to a single anchor block and its citation."""
+    return ChecklistItem(
+        id=item_id,
+        right=right,
+        anchors=(block_id,),
+        character=character,
+        silence_tone=silence_tone,
+        absence_template=absence_template,
+        citation=ChecklistCitation(block_id=block_id, text=citation_text),
+    )
+
+
+def checklist_of(*items: ChecklistItem) -> Checklist:
+    """A checklist bound to the vivienda norm from the given items."""
+    return Checklist(vertical="vivienda", norm_id=NORM_ID, items=tuple(items))
+
+
+def mapping_of(*entries: tuple[str, bool, list[str]]) -> DocumentMapping:
+    """A document mapping from ``(clause_id, evaluable, chk_ids)`` tuples."""
+    return DocumentMapping(
+        clauses=[
+            ClauseMap(clause_id=clause_id, evaluable=evaluable, chk_ids=chk_ids)
+            for clause_id, evaluable, chk_ids in entries
+        ]
+    )
+
+
+def classification_of(
+    level: ProposedClauseLevel,
+    *,
+    explanation: str = "Explicación de la cláusula.",
+    what_you_can_do: list[str] | None = None,
+    citation: tuple[str, str] | None = None,
+) -> ClauseClassification:
+    """A clause classification, its citation given as ``(block_id, text)`` or omitted."""
+    return ClauseClassification(
+        level=level,
+        explanation=explanation,
+        what_you_can_do=what_you_can_do or [],
+        citation=ProposedCitation(block_id=citation[0], text=citation[1]) if citation else None,
     )
 
 
@@ -90,6 +196,24 @@ def triage_of(
     )
 
 
+def _override_mode2_seams(
+    fake_llm: FakeLlmClient,
+    scope: ScopePackage,
+    corpus: FakeCorpus,
+    retriever: FakeRetriever,
+    checklist: Checklist,
+) -> None:
+    """Point every Mode 2 leaf dependency at a fake, so the bundle composes them."""
+    from lexme.api.dependencies import get_checklist
+
+    app.dependency_overrides[get_llm_client] = lambda: fake_llm
+    app.dependency_overrides[get_scope] = lambda: scope
+    app.dependency_overrides[get_corpus_reader] = lambda: corpus
+    app.dependency_overrides[get_clause_retriever] = lambda: retriever
+    app.dependency_overrides[get_checklist] = lambda: checklist
+    app.dependency_overrides[get_today] = lambda: TODAY
+
+
 @pytest.fixture
 def contract_server(
     fake_llm: FakeLlmClient,
@@ -100,12 +224,13 @@ def contract_server(
 
     Overriding the leaf dependencies (not the bundle) lets ``get_mode2_deps``
     compose the fakes exactly as it composes the real collaborators in production.
+    The checklist defaults to empty, so a lease that clears the gates reaches an
+    empty risk map after one mapping call, keeping the gate and anchor assertions
+    focused; the risk-map behaviour is covered by the pipeline-level tests.
     """
     extractor = FakeExtractor()
-    app.dependency_overrides[get_llm_client] = lambda: fake_llm
-    app.dependency_overrides[get_scope] = lambda: scope
+    _override_mode2_seams(fake_llm, scope, FakeCorpus(), FakeRetriever(), checklist_of())
     app.dependency_overrides[get_text_extractor] = lambda: extractor
-    app.dependency_overrides[get_today] = lambda: TODAY
     try:
         yield live_server, fake_llm, extractor
     finally:
@@ -120,12 +245,11 @@ def contract_server_real_extraction(
 ) -> Iterator[tuple[str, FakeLlmClient]]:
     """Like :func:`contract_server` but keeps the real PDF/Word extractor.
 
-    Only the LLM, scope and clock are faked, so a posted PDF or ``.docx`` travels
-    through the genuine library-backed extraction over HTTP.
+    Only the LLM, scope, corpus, retriever, checklist and clock are faked, so a
+    posted PDF or ``.docx`` travels through the genuine library-backed extraction
+    over HTTP.
     """
-    app.dependency_overrides[get_llm_client] = lambda: fake_llm
-    app.dependency_overrides[get_scope] = lambda: scope
-    app.dependency_overrides[get_today] = lambda: TODAY
+    _override_mode2_seams(fake_llm, scope, FakeCorpus(), FakeRetriever(), checklist_of())
     try:
         yield live_server, fake_llm
     finally:

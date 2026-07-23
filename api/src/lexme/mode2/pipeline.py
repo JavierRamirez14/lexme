@@ -12,6 +12,7 @@ writes it down.
 from dataclasses import dataclass
 from datetime import date
 
+from lexme.checklist import Checklist
 from lexme.llm import LlmClient
 from lexme.mode1.dates import parse_target_date
 from lexme.mode2.anchor import AnchoredSpan, anchor_clauses
@@ -25,10 +26,13 @@ from lexme.mode2.models import (
     Rejection,
     RejectionReason,
 )
+from lexme.mode2.retrieval import ClauseRetriever
+from lexme.mode2.riskmap import build_risk_map
 from lexme.mode2.scope import ScopePackage
 from lexme.mode2.segmentation import SegmentationProposal, segment_document
 from lexme.mode2.summary import build_summary
 from lexme.mode2.triage import TriageResult, triage_document
+from lexme.verification import CorpusReader
 
 MIN_ANALYZABLE_CHARS = 40
 
@@ -60,15 +64,21 @@ _REJECTION_MESSAGES: dict[RejectionReason, str] = {
 class Mode2Deps:
     """The collaborators one contract analysis is wired to.
 
-    ``extractor`` reads the document's text, ``llm`` runs triage and segmentation,
-    and ``scope`` carries the vertical's gate rules. All three are ports or data,
-    so a test drives the pipeline with a fake extractor, a fake LLM and a scope
-    package with no network and no files.
+    ``extractor`` reads the document's text and ``llm`` runs triage, segmentation
+    and classification; ``scope`` and ``checklist`` carry the vertical's gate rules
+    and legal defaults; ``corpus`` resolves the norm behind each citation and
+    ``retriever`` grounds clauses the checklist does not index. Every one is a port
+    or data, so a test drives the whole pipeline -- risk map included -- with fakes
+    and no network. ``vertical`` names which package the retrieval filters to.
     """
 
     llm: LlmClient
     extractor: TextExtractor
     scope: ScopePackage
+    checklist: Checklist
+    corpus: CorpusReader
+    retriever: ClauseRetriever
+    vertical: str
 
 
 def analyze_contract(
@@ -107,12 +117,23 @@ def analyze_contract(
     if gate.rejection is not None:
         return _reject(gate.rejection, assumptions=list(gate.assumptions))
 
+    risk_map = build_risk_map(
+        clauses,
+        extracted_text,
+        llm=deps.llm,
+        corpus=deps.corpus,
+        retriever=deps.retriever,
+        checklist=deps.checklist,
+        vertical=deps.vertical,
+        target_date=gate.target_date,
+    )
     sheet = _build_sheet(triage)
     return ContractAnalysis(
         outcome=Mode2Outcome.ANALYZED,
         sheet=sheet,
         summary=build_summary(sheet, len(clauses)),
         clauses=clauses,
+        risk_map=risk_map,
         assumptions=list(gate.assumptions),
     )
 

@@ -12,6 +12,7 @@ import httpx
 
 from lexme.llm import FakeLlmClient
 from lexme.mode2 import TenancyUse
+from lexme.mode2.mapping import MAPPING_TASK
 from lexme.mode2.segmentation import SEGMENTATION_TASK
 from lexme.mode2.triage import TRIAGE_TASK
 from tests.mode2.conftest import (
@@ -19,9 +20,13 @@ from tests.mode2.conftest import (
     build_blank_pdf,
     build_docx,
     build_text_pdf,
+    mapping_of,
     segmentation_of,
     triage_of,
 )
+
+INFORMATIVE_TWO = mapping_of(("c1", False, []), ("c2", False, []))
+INFORMATIVE_ONE = mapping_of(("c1", False, []))
 
 DOCUMENT = (
     "CONTRATO DE ARRENDAMIENTO DE VIVIENDA\n"
@@ -49,6 +54,7 @@ def test_a_readable_lease_is_analyzed_with_anchored_clauses(
     extractor.text = DOCUMENT
     fake_llm.queue(SEGMENTATION_TASK, segmentation_of(*CLAUSES))
     fake_llm.queue(TRIAGE_TASK, triage_of(fecha_firma="2023-01-01"))
+    fake_llm.queue(MAPPING_TASK, INFORMATIVE_TWO)
 
     response = _post(base_url)
 
@@ -56,6 +62,7 @@ def test_a_readable_lease_is_analyzed_with_anchored_clauses(
     body = response.json()
     assert body["outcome"] == "analizado"
     assert body["summary"]["headline"]
+    assert body["risk_map"] is not None
     clauses = body["clauses"]
     assert len(clauses) == 2
     assert clauses[0]["text"] == "El plazo del arrendamiento será de cinco años."
@@ -134,6 +141,7 @@ def test_a_missing_signing_date_is_analyzed_on_a_stated_assumption(
     extractor.text = DOCUMENT
     fake_llm.queue(SEGMENTATION_TASK, segmentation_of(*CLAUSES))
     fake_llm.queue(TRIAGE_TASK, triage_of(fecha_firma=""))
+    fake_llm.queue(MAPPING_TASK, INFORMATIVE_TWO)
 
     response = _post(base_url)
 
@@ -150,6 +158,7 @@ def test_a_real_pdf_upload_is_read_and_analyzed_over_the_api(
     pdf = build_text_pdf(["PRIMERA. Duracion.", clause])
     fake_llm.queue(SEGMENTATION_TASK, segmentation_of(("Duración", clause)))
     fake_llm.queue(TRIAGE_TASK, triage_of(fecha_firma="2023-01-01"))
+    fake_llm.queue(MAPPING_TASK, INFORMATIVE_ONE)
 
     response = httpx.post(
         f"{base_url}/contract/analyze",
@@ -170,6 +179,7 @@ def test_a_real_word_upload_is_read_and_analyzed_over_the_api(
     docx = build_docx(["PRIMERA. Renta.", clause])
     fake_llm.queue(SEGMENTATION_TASK, segmentation_of(("Renta", clause)))
     fake_llm.queue(TRIAGE_TASK, triage_of(fecha_firma="2023-01-01"))
+    fake_llm.queue(MAPPING_TASK, INFORMATIVE_ONE)
 
     response = httpx.post(
         f"{base_url}/contract/analyze",

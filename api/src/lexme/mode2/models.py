@@ -12,6 +12,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
+from lexme.mode2.risk import RiskMap
+
 
 class Mode2Outcome(StrEnum):
     """The terminal states a contract analysis can reach.
@@ -115,16 +117,17 @@ class Rejection(BaseModel):
 class ContractAnalysis(BaseModel):
     """The full Mode 2 result: the outcome and exactly the payload it implies.
 
-    On ``ANALYZED`` the ``sheet``, ``summary`` and ``clauses`` are set and
-    ``rejection`` is ``None``; on either stop only ``rejection`` is set. Both hold
-    ``assumptions`` -- the choices code made out loud (a silent use assumed a
-    dwelling, a missing signing date assumed today) so no gate verdict rests on a
-    hidden guess.
+    On ``ANALYZED`` the ``sheet``, ``summary``, ``clauses`` and ``risk_map`` are
+    set and ``rejection`` is ``None``; on either stop only ``rejection`` is set.
+    Both hold ``assumptions`` -- the choices code made out loud (a silent use
+    assumed a dwelling, a missing signing date assumed today) so no gate verdict
+    rests on a hidden guess.
     """
 
     outcome: Mode2Outcome
     sheet: ContractSheet | None = None
     summary: ExecutiveSummary | None = None
     clauses: list[Clause] = []
+    risk_map: RiskMap | None = None
     rejection: Rejection | None = None
     assumptions: list[str] = []

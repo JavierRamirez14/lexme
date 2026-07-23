@@ -1,4 +1,5 @@
 import { AssumptionList } from "./AssumptionList";
+import { RiskMap } from "./RiskMap";
 import type { ContractAnalysis } from "./types";
 import styles from "./ContractResult.module.css";
 
@@ -7,13 +8,14 @@ interface ContractResultProps {
 }
 
 /**
- * The good side of the gates: the contract's photo. The executive summary leads,
- * then the ficha as a field grid, then the segmented clauses as the scaffolding
- * the risk map (ticket 10) will populate. Assumptions the system made -- an
- * assumed use, an assumed signing date -- are stated at the end, never hidden.
+ * The good side of the gates: the contract's photo, then its risk map. The
+ * executive summary leads, then the ficha as a field grid; the risk map places
+ * every clause on the five-level spectrum and surfaces the protections the
+ * contract omits. Assumptions the system made -- an assumed use, an assumed
+ * signing date -- are stated at the end, never hidden.
  */
 export function ContractResult({ analysis }: ContractResultProps) {
-  const { sheet, summary, clauses, assumptions } = analysis;
+  const { sheet, summary, risk_map, assumptions } = analysis;
   if (!sheet || !summary) {
     return null;
   }
@@ -35,24 +37,7 @@ export function ContractResult({ analysis }: ContractResultProps) {
         </dl>
       </section>
 
-      <section className={styles.clauses} aria-labelledby="clauses-heading">
-        <h3 className={styles.heading} id="clauses-heading">
-          Cláusulas detectadas
-          <span className={styles.count}>{clauses.length}</span>
-        </h3>
-        <p className={styles.note}>
-          Cada cláusula está anclada por código a un fragmento literal de tu documento. El mapa de
-          riesgo llegará sobre estas mismas cláusulas.
-        </p>
-        <ol className={styles.clauseList}>
-          {clauses.map((clause) => (
-            <li key={clause.id} className={styles.clause}>
-              <p className={styles.clauseHeading}>{clause.heading}</p>
-              <p className={styles.clauseText}>{clause.text}</p>
-            </li>
-          ))}
-        </ol>
-      </section>
+      {risk_map && <RiskMap riskMap={risk_map} />}
 
       {assumptions.length > 0 && (
         <section className={styles.assumptions} aria-labelledby="assumptions-heading">

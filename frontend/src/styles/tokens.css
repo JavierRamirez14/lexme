@@ -36,6 +36,33 @@
   --color-danger: #9a3535;
   --color-danger-soft: #f6e6e3;
 
+  /*
+   * Risk spectrum: the five levels of the Mode 2 map as a first-class colour
+   * system. Each level has an ink, a soft fill and a border, so a finding reads
+   * the same whether it is a badge, a card edge or a highlight. `ausente` is
+   * deliberately a cool slate against the warm paper -- the absence differentiator
+   * must not blend into the neutrals.
+   */
+  --risk-ilegal: #8f2d2d;
+  --risk-ilegal-soft: #f6e3e0;
+  --risk-ilegal-border: #e0aba3;
+
+  --risk-peor: #9a5a15;
+  --risk-peor-soft: #f7ead6;
+  --risk-peor-border: #e6c79a;
+
+  --risk-negociable: #7d6410;
+  --risk-negociable-soft: #f6efce;
+  --risk-negociable-border: #e2d18f;
+
+  --risk-ausente: #35525f;
+  --risk-ausente-soft: #eaf0f3;
+  --risk-ausente-border: #b7c8d1;
+
+  --risk-correcto: #2f6a4c;
+  --risk-correcto-soft: #e7f1ea;
+  --risk-correcto-border: #bcd8c7;
+
   /* Status dots for the API indicator. */
   --color-status-ok: #3a8f5f;
   --color-status-warn: #c08a1e;
@@ -112,6 +139,26 @@
 
     --color-danger: #e08b83;
     --color-danger-soft: #331a17;
+
+    --risk-ilegal: #e79b93;
+    --risk-ilegal-soft: #3a1f1c;
+    --risk-ilegal-border: #6b3a34;
+
+    --risk-peor: #e0b072;
+    --risk-peor-soft: #392915;
+    --risk-peor-border: #6a4f26;
+
+    --risk-negociable: #d9c25f;
+    --risk-negociable-soft: #302a12;
+    --risk-negociable-border: #574a24;
+
+    --risk-ausente: #a9c0cf;
+    --risk-ausente-soft: #1b2830;
+    --risk-ausente-border: #38505f;
+
+    --risk-correcto: #7cc79b;
+    --risk-correcto-soft: #17301f;
+    --risk-correcto-border: #2f5a3e;
 
     --color-status-ok: #66c68c;
     --color-status-warn: #d9b95f;
