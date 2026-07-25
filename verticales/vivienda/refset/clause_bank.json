@@ -1,0 +1,231 @@
+{
+  "vertical": "vivienda",
+  "norm_id": "BOE-A-1994-26003",
+  "clauses": [
+    {
+      "id": "BANK-plazo-11-meses",
+      "heading": "DURACIÓN",
+      "text": "El presente contrato se pacta por una duración de once meses, sin derecho a prórroga alguna. A su vencimiento el arrendatario deberá abandonar la vivienda sin necesidad de requerimiento previo.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-01"],
+      "source": "consumo",
+      "note": "Contradice el plazo mínimo imperativo y la prórroga obligatoria del art. 9 LAU."
+    },
+    {
+      "id": "BANK-plazo-cinco-anios",
+      "heading": "DURACIÓN",
+      "text": "El contrato se pacta por un año, prorrogable obligatoriamente por anualidades hasta alcanzar una duración mínima de cinco años a voluntad del arrendatario, conforme a la legislación de arrendamientos urbanos.",
+      "expected_level": "correcto",
+      "chk_ids": ["CHK-01"],
+      "source": "plantilla",
+      "note": "Reproduce el plazo mínimo con prórroga obligatoria del art. 9 LAU."
+    },
+    {
+      "id": "BANK-excluye-prorroga-tacita",
+      "heading": "NO RENOVACIÓN",
+      "text": "Alcanzado el plazo pactado, el contrato quedará automáticamente extinguido, quedando expresamente excluida cualquier prórroga tácita, aunque las partes continúen la relación.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-02"],
+      "source": "consumo",
+      "note": "Excluye la prórroga tácita imperativa del art. 10 LAU."
+    },
+    {
+      "id": "BANK-penaliza-desistimiento",
+      "heading": "DESISTIMIENTO",
+      "text": "En caso de que el arrendatario abandone la vivienda antes de finalizar el contrato, cualquiera que sea el momento, deberá abonar como indemnización la totalidad de las rentas pendientes hasta la fecha de vencimiento.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-03"],
+      "source": "consumo",
+      "note": "Empeora el régimen del art. 11 LAU: desistimiento tras 6 meses e indemnización topada a lo pactado proporcionalmente."
+    },
+    {
+      "id": "BANK-excluye-conviviente",
+      "heading": "CARÁCTER PERSONALÍSIMO",
+      "text": "El arrendamiento es personalísimo del arrendatario firmante. Si éste desiste o abandona la vivienda, el contrato se extinguirá sin que ningún conviviente pueda continuar en su uso.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-04"],
+      "source": "consumo",
+      "note": "Impide la continuidad del cónyuge o conviviente del art. 12 LAU."
+    },
+    {
+      "id": "BANK-venta-extingue",
+      "heading": "ENAJENACIÓN",
+      "text": "En caso de venta de la vivienda, el presente contrato quedará resuelto de pleno derecho, debiendo el arrendatario desalojarla en el plazo de treinta días desde la notificación de la transmisión.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-05"],
+      "source": "consumo",
+      "note": "Niega la subrogación del adquirente durante el plazo mínimo del art. 14 LAU."
+    },
+    {
+      "id": "BANK-divorcio-extingue",
+      "heading": "SITUACIÓN FAMILIAR",
+      "text": "En caso de separación, divorcio o nulidad matrimonial del arrendatario, el contrato se extinguirá automáticamente, sin que el cónyuge no firmante pueda continuar el arrendamiento aunque se le atribuya el uso de la vivienda.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-06"],
+      "source": "consumo",
+      "note": "Contradice la continuidad del cónyuge atribuido del art. 15 LAU."
+    },
+    {
+      "id": "BANK-muerte-extingue",
+      "heading": "FALLECIMIENTO",
+      "text": "El fallecimiento del arrendatario producirá la extinción inmediata del contrato, sin derecho de subrogación de ninguna persona que conviviera con él.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-07"],
+      "source": "consumo",
+      "note": "Suprime la subrogación mortis causa del art. 16 LAU."
+    },
+    {
+      "id": "BANK-actualizacion-superior-ipc",
+      "heading": "ACTUALIZACIÓN DE RENTA",
+      "text": "La renta se actualizará anualmente con un incremento fijo del diez por ciento sobre la renta del año anterior, con independencia de la evolución de cualquier índice oficial.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-08"],
+      "source": "consumo",
+      "note": "Supera el límite legal de actualización ligado al IPC del art. 18 LAU."
+    },
+    {
+      "id": "BANK-actualizacion-ipc",
+      "heading": "ACTUALIZACIÓN DE RENTA",
+      "text": "La renta se actualizará cada año conforme a la variación anual del Índice de Precios de Consumo publicado por el Instituto Nacional de Estadística, dentro de los límites legales.",
+      "expected_level": "correcto",
+      "chk_ids": ["CHK-08"],
+      "source": "plantilla",
+      "note": "Actualización conforme al art. 18 LAU."
+    },
+    {
+      "id": "BANK-renta-anticipada",
+      "heading": "PAGO DE LA RENTA",
+      "text": "A la firma, el arrendatario abonará seis mensualidades de renta por adelantado en concepto de garantía de pago, cantidad que no será restituida ni imputable a rentas futuras.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-09"],
+      "source": "consumo",
+      "note": "Excede la mensualidad de renta anticipada máxima del art. 17 LAU."
+    },
+    {
+      "id": "BANK-mejoras-sin-tope",
+      "heading": "OBRAS DE MEJORA",
+      "text": "Realizadas obras de mejora por el arrendador, éste podrá elevar la renta en la cuantía que estime conveniente para amortizar la inversión, sin sujeción a límite porcentual alguno.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-10"],
+      "source": "consumo",
+      "note": "Ignora el tope del 20 % de la renta vigente del art. 19 LAU."
+    },
+    {
+      "id": "BANK-comision-agencia-inquilino",
+      "heading": "GASTOS DE FORMALIZACIÓN",
+      "text": "Serán de cuenta exclusiva del arrendatario los honorarios de la agencia inmobiliaria y los gastos de gestión y formalización del presente contrato.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-11"],
+      "source": "consumo",
+      "note": "Los gastos de gestión y formalización corresponden al arrendador (art. 20.1 LAU)."
+    },
+    {
+      "id": "BANK-gastos-generales-indeterminados",
+      "heading": "GASTOS GENERALES",
+      "text": "El arrendatario abonará, además de la renta, los gastos generales del inmueble y de la comunidad de propietarios que en cada momento correspondan, sin necesidad de determinar su importe anual.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-12"],
+      "source": "consumo",
+      "note": "Falta el pacto escrito con importe anual determinado que exige el art. 20.1 LAU."
+    },
+    {
+      "id": "BANK-reparaciones-al-inquilino",
+      "heading": "CONSERVACIÓN",
+      "text": "Todas las reparaciones que precise la vivienda durante la vigencia del contrato, sean del tipo que sean, incluidas las estructurales y las necesarias para su habitabilidad, correrán a cargo del arrendatario.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-13"],
+      "source": "consumo",
+      "note": "Traslada al inquilino reparaciones de habitabilidad que el art. 21 LAU impone al arrendador."
+    },
+    {
+      "id": "BANK-obras-sin-preaviso",
+      "heading": "OBRAS DEL ARRENDADOR",
+      "text": "El arrendador podrá ejecutar en cualquier momento obras de mejora en la vivienda sin necesidad de preaviso, y el arrendatario deberá soportarlas sin derecho a reducción de renta ni a indemnización.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-14"],
+      "source": "consumo",
+      "note": "Elimina el preaviso de tres meses y los derechos del arrendatario del art. 22 LAU."
+    },
+    {
+      "id": "BANK-inhabitable-sigue-pagando",
+      "heading": "OBRAS DE CONSERVACIÓN",
+      "text": "Si las obras de conservación se prolongan y hacen la vivienda temporalmente inhabitable, el arrendatario continuará obligado al pago íntegro de la renta durante todo el periodo.",
+      "expected_level": "peor_que_default",
+      "chk_ids": ["CHK-15"],
+      "source": "consumo",
+      "note": "Niega la suspensión o el desistimiento sin indemnización del art. 26 LAU."
+    },
+    {
+      "id": "BANK-prohibe-accesibilidad",
+      "heading": "PROHIBICIÓN DE OBRAS",
+      "text": "Queda terminantemente prohibido al arrendatario realizar cualquier obra en la vivienda, incluidas las de accesibilidad para personas con discapacidad o mayores de setenta años, aun con notificación al arrendador.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-16"],
+      "source": "consumo",
+      "note": "Impide las obras de accesibilidad que autoriza el art. 24 LAU."
+    },
+    {
+      "id": "BANK-renuncia-tanteo",
+      "heading": "ADQUISICIÓN PREFERENTE",
+      "text": "Las partes acuerdan expresamente que el arrendatario renuncia a los derechos de tanteo y retracto en caso de venta de la vivienda durante la vigencia del contrato.",
+      "expected_level": "correcto",
+      "chk_ids": ["CHK-17"],
+      "source": "plantilla",
+      "note": "El derecho de adquisición preferente es dispositivo (art. 25 LAU): la renuncia pactada es válida."
+    },
+    {
+      "id": "BANK-fianza-tres-meses",
+      "heading": "FIANZA",
+      "text": "El arrendatario entrega en este acto tres mensualidades de renta en concepto de fianza, que quedarán en poder del arrendador hasta la finalización del contrato.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-18"],
+      "source": "consumo",
+      "note": "La fianza legal en vivienda es de una mensualidad (art. 36.1 LAU)."
+    },
+    {
+      "id": "BANK-fianza-una-mensualidad",
+      "heading": "FIANZA",
+      "text": "En cumplimiento de la ley, el arrendatario entrega una mensualidad de renta en concepto de fianza legal, que será devuelta al término del contrato una vez comprobado el estado de la vivienda.",
+      "expected_level": "correcto",
+      "chk_ids": ["CHK-18"],
+      "source": "plantilla",
+      "note": "Fianza de una mensualidad conforme al art. 36.1 LAU."
+    },
+    {
+      "id": "BANK-subarriendo-caro",
+      "heading": "SUBARRIENDO",
+      "text": "En el supuesto de subarriendo autorizado, el arrendatario podrá fijar libremente el precio del subarriendo, incluso por encima de la renta del presente contrato.",
+      "expected_level": "ilegal",
+      "chk_ids": ["CHK-19"],
+      "source": "consumo",
+      "note": "El precio del subarriendo no puede exceder del arrendamiento (art. 8.2 LAU)."
+    },
+    {
+      "id": "BANK-mascotas-prohibidas",
+      "heading": "ANIMALES",
+      "text": "Queda prohibida la tenencia de animales de compañía de cualquier tipo en la vivienda, salvo autorización expresa y por escrito del arrendador.",
+      "expected_level": "negociable",
+      "chk_ids": [],
+      "source": "plantilla",
+      "note": "Materia no regulada por la LAU: carga negociable, no un incumplimiento legal."
+    },
+    {
+      "id": "BANK-seguro-hogar",
+      "heading": "SEGURO",
+      "text": "El arrendatario se obliga a contratar y mantener a su cargo, durante toda la vigencia del contrato, un seguro de hogar que cubra continente y responsabilidad civil.",
+      "expected_level": "negociable",
+      "chk_ids": [],
+      "source": "plantilla",
+      "note": "La LAU no impone ni prohíbe este seguro: carga negociable entre las partes."
+    },
+    {
+      "id": "BANK-limpieza-final",
+      "heading": "ENTREGA",
+      "text": "A la finalización del contrato, el arrendatario entregará la vivienda con una limpieza profesional acreditada mediante factura, corriendo su coste a su cargo.",
+      "expected_level": "negociable",
+      "chk_ids": [],
+      "source": "plantilla",
+      "note": "Materia ajena a la LAU: pacto negociable sobre el estado de entrega."
+    }
+  ]
+}

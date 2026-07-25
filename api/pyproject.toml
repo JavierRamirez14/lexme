@@ -22,6 +22,7 @@ dependencies = [
 ingest = "lexme.ingestion.cli:main"
 validate-checklist = "lexme.checklist.cli:main"
 eval = "lexme.eval.cli:main"
+refset = "lexme.refset.cli:main"
 
 [dependency-groups]
 dev = [

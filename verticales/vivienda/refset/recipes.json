@@ -1,0 +1,38 @@
+{
+  "contracts": [
+    {
+      "id": "contrato-abusivo-01",
+      "header": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA",
+      "clause_ids": [
+        "BANK-plazo-11-meses",
+        "BANK-fianza-tres-meses",
+        "BANK-comision-agencia-inquilino",
+        "BANK-reparaciones-al-inquilino",
+        "BANK-renta-anticipada",
+        "BANK-mascotas-prohibidas"
+      ]
+    },
+    {
+      "id": "contrato-mixto-02",
+      "header": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA HABITUAL",
+      "clause_ids": [
+        "BANK-plazo-cinco-anios",
+        "BANK-actualizacion-superior-ipc",
+        "BANK-penaliza-desistimiento",
+        "BANK-fianza-una-mensualidad",
+        "BANK-seguro-hogar"
+      ]
+    },
+    {
+      "id": "contrato-limpio-03",
+      "header": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA HABITUAL",
+      "clause_ids": [
+        "BANK-plazo-cinco-anios",
+        "BANK-fianza-una-mensualidad",
+        "BANK-actualizacion-ipc",
+        "BANK-renuncia-tanteo",
+        "BANK-limpieza-final"
+      ]
+    }
+  ]
+}

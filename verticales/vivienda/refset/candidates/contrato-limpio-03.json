@@ -1,0 +1,161 @@
+{
+  "kind": "modo2",
+  "status": "aceptado",
+  "provenance": {
+    "generator": "assembler",
+    "sources": [
+      "BANK-plazo-cinco-anios",
+      "BANK-fianza-una-mensualidad",
+      "BANK-actualizacion-ipc",
+      "BANK-renuncia-tanteo",
+      "BANK-limpieza-final"
+    ],
+    "model": null,
+    "generated_at": "2026-07-25T12:21:38.292112Z",
+    "reviewed_by": "javier",
+    "reviewed_at": "2026-07-25T12:21:58.617338Z",
+    "review_note": "revisado: etiquetas correctas por construcción"
+  },
+  "mode1": null,
+  "mode2": {
+    "id": "contrato-limpio-03",
+    "document": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA HABITUAL\n\nDURACIÓN\nEl contrato se pacta por un año, prorrogable obligatoriamente por anualidades hasta alcanzar una duración mínima de cinco años a voluntad del arrendatario, conforme a la legislación de arrendamientos urbanos.\n\nFIANZA\nEn cumplimiento de la ley, el arrendatario entrega una mensualidad de renta en concepto de fianza legal, que será devuelta al término del contrato una vez comprobado el estado de la vivienda.\n\nACTUALIZACIÓN DE RENTA\nLa renta se actualizará cada año conforme a la variación anual del Índice de Precios de Consumo publicado por el Instituto Nacional de Estadística, dentro de los límites legales.\n\nADQUISICIÓN PREFERENTE\nLas partes acuerdan expresamente que el arrendatario renuncia a los derechos de tanteo y retracto en caso de venta de la vivienda durante la vigencia del contrato.\n\nENTREGA\nA la finalización del contrato, el arrendatario entregará la vivienda con una limpieza profesional acreditada mediante factura, corriendo su coste a su cargo.\n\n",
+    "clauses": [
+      {
+        "clause_id": "contrato-limpio-03-c1",
+        "heading": "DURACIÓN",
+        "text": "El contrato se pacta por un año, prorrogable obligatoriamente por anualidades hasta alcanzar una duración mínima de cinco años a voluntad del arrendatario, conforme a la legislación de arrendamientos urbanos.",
+        "start": 57,
+        "end": 265,
+        "expected_level": "correcto",
+        "chk_ids": [
+          "CHK-01"
+        ],
+        "source": "plantilla"
+      },
+      {
+        "clause_id": "contrato-limpio-03-c2",
+        "heading": "FIANZA",
+        "text": "En cumplimiento de la ley, el arrendatario entrega una mensualidad de renta en concepto de fianza legal, que será devuelta al término del contrato una vez comprobado el estado de la vivienda.",
+        "start": 274,
+        "end": 465,
+        "expected_level": "correcto",
+        "chk_ids": [
+          "CHK-18"
+        ],
+        "source": "plantilla"
+      },
+      {
+        "clause_id": "contrato-limpio-03-c3",
+        "heading": "ACTUALIZACIÓN DE RENTA",
+        "text": "La renta se actualizará cada año conforme a la variación anual del Índice de Precios de Consumo publicado por el Instituto Nacional de Estadística, dentro de los límites legales.",
+        "start": 490,
+        "end": 668,
+        "expected_level": "correcto",
+        "chk_ids": [
+          "CHK-08"
+        ],
+        "source": "plantilla"
+      },
+      {
+        "clause_id": "contrato-limpio-03-c4",
+        "heading": "ADQUISICIÓN PREFERENTE",
+        "text": "Las partes acuerdan expresamente que el arrendatario renuncia a los derechos de tanteo y retracto en caso de venta de la vivienda durante la vigencia del contrato.",
+        "start": 693,
+        "end": 856,
+        "expected_level": "correcto",
+        "chk_ids": [
+          "CHK-17"
+        ],
+        "source": "plantilla"
+      },
+      {
+        "clause_id": "contrato-limpio-03-c5",
+        "heading": "ENTREGA",
+        "text": "A la finalización del contrato, el arrendatario entregará la vivienda con una limpieza profesional acreditada mediante factura, corriendo su coste a su cargo.",
+        "start": 866,
+        "end": 1024,
+        "expected_level": "negociable",
+        "chk_ids": [],
+        "source": "plantilla"
+      }
+    ],
+    "expected_absences": [
+      {
+        "item_id": "CHK-02",
+        "right": "Prórroga tácita tras el mínimo, hasta 3 años más.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-03",
+        "right": "Derecho de desistimiento del inquilino tras 6 meses, con 30 días de preaviso.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-04",
+        "right": "Continuidad del cónyuge o conviviente ante desistimiento o abandono del arrendatario.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-05",
+        "right": "Continuidad del contrato ante venta de la vivienda (subrogación del comprador).",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-06",
+        "right": "Continuidad del cónyuge atribuido de la vivienda ante separación o divorcio.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-07",
+        "right": "Subrogación por muerte del arrendatario a favor de ciertos convivientes.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-09",
+        "right": "Derecho a recibo del pago y máximo una mensualidad de renta anticipada.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-10",
+        "right": "Elevación de renta por mejoras topada en el 20 % de la renta vigente.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-11",
+        "right": "Gastos de gestión inmobiliaria y de formalización, a cargo del arrendador.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-12",
+        "right": "Repercusión de gastos generales solo con pacto escrito y cuantía anual determinada.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-13",
+        "right": "Reparaciones para conservar la habitabilidad, a cargo del arrendador y sin subir la renta.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-14",
+        "right": "Obras de mejora del arrendador: preaviso de 3 meses, desistimiento y reducción de renta.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-15",
+        "right": "Vivienda inhabitable por obras: suspender el contrato o desistir sin indemnización.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-16",
+        "right": "Obras de accesibilidad por discapacidad o edad, previa notificación escrita.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-19",
+        "right": "Límite al precio del subarriendo: no puede exceder del arrendamiento.",
+        "level": "ausente"
+      }
+    ]
+  }
+}

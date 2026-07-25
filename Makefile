@@ -8,7 +8,7 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract eval eval-compare test test-integration lint fmt fe-install fe-build
+.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract eval eval-compare refset-validate-bank refset-assemble refset-generate refset-review test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -77,6 +77,18 @@ eval: ## Run the Mode 1 eval harness against the real system: make eval [V=vivie
 
 eval-compare: ## Compare a run against a baseline: make eval-compare BASE=<file> RUN=<file>
 	$(COMPOSE) exec api eval compare --base $(BASE) --run $(RUN)
+
+refset-validate-bank: ## Check the clause bank still covers the checklist [V=vivienda]
+	$(COMPOSE) exec api refset validate-bank --vertical $(or $(V),vivienda)
+
+refset-assemble: ## Assemble pending Mode 2 contracts from the clause bank recipes [V=vivienda]
+	$(COMPOSE) exec api refset assemble --vertical $(or $(V),vivienda)
+
+refset-generate: ## Generate pending Mode 1 candidates from the query seeds [V=vivienda]
+	$(COMPOSE) exec api refset generate-queries --vertical $(or $(V),vivienda)
+
+refset-review: ## List pending reference-set candidates awaiting review [V=vivienda]
+	$(COMPOSE) exec api refset review list --vertical $(or $(V),vivienda)
 
 test: ## Run the API test suite (DB integration tests skip unless configured)
 	cd api && uv run pytest

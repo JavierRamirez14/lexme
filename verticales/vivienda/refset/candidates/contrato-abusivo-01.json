@@ -1,0 +1,169 @@
+{
+  "kind": "modo2",
+  "status": "aceptado",
+  "provenance": {
+    "generator": "assembler",
+    "sources": [
+      "BANK-plazo-11-meses",
+      "BANK-fianza-tres-meses",
+      "BANK-comision-agencia-inquilino",
+      "BANK-reparaciones-al-inquilino",
+      "BANK-renta-anticipada",
+      "BANK-mascotas-prohibidas"
+    ],
+    "model": null,
+    "generated_at": "2026-07-25T12:21:38.292112Z",
+    "reviewed_by": "javier",
+    "reviewed_at": "2026-07-25T12:21:52.317208Z",
+    "review_note": "revisado: etiquetas correctas por construcción"
+  },
+  "mode1": null,
+  "mode2": {
+    "id": "contrato-abusivo-01",
+    "document": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA\n\nDURACIÓN\nEl presente contrato se pacta por una duración de once meses, sin derecho a prórroga alguna. A su vencimiento el arrendatario deberá abandonar la vivienda sin necesidad de requerimiento previo.\n\nFIANZA\nEl arrendatario entrega en este acto tres mensualidades de renta en concepto de fianza, que quedarán en poder del arrendador hasta la finalización del contrato.\n\nGASTOS DE FORMALIZACIÓN\nSerán de cuenta exclusiva del arrendatario los honorarios de la agencia inmobiliaria y los gastos de gestión y formalización del presente contrato.\n\nCONSERVACIÓN\nTodas las reparaciones que precise la vivienda durante la vigencia del contrato, sean del tipo que sean, incluidas las estructurales y las necesarias para su habitabilidad, correrán a cargo del arrendatario.\n\nPAGO DE LA RENTA\nA la firma, el arrendatario abonará seis mensualidades de renta por adelantado en concepto de garantía de pago, cantidad que no será restituida ni imputable a rentas futuras.\n\nANIMALES\nQueda prohibida la tenencia de animales de compañía de cualquier tipo en la vivienda, salvo autorización expresa y por escrito del arrendador.\n\n",
+    "clauses": [
+      {
+        "clause_id": "contrato-abusivo-01-c1",
+        "heading": "DURACIÓN",
+        "text": "El presente contrato se pacta por una duración de once meses, sin derecho a prórroga alguna. A su vencimiento el arrendatario deberá abandonar la vivienda sin necesidad de requerimiento previo.",
+        "start": 48,
+        "end": 241,
+        "expected_level": "ilegal",
+        "chk_ids": [
+          "CHK-01"
+        ],
+        "source": "consumo"
+      },
+      {
+        "clause_id": "contrato-abusivo-01-c2",
+        "heading": "FIANZA",
+        "text": "El arrendatario entrega en este acto tres mensualidades de renta en concepto de fianza, que quedarán en poder del arrendador hasta la finalización del contrato.",
+        "start": 250,
+        "end": 410,
+        "expected_level": "ilegal",
+        "chk_ids": [
+          "CHK-18"
+        ],
+        "source": "consumo"
+      },
+      {
+        "clause_id": "contrato-abusivo-01-c3",
+        "heading": "GASTOS DE FORMALIZACIÓN",
+        "text": "Serán de cuenta exclusiva del arrendatario los honorarios de la agencia inmobiliaria y los gastos de gestión y formalización del presente contrato.",
+        "start": 436,
+        "end": 583,
+        "expected_level": "ilegal",
+        "chk_ids": [
+          "CHK-11"
+        ],
+        "source": "consumo"
+      },
+      {
+        "clause_id": "contrato-abusivo-01-c4",
+        "heading": "CONSERVACIÓN",
+        "text": "Todas las reparaciones que precise la vivienda durante la vigencia del contrato, sean del tipo que sean, incluidas las estructurales y las necesarias para su habitabilidad, correrán a cargo del arrendatario.",
+        "start": 598,
+        "end": 805,
+        "expected_level": "ilegal",
+        "chk_ids": [
+          "CHK-13"
+        ],
+        "source": "consumo"
+      },
+      {
+        "clause_id": "contrato-abusivo-01-c5",
+        "heading": "PAGO DE LA RENTA",
+        "text": "A la firma, el arrendatario abonará seis mensualidades de renta por adelantado en concepto de garantía de pago, cantidad que no será restituida ni imputable a rentas futuras.",
+        "start": 824,
+        "end": 998,
+        "expected_level": "peor_que_default",
+        "chk_ids": [
+          "CHK-09"
+        ],
+        "source": "consumo"
+      },
+      {
+        "clause_id": "contrato-abusivo-01-c6",
+        "heading": "ANIMALES",
+        "text": "Queda prohibida la tenencia de animales de compañía de cualquier tipo en la vivienda, salvo autorización expresa y por escrito del arrendador.",
+        "start": 1009,
+        "end": 1151,
+        "expected_level": "negociable",
+        "chk_ids": [],
+        "source": "plantilla"
+      }
+    ],
+    "expected_absences": [
+      {
+        "item_id": "CHK-02",
+        "right": "Prórroga tácita tras el mínimo, hasta 3 años más.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-03",
+        "right": "Derecho de desistimiento del inquilino tras 6 meses, con 30 días de preaviso.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-04",
+        "right": "Continuidad del cónyuge o conviviente ante desistimiento o abandono del arrendatario.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-05",
+        "right": "Continuidad del contrato ante venta de la vivienda (subrogación del comprador).",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-06",
+        "right": "Continuidad del cónyuge atribuido de la vivienda ante separación o divorcio.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-07",
+        "right": "Subrogación por muerte del arrendatario a favor de ciertos convivientes.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-08",
+        "right": "Límite a la actualización anual de la renta al IPC; sin pacto expreso, no sube.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-10",
+        "right": "Elevación de renta por mejoras topada en el 20 % de la renta vigente.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-12",
+        "right": "Repercusión de gastos generales solo con pacto escrito y cuantía anual determinada.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-14",
+        "right": "Obras de mejora del arrendador: preaviso de 3 meses, desistimiento y reducción de renta.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-15",
+        "right": "Vivienda inhabitable por obras: suspender el contrato o desistir sin indemnización.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-16",
+        "right": "Obras de accesibilidad por discapacidad o edad, previa notificación escrita.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-17",
+        "right": "Derecho de adquisición preferente (tanteo y retracto) salvo renuncia pactada.",
+        "level": "ausente"
+      },
+      {
+        "item_id": "CHK-19",
+        "right": "Límite al precio del subarriendo: no puede exceder del arrendamiento.",
+        "level": "ausente"
+      }
+    ]
+  }
+}
