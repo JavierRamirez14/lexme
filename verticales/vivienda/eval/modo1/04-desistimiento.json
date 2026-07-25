@@ -1,0 +1,6 @@
+{
+  "id": "04-desistimiento",
+  "question": "¿Puede el inquilino dejar el piso antes de que acabe el contrato y con cuánto preaviso?",
+  "gold_block_ids": ["a11"],
+  "expected_outcome": "respuesta"
+}

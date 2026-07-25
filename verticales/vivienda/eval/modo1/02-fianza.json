@@ -1,0 +1,6 @@
+{
+  "id": "02-fianza",
+  "question": "¿Cuántos meses de fianza puede exigir el arrendador en un alquiler de vivienda?",
+  "gold_block_ids": ["a36"],
+  "expected_outcome": "respuesta"
+}

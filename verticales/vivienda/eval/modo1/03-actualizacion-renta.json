@@ -1,0 +1,6 @@
+{
+  "id": "03-actualizacion-renta",
+  "question": "¿Puede el casero subir la renta cada año durante la vigencia del contrato?",
+  "gold_block_ids": ["a18"],
+  "expected_outcome": "respuesta"
+}

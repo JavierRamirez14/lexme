@@ -146,10 +146,42 @@ def get_corpus_last_updated(conn: psycopg.Connection, vertical: str) -> datetime
     return _scalar(conn, "SELECT max(updated_at) FROM norms WHERE vertical = %s", (vertical,))
 
 
+def get_corpus_digest(conn: psycopg.Connection, vertical: str) -> str | None:
+    """Return a content digest of the vertical's ingested corpus, or ``None`` if empty.
+
+    Hashes every stored redaction -- norm id, block id, effective date and text --
+    in a fixed order, so two identical corpora hash the same and any change to the
+    ingested text or its point-in-time structure changes the digest. This is the
+    corpus identity a run is stamped with, computed in SQL so no text leaves the DB.
+    """
+    return _scalar_str(
+        conn,
+        """
+        SELECT md5(string_agg(row_digest, '|' ORDER BY row_digest))
+        FROM (
+            SELECT
+                n.id || ':' || b.block_id || ':' || v.effective_date || ':' || md5(v.text_content)
+                    AS row_digest
+            FROM norms n
+            JOIN blocks b ON b.norm_id = n.id
+            JOIN versions v ON v.block_id = b.id
+            WHERE n.vertical = %s
+        ) rows
+        """,
+        (vertical,),
+    )
+
+
 def _scalar(conn: psycopg.Connection, query: str, params: tuple[object, ...]) -> datetime | None:
     """Return the first column of the single result row, or ``None`` if empty."""
     row = conn.execute(query, params).fetchone()
     return row[0] if row is not None else None
+
+
+def _scalar_str(conn: psycopg.Connection, query: str, params: tuple[object, ...]) -> str | None:
+    """Return the first column of the single result row as text, or ``None`` if absent."""
+    row = conn.execute(query, params).fetchone()
+    return row[0] if row is not None and row[0] is not None else None
 
 
 def _upsert_norm(conn: psycopg.Connection, vertical: str, norm: ConsolidatedNorm) -> None:

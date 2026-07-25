@@ -32,8 +32,10 @@ services:
       FRONTEND_ORIGIN: http://localhost:5173
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      EVAL_RUNS_DIR: /eval-runs
     volumes:
       - ./verticales:/verticales:ro
+      - ./eval-runs:/eval-runs
     ports:
       - "8000:8000"
     depends_on:
