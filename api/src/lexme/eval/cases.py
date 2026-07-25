@@ -8,11 +8,24 @@ The generated-by-construction set arrives later and produces the same shape.
 
 import json
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 
 class CasesError(ValueError):
     """Raised when a cases file or directory is missing or malformed."""
+
+
+@dataclass(frozen=True)
+class KeyPoint:
+    """One legal claim a good answer must contain, anchored to a gold block.
+
+    ``claim`` is the reference the with-reference judge checks completeness
+    against; ``block_id`` is the gold block the claim was extracted from.
+    """
+
+    claim: str
+    block_id: str
 
 
 @dataclass(frozen=True)
@@ -22,12 +35,17 @@ class EvalCase:
     ``gold_block_ids`` are the corpus blocks a correct answer must cite, the
     reference recall is measured against. ``expected_outcome`` is the outcome the
     case was written to reach, or ``None`` when the case pins no outcome.
+    ``key_points`` are the reference claims the judge grades completeness against,
+    each tied to a gold block. ``target_date`` pins the point-in-time clock for a
+    time-sensitive case, or is ``None`` to answer at the run's default date.
     """
 
     id: str
     question: str
     gold_block_ids: tuple[str, ...] = ()
     expected_outcome: str | None = None
+    key_points: tuple[KeyPoint, ...] = ()
+    target_date: date | None = None
 
 
 def load_cases(path: Path) -> tuple[EvalCase, ...]:
@@ -84,6 +102,8 @@ def _read_case(file: Path) -> EvalCase:
         question=question,
         gold_block_ids=gold,
         expected_outcome=expected_outcome,
+        key_points=_read_key_points(raw, file, gold),
+        target_date=_read_target_date(raw, file),
     )
 
 
@@ -96,6 +116,47 @@ def _read_gold_block_ids(raw: dict, file: Path) -> tuple[str, ...]:
         if not isinstance(block_id, str) or not block_id:
             raise CasesError(f"case {file} has a non-string 'gold_block_ids' entry: {block_id!r}")
     return tuple(gold)
+
+
+def _read_key_points(raw: dict, file: Path, gold: tuple[str, ...]) -> tuple[KeyPoint, ...]:
+    """Extract the optional ``key_points``, each a claim tied to a gold block.
+
+    Rejects a key point whose ``block_id`` is not among the case's gold blocks, so
+    the reference the judge grades against stays anchored to the case's evidence.
+    """
+    entries = raw.get("key_points", [])
+    if not isinstance(entries, list):
+        raise CasesError(f"case {file} 'key_points' must be an array")
+    points = []
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise CasesError(f"case {file} has a non-object key point: {entry!r}")
+        claim = entry.get("claim")
+        block_id = entry.get("block_id")
+        if not isinstance(claim, str) or not claim.strip():
+            raise CasesError(f"case {file} has a key point missing a non-empty 'claim'")
+        if not isinstance(block_id, str) or not block_id:
+            raise CasesError(f"case {file} has a key point missing a non-empty 'block_id'")
+        if block_id not in gold:
+            raise CasesError(
+                f"case {file} key point cites block '{block_id}' "
+                f"absent from gold blocks {list(gold)}"
+            )
+        points.append(KeyPoint(claim=claim, block_id=block_id))
+    return tuple(points)
+
+
+def _read_target_date(raw: dict, file: Path) -> date | None:
+    """Extract the optional ISO ``target_date``, or ``None`` when absent or null."""
+    value = raw.get("target_date")
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise CasesError(f"case {file} 'target_date' must be an ISO date string when present")
+    try:
+        return date.fromisoformat(value)
+    except ValueError as error:
+        raise CasesError(f"case {file} 'target_date' is not a valid ISO date: {error}") from error
 
 
 def _reject_duplicate_ids(cases: list[EvalCase]) -> None:

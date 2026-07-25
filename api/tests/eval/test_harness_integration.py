@@ -49,7 +49,7 @@ def _runner(
         llm=llm,
         branches=(),
     )
-    return Mode1CaseRunner(deps=deps, checkpointer=checkpointer, vertical=VERTICAL, today=AS_OF)
+    return Mode1CaseRunner(deps=deps, checkpointer=checkpointer, vertical=VERTICAL)
 
 
 def test_the_harness_runs_a_case_end_to_end_and_emits_a_passing_artifact(

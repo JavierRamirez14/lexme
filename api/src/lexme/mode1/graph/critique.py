@@ -85,7 +85,7 @@ def _apply(sub: SubQueryState, ruling: SubQueryCritique | None) -> SubQueryState
 
 
 def _record(pass_number: int, subqueries: list[SubQueryState]) -> PassRecord:
-    """Tally the pass: which sub-queries hold, which do not, and total evidence."""
+    """Tally the pass: which sub-queries hold, which do not, and the evidence gathered."""
     sufficient = [sub.subquery.id for sub in subqueries if sub.is_sufficient]
     insufficient = [sub.subquery.id for sub in subqueries if not sub.is_sufficient]
     evidence_count = sum(len(sub.evidence) for sub in subqueries)
@@ -94,7 +94,17 @@ def _record(pass_number: int, subqueries: list[SubQueryState]) -> PassRecord:
         sufficient_ids=sufficient,
         insufficient_ids=insufficient,
         evidence_count=evidence_count,
+        evidence_block_ids=_accumulated_block_ids(subqueries),
     )
+
+
+def _accumulated_block_ids(subqueries: list[SubQueryState]) -> list[str]:
+    """The distinct evidence block ids across every sub-query, first-seen order."""
+    seen: dict[str, None] = {}
+    for sub in subqueries:
+        for block in sub.evidence:
+            seen.setdefault(block.block_id, None)
+    return list(seen)
 
 
 def _render(subqueries: list[SubQueryState]) -> str:

@@ -13,7 +13,9 @@ from lexme.mode1 import (
     Answer,
     AskResponse,
     Outcome,
+    PassReport,
     RankedBlockRef,
+    RetrievalTrace,
     SubQueryReport,
     VerifiedCitation,
 )
@@ -54,10 +56,12 @@ class StubRunner:
         """Queue the responses to return across successive :meth:`run` calls."""
         self._responses = list(responses)
         self.questions: list[str] = []
+        self.dates: list[date] = []
 
-    def run(self, question: str) -> AskResponse:
-        """Record ``question`` and return the next queued response."""
+    def run(self, question: str, target_date: date) -> AskResponse:
+        """Record the ``question`` and ``target_date`` and return the next response."""
         self.questions.append(question)
+        self.dates.append(target_date)
         return self._responses.pop(0)
 
 
@@ -69,6 +73,79 @@ def _anchor(block_id: str) -> VerifiedAnchor:
         block_id=block_id,
         title="Artículo",
         effective_date=AS_OF,
+    )
+
+
+def _layer_refs(keys: tuple[tuple[str, str], ...]) -> list[RankedBlockRef]:
+    """Build a ranking of block references from ``(norm_id, block_id)`` keys."""
+    return [RankedBlockRef(norm_id=norm_id, block_id=block_id) for norm_id, block_id in keys]
+
+
+def traced_response(
+    *,
+    citations: tuple[tuple[str, str], ...] = (),
+    dense: tuple[tuple[str, str], ...],
+    lexical: tuple[tuple[str, str], ...],
+    fused: tuple[tuple[str, str], ...],
+    evidence: tuple[tuple[str, str], ...],
+    first_pass_evidence: tuple[str, ...] = (),
+    explicacion: str = "e",
+    outcome: Outcome = Outcome.ANSWER,
+) -> AskResponse:
+    """A response with one sub-query's per-layer rankings and a two-pass history.
+
+    ``dense``/``lexical``/``fused``/``evidence`` are that sub-query's rankings as
+    ``(norm_id, block_id)`` keys; ``first_pass_evidence`` are the block ids the
+    first pass had accumulated, so the agentic recall delta is measurable.
+    """
+    subquery = SubQueryReport(
+        id="sq1",
+        text="q",
+        purpose="p",
+        is_critical=True,
+        evidence=_layer_refs(evidence),
+        retrieval=RetrievalTrace(
+            dense=_layer_refs(dense),
+            lexical=_layer_refs(lexical),
+            fused=_layer_refs(fused),
+        ),
+    )
+    passes = [
+        PassReport(
+            pass_number=1,
+            sufficient_ids=[],
+            insufficient_ids=["sq1"],
+            evidence_count=len(first_pass_evidence),
+            evidence_block_ids=list(first_pass_evidence),
+        ),
+        PassReport(
+            pass_number=2,
+            sufficient_ids=["sq1"],
+            insufficient_ids=[],
+            evidence_count=len(evidence),
+            evidence_block_ids=[block_id for _, block_id in evidence],
+        ),
+    ]
+    answer = Answer(
+        fundamento=[
+            VerifiedCitation(
+                block_id=block_id,
+                text=text,
+                verdict=CitationVerdict.VERIFIED_DIRECT,
+                anchor=_anchor(block_id),
+            )
+            for block_id, text in citations
+        ],
+        explicacion=explicacion,
+        accion=[],
+        fecha_objetivo=AS_OF,
+    )
+    return AskResponse(
+        outcome=outcome,
+        thread_id="t",
+        answer=answer,
+        agentic=AgenticTrace(subqueries=[subquery], passes=passes, agentic_delta=1),
+        citation_verdicts={CitationVerdict.VERIFIED_DIRECT.value: len(citations)},
     )
 
 

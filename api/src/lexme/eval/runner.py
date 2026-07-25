@@ -16,9 +16,11 @@ from uuid import uuid4
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from lexme.eval.artifact import RunArtifact, build_artifact
+from lexme.eval.calibration import JudgeCalibration
 from lexme.eval.cases import EvalCase
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation, check_case_citations
+from lexme.eval.judge import Judge
 from lexme.eval.metrics import aggregate, build_case_result
 from lexme.mode1 import AskResponse, Mode1Deps, Mode1Run
 from lexme.verification import CorpusReader
@@ -28,8 +30,8 @@ from lexme.verification import CorpusReader
 class CaseRunner(Protocol):
     """Runs one eval question through the system and returns its response."""
 
-    def run(self, question: str) -> AskResponse:
-        """Answer ``question`` and return the full Mode 1 response."""
+    def run(self, question: str, target_date: date) -> AskResponse:
+        """Answer ``question`` situated at ``target_date`` and return the response."""
         ...
 
 
@@ -38,21 +40,20 @@ class Mode1CaseRunner:
     """A :class:`CaseRunner` backed by a real Mode 1 consultation per case.
 
     Each case runs on its own checkpoint thread so no run resumes another's paused
-    state. ``today`` fixes the point-in-time clock the corpus is resolved at, the
-    same date the guardrail re-verifies against.
+    state. The per-case ``target_date`` fixes the point-in-time clock the corpus is
+    resolved at, the same date the guardrail re-verifies against.
     """
 
     deps: Mode1Deps
     checkpointer: BaseCheckpointSaver
     vertical: str
-    today: date
 
-    def run(self, question: str) -> AskResponse:
-        """Start a fresh Mode 1 run for ``question`` and return its outcome."""
+    def run(self, question: str, target_date: date) -> AskResponse:
+        """Start a fresh Mode 1 run for ``question`` at ``target_date``."""
         run = Mode1Run(
             thread_id=f"eval-{uuid4()}",
             vertical=self.vertical,
-            today=self.today,
+            today=target_date,
             deps=self.deps,
             checkpointer=self.checkpointer,
         )
@@ -64,22 +65,32 @@ def run_suite(
     cases: Sequence[EvalCase],
     runner: CaseRunner,
     corpus: CorpusReader,
-    target_date: date,
+    default_date: date,
     fingerprint: ConfigFingerprint,
     created_at: datetime,
+    judge: Judge | None = None,
+    calibration: JudgeCalibration | None = None,
 ) -> RunArtifact:
     """Run every case, apply the guardrail and metrics, and build the run artifact.
 
-    ``target_date`` is the point-in-time date the guardrail re-verifies citations
-    against; it must match the date the runner answers at. The returned artifact's
-    ``passed`` is false if any case's citation broke the literality invariant.
+    Each case is answered at its own ``target_date`` when it pins one, else at
+    ``default_date``; the guardrail re-verifies that case's citations at the same
+    date, so a point-in-time case is measured against the law as it stood then.
+    When a ``judge`` is given, every answered case carrying key points is graded
+    against them, and ``calibration`` is the human-judge agreement those scores are
+    published with. The returned artifact's ``passed`` is false if any case's
+    citation broke the literality invariant.
     """
     results = []
     hard_failures: list[GuardrailViolation] = []
     for case in cases:
-        response = runner.run(case.question)
-        violations = check_case_citations(case.id, response, corpus, target_date)
+        case_date = case.target_date or default_date
+        response = runner.run(case.question, case_date)
+        violations = check_case_citations(case.id, response, corpus, case_date)
         hard_failures.extend(violations)
-        results.append(build_case_result(case, response, violations))
+        verdict = judge.judge(case, response, case_date) if judge is not None else None
+        results.append(build_case_result(case, response, violations, verdict))
     metrics = aggregate(results)
-    return build_artifact(suite, created_at, fingerprint, results, metrics, hard_failures)
+    return build_artifact(
+        suite, created_at, fingerprint, results, metrics, hard_failures, calibration
+    )

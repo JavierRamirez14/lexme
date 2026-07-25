@@ -14,6 +14,7 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+from lexme.eval.calibration import JudgeCalibration
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.metrics import CaseResult, SuiteMetrics
@@ -24,6 +25,8 @@ class RunArtifact(BaseModel):
 
     ``passed`` is ``False`` whenever ``hard_failures`` is non-empty, independent of
     the metrics; the metrics are the soft numbers, the guardrail is the invariant.
+    ``judge_calibration`` is the human-judge agreement the judged metrics are read
+    with, ``None`` when the judge has not been calibrated for this vertical.
     """
 
     suite: str
@@ -33,6 +36,7 @@ class RunArtifact(BaseModel):
     cases: list[CaseResult]
     hard_failures: list[GuardrailViolation]
     passed: bool
+    judge_calibration: JudgeCalibration | None = None
 
     def write(self, path: Path) -> None:
         """Serialize the artifact to ``path`` as indented JSON, creating parents."""
@@ -47,6 +51,7 @@ def build_artifact(
     results: list[CaseResult],
     metrics: SuiteMetrics,
     hard_failures: list[GuardrailViolation],
+    judge_calibration: JudgeCalibration | None = None,
 ) -> RunArtifact:
     """Assemble a :class:`RunArtifact`, deriving ``passed`` from the guardrail alone."""
     return RunArtifact(
@@ -57,6 +62,7 @@ def build_artifact(
         cases=results,
         hard_failures=hard_failures,
         passed=not hard_failures,
+        judge_calibration=judge_calibration,
     )
 
 

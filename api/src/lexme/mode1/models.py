@@ -164,13 +164,16 @@ class PassReport(BaseModel):
 
     ``evidence_count`` is the total number of evidence blocks across all
     sub-queries at the end of this pass; comparing it across passes is the raw
-    signal behind the agentic delta.
+    signal behind the agentic delta. ``evidence_block_ids`` is the accumulated
+    distinct evidence at the end of this pass, which the harness compares against
+    the gold blocks to read the recall the pass had reached.
     """
 
     pass_number: int
     sufficient_ids: list[str]
     insufficient_ids: list[str]
     evidence_count: int
+    evidence_block_ids: list[str] = []
 
 
 class AgenticTrace(BaseModel):

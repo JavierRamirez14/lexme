@@ -195,6 +195,7 @@ def _pass_report(record: PassRecord) -> PassReport:
         sufficient_ids=record.sufficient_ids,
         insufficient_ids=record.insufficient_ids,
         evidence_count=record.evidence_count,
+        evidence_block_ids=record.evidence_block_ids,
     )
 
 

@@ -68,12 +68,18 @@ class SubQueryState(BaseModel):
 
 
 class PassRecord(BaseModel):
-    """The tally of one self-critique pass, kept to measure the agentic delta."""
+    """The tally of one self-critique pass, kept to measure the agentic delta.
+
+    ``evidence_block_ids`` is the accumulated distinct evidence across every
+    sub-query at the end of this pass; comparing the first pass's set against the
+    last pass's is what turns the agentic delta into a recall gain.
+    """
 
     pass_number: int
     sufficient_ids: list[str]
     insufficient_ids: list[str]
     evidence_count: int
+    evidence_block_ids: list[str] = []
 
 
 class Mode1State(BaseModel):

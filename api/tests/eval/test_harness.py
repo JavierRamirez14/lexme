@@ -7,7 +7,7 @@ here; the end-to-end run behind the fake LLM lives in the integration test.
 """
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from pathlib import Path
 
 from lexme.eval.artifact import read_artifact
@@ -73,6 +73,38 @@ def test_eval_run_emits_an_artifact_with_the_full_fingerprint_and_passes(tmp_pat
     assert artifact.metrics.cases == 1
     assert artifact.metrics.mean_recall == 1.0
     assert runner.questions == [QUESTION]
+
+
+def test_a_case_is_answered_and_verified_at_its_own_point_in_time_date(tmp_path: Path) -> None:
+    pinned = date(2015, 6, 1)
+    directory = tmp_path / "cases"
+    directory.mkdir()
+    (directory / "pit.json").write_text(
+        json.dumps(
+            {
+                "id": "pit",
+                "question": QUESTION,
+                "gold_block_ids": ["a9"],
+                "target_date": pinned.isoformat(),
+            }
+        ),
+        encoding="utf-8",
+    )
+    runner = StubRunner(answer_response(("a9", QUOTE), evidence=((NORM_ID, "a9"),)))
+    corpus = InMemoryCorpus({(NORM_ID, "a9"): BLOCK_TEXT})
+    out = tmp_path / "run.json"
+
+    code = main(
+        ["run", "--vertical", "vivienda", "--cases", str(directory), "--out", str(out)],
+        runner=runner,
+        corpus=corpus,
+        fingerprint=_fingerprint(),
+        today=AS_OF,
+        now=NOW,
+    )
+
+    assert code == 0
+    assert runner.dates == [pinned]
 
 
 def test_a_corrupt_displayed_citation_hard_fails_the_run_and_flags_the_case(

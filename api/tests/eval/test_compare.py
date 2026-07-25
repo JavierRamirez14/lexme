@@ -29,8 +29,14 @@ def _artifact(fingerprint: str, mean_recall: float, agentic_delta: float) -> Run
         cases=2,
         outcomes={"respuesta": 2},
         mean_recall=mean_recall,
+        mean_first_pass_recall=mean_recall - 0.1,
+        mean_recall_delta=0.1,
+        retrieval_layer_recall={"fused": mean_recall},
         outcome_match_rate=1.0,
+        abstention_rate=0.0,
+        expected_abstention_recall=None,
         mean_agentic_delta=agentic_delta,
+        judge=None,
         citation_verdicts={"verificada_directa": 3, "descartada": 0},
     )
     return build_artifact("modo1", NOW, _fingerprint(fingerprint), [], metrics, [])
@@ -61,6 +67,17 @@ def test_a_changed_fingerprint_is_flagged() -> None:
     assert comparison.fingerprint_changed is True
     assert comparison.base_fingerprint == "fp-a"
     assert comparison.run_fingerprint == "fp-b"
+
+
+def test_the_agentic_recall_pair_is_compared() -> None:
+    base = _artifact("fp", mean_recall=0.80, agentic_delta=1.0)
+    run = _artifact("fp", mean_recall=0.95, agentic_delta=1.0)
+
+    comparison = compare(base, run)
+
+    assert _delta(comparison, "mean_first_pass_recall").delta == 0.95 - 0.80
+    assert _delta(comparison, "abstention_rate").delta == 0.0
+    assert _delta(comparison, "mean_recall_delta").base == 0.1
 
 
 def test_verdict_counts_are_compared_per_verdict() -> None:

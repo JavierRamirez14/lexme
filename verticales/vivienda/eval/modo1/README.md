@@ -5,10 +5,14 @@ Spanish user question plus the corpus blocks a correct answer must ground on.
 
 ```json
 {
-  "id": "01-plazo-minimo",
+  "id": "02-fianza",
   "question": "…",
-  "gold_block_ids": ["a9"],
-  "expected_outcome": "respuesta"
+  "gold_block_ids": ["a36"],
+  "expected_outcome": "respuesta",
+  "key_points": [
+    { "claim": "la fianza obligatoria es de una mensualidad de renta", "block_id": "a36" }
+  ],
+  "target_date": "2020-01-01"
 }
 ```
 
@@ -18,7 +22,14 @@ Spanish user question plus the corpus blocks a correct answer must ground on.
   is measured against. Empty for an out-of-scope case.
 - `expected_outcome` — optional, one of the Mode 1 outcomes
   (`respuesta`, `respuesta_parcial`, `abstencion`, `rechazo_router`).
+- `key_points` — optional; the 2–5 legal claims a good answer must contain, each
+  tied to one of the case's gold blocks. They are the reference the with-reference
+  judge grades completeness and per-claim support against. A `block_id` outside
+  `gold_block_ids` is rejected at load.
+- `target_date` — optional ISO date pinning the point-in-time clock for a
+  time-sensitive case; the run answers and re-verifies its citations at that date.
+  Absent (or `null`) means the run's default date.
 
-This is the minimal hand-authored starter set. The generated-by-construction set,
-which walks the corpus backwards to synthesise questions with gold blocks known by
-construction, arrives with its own ticket and produces the same file shape.
+The generated-by-construction set (`gen-*.json`) walks the corpus backwards to
+synthesise questions whose gold blocks and key points are known by construction,
+and produces this same file shape.

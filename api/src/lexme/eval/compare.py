@@ -12,8 +12,15 @@ from pydantic import BaseModel
 from lexme.eval.artifact import RunArtifact
 
 MEAN_RECALL = "mean_recall"
+MEAN_FIRST_PASS_RECALL = "mean_first_pass_recall"
+MEAN_RECALL_DELTA = "mean_recall_delta"
 OUTCOME_MATCH_RATE = "outcome_match_rate"
+ABSTENTION_RATE = "abstention_rate"
+EXPECTED_ABSTENTION_RECALL = "expected_abstention_recall"
 MEAN_AGENTIC_DELTA = "mean_agentic_delta"
+JUDGE_COMPLETENESS = "judge.completeness"
+JUDGE_UNSUPPORTED_CLAIM_RATE = "judge.unsupported_claim_rate"
+JUDGE_MEAN_CLARITY = "judge.mean_clarity"
 CASES = "cases"
 
 
@@ -54,12 +61,27 @@ def compare(base: RunArtifact, run: RunArtifact) -> Comparison:
         _scalar_delta(CASES, base.metrics.cases, run.metrics.cases),
         _scalar_delta(MEAN_RECALL, base.metrics.mean_recall, run.metrics.mean_recall),
         _scalar_delta(
+            MEAN_FIRST_PASS_RECALL,
+            base.metrics.mean_first_pass_recall,
+            run.metrics.mean_first_pass_recall,
+        ),
+        _scalar_delta(
+            MEAN_RECALL_DELTA, base.metrics.mean_recall_delta, run.metrics.mean_recall_delta
+        ),
+        _scalar_delta(
             OUTCOME_MATCH_RATE, base.metrics.outcome_match_rate, run.metrics.outcome_match_rate
+        ),
+        _scalar_delta(ABSTENTION_RATE, base.metrics.abstention_rate, run.metrics.abstention_rate),
+        _scalar_delta(
+            EXPECTED_ABSTENTION_RECALL,
+            base.metrics.expected_abstention_recall,
+            run.metrics.expected_abstention_recall,
         ),
         _scalar_delta(
             MEAN_AGENTIC_DELTA, base.metrics.mean_agentic_delta, run.metrics.mean_agentic_delta
         ),
     ]
+    deltas.extend(_judge_deltas(base, run))
     deltas.extend(_verdict_deltas(base, run))
     return Comparison(
         fingerprint_changed=base.fingerprint.fingerprint != run.fingerprint.fingerprint,
@@ -67,6 +89,29 @@ def compare(base: RunArtifact, run: RunArtifact) -> Comparison:
         run_fingerprint=run.fingerprint.fingerprint,
         deltas=deltas,
     )
+
+
+def _judge_deltas(base: RunArtifact, run: RunArtifact) -> list[MetricDelta]:
+    """Deltas on the judged end-to-end numbers, treating an unjudged run as absent."""
+    base_judge = base.metrics.judge
+    run_judge = run.metrics.judge
+    return [
+        _scalar_delta(
+            JUDGE_COMPLETENESS,
+            base_judge.mean_completeness if base_judge else None,
+            run_judge.mean_completeness if run_judge else None,
+        ),
+        _scalar_delta(
+            JUDGE_UNSUPPORTED_CLAIM_RATE,
+            base_judge.unsupported_claim_rate if base_judge else None,
+            run_judge.unsupported_claim_rate if run_judge else None,
+        ),
+        _scalar_delta(
+            JUDGE_MEAN_CLARITY,
+            base_judge.mean_clarity if base_judge else None,
+            run_judge.mean_clarity if run_judge else None,
+        ),
+    ]
 
 
 def _verdict_deltas(base: RunArtifact, run: RunArtifact) -> list[MetricDelta]:
