@@ -1,0 +1,39 @@
+{
+  "kind": "modo1",
+  "status": "aceptado",
+  "provenance": {
+    "generator": "query_generator",
+    "sources": [
+      "a36"
+    ],
+    "model": "gemini-3.5-flash",
+    "generated_at": "2026-07-25T13:47:48.521951Z",
+    "reviewed_by": "claude",
+    "reviewed_at": "2026-07-25T13:51:01.338465Z",
+    "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo"
+  },
+  "mode1": {
+    "id": "gen-fianza",
+    "question": "Hola, voy a alquilar un piso para vivir y el propietario me pide tres meses de fianza en metálico, además de un aval adicional. ¿Esto es legal? ¿Cuánto es lo máximo que me pueden exigir por ley como fianza y como garantía adicional? Y otra duda, ¿qué plazo tiene el casero para devolverme el dinero cuando se termine el contrato y le entregue las llaves?",
+    "gold_block_ids": [
+      "a36"
+    ],
+    "expected_outcome": "respuesta",
+    "key_points": [
+      {
+        "claim": "En el arrendamiento de viviendas, la fianza obligatoria que se debe entregar en metálico es de una mensualidad de renta.",
+        "block_id": "a36"
+      },
+      {
+        "claim": "Se pueden pactar garantías adicionales a la fianza en metálico, pero en contratos de vivienda de hasta cinco años (o siete si el arrendador es persona jurídica), el valor de esta garantía adicional no puede exceder de dos mensualidades de renta.",
+        "block_id": "a36"
+      },
+      {
+        "claim": "La fianza devengará el interés legal si transcurre más de un mes desde la entrega de las llaves por el arrendatario sin que se le haya devuelto el saldo correspondiente.",
+        "block_id": "a36"
+      }
+    ],
+    "target_date": null
+  },
+  "mode2": null
+}

@@ -1,0 +1,30 @@
+{
+  "id": "gen-premisa-falsa-fianza",
+  "question": "Hola, llevo dos años viviendo de alquiler en un piso alquilado a un particular y el casero me dice que, como ha subido el alquiler por el IPC, tengo que pagarle ahora una diferencia para actualizar la fianza. Tengo entendido que la fianza se tiene que actualizar obligatoriamente todos los años desde el principio del contrato, ¿es esto correcto?",
+  "gold_block_ids": [
+    "a36"
+  ],
+  "expected_outcome": "respuesta",
+  "key_points": [
+    {
+      "claim": "Durante los cinco primeros años de duración del contrato de arrendamiento (o siete años si el arrendador fuese persona jurídica), la fianza no estará sujeta a actualización.",
+      "block_id": "a36"
+    },
+    {
+      "claim": "La fianza solo podrá ser incrementada o disminuida para hacerse igual a las mensualidades de renta vigente cada vez que el arrendamiento se prorrogue.",
+      "block_id": "a36"
+    }
+  ],
+  "target_date": null,
+  "provenance": {
+    "generator": "query_generator",
+    "sources": [
+      "a36"
+    ],
+    "model": "gemini-3.5-flash",
+    "generated_at": "2026-07-25T13:51:32.332436Z",
+    "reviewed_by": "claude",
+    "reviewed_at": "2026-07-25T13:53:38.012219Z",
+    "review_note": "revision tecnica: puntos clave verificados contra el texto vigente del articulo"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "kind": "modo1",
+  "status": "aceptado",
+  "provenance": {
+    "generator": "query_generator",
+    "sources": [
+      "a11"
+    ],
+    "model": "gemini-3.5-flash",
+    "generated_at": "2026-07-25T13:47:48.521951Z",
+    "reviewed_by": "claude",
+    "reviewed_at": "2026-07-25T13:50:58.391000Z",
+    "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo"
+  },
+  "mode1": {
+    "id": "gen-desistimiento",
+    "question": "Hola, llevo viviendo de alquiler 7 meses y me ha salido un trabajo en otra ciudad. ¿Puedo dejar el piso ya? ¿Tengo que avisar con tiempo? ¿Me pueden cobrar alguna penalización por irme antes de que termine el año de contrato?",
+    "gold_block_ids": [
+      "a11"
+    ],
+    "expected_outcome": "respuesta",
+    "key_points": [
+      {
+        "claim": "El arrendatario puede desistir del contrato de arrendamiento una vez que hayan transcurrido al menos seis meses.",
+        "block_id": "a11"
+      },
+      {
+        "claim": "Se debe comunicar el desistimiento al arrendador con una antelación mínima de treinta días.",
+        "block_id": "a11"
+      },
+      {
+        "claim": "Las partes pueden pactar una indemnización para el arrendador de una mensualidad de la renta por cada año de contrato que reste por cumplir, o la parte proporcional si el período es inferior a un año.",
+        "block_id": "a11"
+      }
+    ],
+    "target_date": null
+  },
+  "mode2": null
+}

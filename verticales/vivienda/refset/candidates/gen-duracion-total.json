@@ -1,0 +1,49 @@
+{
+  "kind": "modo1",
+  "status": "aceptado",
+  "provenance": {
+    "generator": "query_generator",
+    "sources": [
+      "a9",
+      "a10"
+    ],
+    "model": "gemini-3.5-flash",
+    "generated_at": "2026-07-25T13:51:32.332436Z",
+    "reviewed_by": "claude",
+    "reviewed_at": "2026-07-25T13:53:32.270045Z",
+    "review_note": "revision tecnica: puntos clave verificados contra el texto vigente del articulo"
+  },
+  "mode1": {
+    "id": "gen-duracion-total",
+    "question": "Hola. Firmé un contrato de alquiler de vivienda con un particular, pero en el documento no pusimos ninguna duración. Ya llevo viviendo aquí 5 años completos. El propietario no me avisó con antelación de que quería que me fuera, pero ahora que se ha cumplido el plazo, me dice de repente que necesita el piso para que viva su hijo y que tengo que marcharme. Por otro lado, sé que mi piso está en una zona declarada oficialmente como tensionada y me gustaría quedarme. ¿Qué validez tiene mi contrato si no pusimos plazo, se ha prorrogado automáticamente por no avisarme a tiempo, y puede el dueño echarme ahora alegando que lo necesita su hijo estando en zona tensionada?",
+    "gold_block_ids": [
+      "a9",
+      "a10"
+    ],
+    "expected_outcome": "respuesta",
+    "key_points": [
+      {
+        "claim": "Los arrendamientos para los que no se haya estipulado un plazo de duración se entenderán celebrados por un año, manteniendo el arrendatario su derecho a las prórrogas anuales obligatorias.",
+        "block_id": "a9"
+      },
+      {
+        "claim": "Si al llegar al vencimiento de los cinco años obligatorios ninguna de las partes notificó la voluntad de no renovar (con cuatro meses de antelación en el caso del arrendador), el contrato se prorroga obligatoriamente por plazos anuales hasta un máximo de tres años más.",
+        "block_id": "a10"
+      },
+      {
+        "claim": "Al finalizar el contrato o sus prórrogas en una zona de mercado residencial tensionado, el arrendatario puede solicitar una prórroga extraordinaria por plazos anuales hasta un máximo de tres años, la cual es obligatoria para el arrendador.",
+        "block_id": "a10"
+      },
+      {
+        "claim": "El arrendador puede oponerse a la prórroga extraordinaria en zona tensionada si comunica la necesidad de ocupar la vivienda para sí o sus familiares en primer grado, siempre que lo haga bajo los plazos y condiciones establecidos en la ley.",
+        "block_id": "a10"
+      },
+      {
+        "claim": "Para denegar la prórroga por necesidad de destinar la vivienda a un familiar, es requisito indispensable que se hubiese hecho constar esta necesidad de forma expresa en el contrato al tiempo de su celebración, y se debe comunicar al arrendatario con al menos dos meses de antelación.",
+        "block_id": "a9"
+      }
+    ],
+    "target_date": null
+  },
+  "mode2": null
+}

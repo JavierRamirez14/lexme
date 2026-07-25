@@ -1,0 +1,34 @@
+{
+  "id": "gen-prorroga-tacita",
+  "question": "Hola, llevo ya 5 años de alquiler en mi piso y el contrato se termina el mes que viene. Ninguno de los dos (ni el casero ni yo) nos hemos dicho nada sobre si renovar o no. ¿Se prorroga automáticamente el contrato? ¿Por cuánto tiempo? Y si se prorroga, ¿puedo decidir irme yo antes de que acabe?",
+  "gold_block_ids": [
+    "a10"
+  ],
+  "expected_outcome": "respuesta",
+  "key_points": [
+    {
+      "claim": "Si tras un mínimo de 5 años de contrato (o 7 si el arrendador es persona jurídica) ninguna de las partes notifica su voluntad de no renovar con la antelación mínima requerida (4 meses para el arrendador y 2 meses para el arrendatario), el contrato se prorrogará obligatoriamente por plazos anuales hasta un máximo de tres años más.",
+      "block_id": "a10"
+    },
+    {
+      "claim": "Durante esta prórroga, el inquilino puede manifestar al arrendador su voluntad de no renovar el contrato con un mes de antelación a la fecha de terminación de cualquiera de las anualidades.",
+      "block_id": "a10"
+    },
+    {
+      "claim": "Al contrato prorrogado se le seguirá aplicando el mismo régimen legal y convencional al que estuviera sometido originalmente.",
+      "block_id": "a10"
+    }
+  ],
+  "target_date": null,
+  "provenance": {
+    "generator": "query_generator",
+    "sources": [
+      "a10"
+    ],
+    "model": "gemini-3.5-flash",
+    "generated_at": "2026-07-25T13:47:48.521951Z",
+    "reviewed_by": "claude",
+    "reviewed_at": "2026-07-25T13:50:55.278780Z",
+    "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo"
+  }
+}
