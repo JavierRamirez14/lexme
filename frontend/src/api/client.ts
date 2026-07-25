@@ -1,12 +1,12 @@
 /**
  * The one place the SPA talks to the API. Wraps `/ask/stream` (the live agentic
  * run, read as Server-Sent Events over `fetch`), its `/ask/resume/stream`
- * counterpart for a run that paused to ask something, and `/health`. It maps
- * transport and HTTP errors to typed results, and reads the base URL from the
- * Vite env so the same build works in dev and in compose.
+ * counterpart for a run that paused to ask something, `/health`, `/corpus/status`
+ * and `/feedback`. It maps transport and HTTP errors to typed results, and reads
+ * the base URL from the Vite env so the same build works in dev and in compose.
  */
 
-import type { AgenticTrace, AskResponse } from "../types";
+import type { AgenticTrace, AskResponse, CorpusStatus, FeedbackMode, FeedbackVote } from "../types";
 import type { ContractAnalysis } from "../mode2/types";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8000";
@@ -144,5 +144,43 @@ export async function fetchHealth(signal?: AbortSignal): Promise<HealthStatus> {
     return body.status === "ok" ? "ok" : "degraded";
   } catch {
     return "unreachable";
+  }
+}
+
+/** Read the vertical's corpus freshness, or `null` when the probe fails. */
+export async function fetchCorpusStatus(signal?: AbortSignal): Promise<CorpusStatus | null> {
+  try {
+    const response = await fetch(`${API_URL}/corpus/status`, { signal });
+    if (!response.ok) return null;
+    return (await response.json()) as CorpusStatus;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Cast one thumbs up/down vote, carrying the full response snapshot it judges.
+ * Throws `AskError` on a transport or HTTP failure; a caller abort is silent.
+ */
+export async function submitFeedback(
+  mode: FeedbackMode,
+  vote: FeedbackVote,
+  snapshot: object,
+  signal?: AbortSignal,
+): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode, vote, snapshot }),
+      signal,
+    });
+  } catch {
+    if (signal?.aborted) return;
+    throw new AskError("No se pudo contactar con el servicio.");
+  }
+  if (!response.ok) {
+    throw new AskError(`El servicio respondió con un error (${response.status}).`);
   }
 }

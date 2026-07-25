@@ -5,6 +5,7 @@ import { AgenticTrace } from "../components/AgenticTrace";
 import { AnswerView } from "../components/AnswerView";
 import { Abstention } from "../components/Abstention";
 import { ClarificationTurn } from "../components/ClarificationTurn";
+import { FeedbackButtons } from "../components/FeedbackButtons";
 import { PartialAnswer } from "../components/PartialAnswer";
 import { QueryForm } from "../components/QueryForm";
 import { RouterRejection } from "../components/RouterRejection";
@@ -184,6 +185,7 @@ function Result({ response, trace }: { response: AskResponse; trace: AgenticTrac
     <div className={styles.done}>
       {trace && <AgenticTrace trace={trace} step="done" running={false} />}
       <Terminal response={response} />
+      <FeedbackButtons mode="consulta" snapshot={response} />
     </div>
   );
 }

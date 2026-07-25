@@ -129,3 +129,13 @@ export interface AskResponse {
   agentic: AgenticTrace | null;
   citation_verdicts: Record<string, number>;
 }
+
+/** The vertical's corpus freshness, mirroring the API's `CorpusStatus`. */
+export interface CorpusStatus {
+  vertical: string;
+  updated_at: string | null;
+}
+
+/** Which surface a feedback vote was given on, and the vote itself. */
+export type FeedbackMode = "consulta" | "contrato";
+export type FeedbackVote = "positivo" | "negativo";

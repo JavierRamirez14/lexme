@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { analyzeContract, AskError } from "../api/client";
+import { FeedbackButtons } from "../components/FeedbackButtons";
 import { ContractResult } from "./ContractResult";
 import { ContractStop } from "./ContractStop";
 import { RetentionNotice } from "./RetentionNotice";
@@ -75,6 +76,16 @@ export function Mode2Page() {
 
 /** Route a finished analysis to its view: the contract's photo, or an honest stop. */
 function Outcome({ analysis }: { analysis: ContractAnalysis }) {
+  return (
+    <>
+      <Verdict analysis={analysis} />
+      <FeedbackButtons mode="contrato" snapshot={analysis} />
+    </>
+  );
+}
+
+/** The analyzed ficha and risk map, or an honest stop -- never both. */
+function Verdict({ analysis }: { analysis: ContractAnalysis }) {
   if (analysis.outcome === "analizado") {
     return <ContractResult analysis={analysis} />;
   }
