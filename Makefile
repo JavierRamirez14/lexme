@@ -8,7 +8,7 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract eval eval-compare refset-validate-bank refset-assemble refset-generate refset-review test test-integration lint fmt fe-install fe-build
+.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract eval eval-modo2 eval-compare refset-validate-bank refset-assemble refset-generate refset-review test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -74,6 +74,9 @@ contract: ## Analyze a contract (smoke test): make contract F=path/to/contrato.p
 
 eval: ## Run the Mode 1 eval harness against the real system: make eval [V=vivienda]
 	$(COMPOSE) exec api eval run --vertical $(or $(V),vivienda)
+
+eval-modo2: ## Run the Mode 2 (false-tranquility) eval harness: make eval-modo2 [V=vivienda]
+	$(COMPOSE) exec api eval run --mode modo2 --vertical $(or $(V),vivienda)
 
 eval-compare: ## Compare a run against a baseline: make eval-compare BASE=<file> RUN=<file>
 	$(COMPOSE) exec api eval compare --base $(BASE) --run $(RUN)

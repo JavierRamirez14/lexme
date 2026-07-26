@@ -12,12 +12,16 @@ import hashlib
 import json
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
 import lexme
 from lexme.eval.cases import EvalCase
 from lexme.llm import TaskRegistry
+
+if TYPE_CHECKING:
+    from lexme.eval.mode2.cases import Mode2EvalCase
 
 VERTICAL_CONFIG_FILENAMES = (
     "manifest.json",
@@ -31,6 +35,13 @@ PROMPT_SOURCE_FILES = (
     "mode1/graph/planner.py",
     "mode1/graph/critique.py",
     "mode1/synthesis.py",
+)
+
+MODE2_PROMPT_SOURCE_FILES = (
+    "mode2/segmentation.py",
+    "mode2/triage.py",
+    "mode2/mapping.py",
+    "mode2/classify.py",
 )
 
 _MISSING_CORPUS_DIGEST = "empty"
@@ -105,16 +116,31 @@ def build_fingerprint(
 
 
 def compute_prompts_digest() -> str:
-    """Hash the source of the modules that own the agentic prompts.
+    """Hash the source of the modules that own the Mode 1 agentic prompts.
 
     Editing a router, planner, critique or synthesis prompt changes the source of
     its module and so changes this digest, which is what makes a prompt change a
     detectable configuration change. Line endings are normalized so a checkout's
     newline style does not move the hash.
     """
+    return _hash_prompt_sources(PROMPT_SOURCE_FILES)
+
+
+def compute_mode2_prompts_digest() -> str:
+    """Hash the source of the modules that own the Mode 2 pipeline prompts.
+
+    Editing the segmentation, triage, mapping or classification prompt changes its
+    module's source and so this digest, so a Mode 2 prompt change is a detectable
+    configuration change, independent of the Mode 1 prompt digest.
+    """
+    return _hash_prompt_sources(MODE2_PROMPT_SOURCE_FILES)
+
+
+def _hash_prompt_sources(relatives: Sequence[str]) -> str:
+    """Hash the given prompt-owning source files, newline-normalized, by path."""
     package_dir = Path(lexme.__file__).parent
     payload: dict[str, str] = {}
-    for relative in PROMPT_SOURCE_FILES:
+    for relative in relatives:
         path = package_dir / relative
         if path.is_file():
             payload[relative] = path.read_text(encoding="utf-8").replace("\r\n", "\n")
@@ -137,6 +163,36 @@ def compute_dataset_digest(cases: Sequence[EvalCase]) -> str:
                 {"claim": point.claim, "block_id": point.block_id} for point in case.key_points
             ],
             "target_date": case.target_date.isoformat() if case.target_date else None,
+        }
+        for case in sorted(cases, key=lambda case: case.id)
+    ]
+    return _digest(payload)
+
+
+def compute_mode2_dataset_digest(cases: "Sequence[Mode2EvalCase]") -> str:
+    """Hash the Mode 2 contract set a run was measured over, in case-id order.
+
+    Folds the document, each clause's span and level, and the expected absences into
+    one digest, so a run over a different or edited contract set is a different
+    experiment rather than a regression pair.
+    """
+    payload = [
+        {
+            "id": case.id,
+            "document": case.document,
+            "clauses": [
+                {
+                    "clause_id": clause.clause_id,
+                    "start": clause.start,
+                    "end": clause.end,
+                    "expected_level": clause.expected_level.value,
+                    "chk_ids": list(clause.chk_ids),
+                }
+                for clause in case.clauses
+            ],
+            "expected_absences": [
+                {"item_id": absence.item_id} for absence in case.expected_absences
+            ],
         }
         for case in sorted(cases, key=lambda case: case.id)
     ]
