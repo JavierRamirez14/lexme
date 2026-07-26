@@ -47,7 +47,7 @@
       "absence_template": "El contrato no lo recoge, pero la ley protege a tu cónyuge o pareja conviviente: si te vas, puede continuar el arrendamiento. Ten en cuenta que debe manifestar su voluntad de continuar dentro del plazo legal.",
       "citation": {
         "block_id": "a12",
-        "text": "el arrendamiento podrá continuar en beneficio del cónyuge que conviva con aquel"
+        "text": "el arrendamiento podrá continuar en beneficio del cónyuge que conviviera con aquél"
       }
     },
     {
@@ -107,7 +107,7 @@
       "absence_template": "El contrato no lo detalla, pero la ley te asiste: tienes derecho a recibo del pago y no se te puede exigir más de una mensualidad de renta por adelantado.",
       "citation": {
         "block_id": "a17",
-        "text": "El arrendador queda obligado a entregar recibo del pago, salvo que se hubiera pactado que éste se realice mediante procedimientos que acrediten el efectivo cumplimiento"
+        "text": "El arrendador queda obligado a entregar al arrendatario recibo del pago, salvo que se hubiera pactado que éste se realice mediante procedimientos que acrediten el efectivo cumplimiento de la obligación de pago por el arrendatario"
       }
     },
     {
@@ -119,7 +119,7 @@
       "absence_template": "El contrato no lo regula, pero la ley pone límites: si el arrendador hace obras de mejora, la subida de renta no puede exceder el 20 % de la renta vigente.",
       "citation": {
         "block_id": "a19",
-        "text": "sin que pueda exceder el aumento de la renta del veinte por ciento de la renta vigente en aquel momento"
+        "text": "sin que pueda exceder el aumento del veinte por ciento de la renta vigente en aquel momento"
       }
     },
     {

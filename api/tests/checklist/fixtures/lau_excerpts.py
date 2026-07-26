@@ -41,9 +41,11 @@ LAU_EXCERPTS: dict[str, str] = {
         "antelación mínima de treinta días."
     ),
     "a12": (
-        "Si el arrendatario manifestara su voluntad de no renovar el contrato o de desistir de "
-        "él, sin el consentimiento del cónyuge que conviviera con dicho arrendatario, el "
-        "arrendamiento podrá continuar en beneficio del cónyuge que conviva con aquel."
+        "Si el arrendatario manifestase su voluntad de no renovar el contrato o de desistir de "
+        "él, sin el consentimiento del cónyuge que conviviera con dicho arrendatario, podrá el "
+        "arrendamiento continuar en beneficio de dicho cónyuge. Si el arrendatario abandonara la "
+        "vivienda sin manifestación expresa de desistimiento o de no renovación, el arrendamiento "
+        "podrá continuar en beneficio del cónyuge que conviviera con aquél."
     ),
     "a14": (
         "El adquirente de una vivienda arrendada quedará subrogado en los derechos y "
@@ -64,9 +66,9 @@ LAU_EXCERPTS: dict[str, str] = {
     ),
     "a17": (
         "La renta será la que libremente estipulen las partes. El arrendador queda obligado a "
-        "entregar recibo del pago, salvo que se hubiera pactado que éste se realice mediante "
-        "procedimientos que acrediten el efectivo cumplimiento de la obligación de pago por el "
-        "arrendatario."
+        "entregar al arrendatario recibo del pago, salvo que se hubiera pactado que éste se "
+        "realice mediante procedimientos que acrediten el efectivo cumplimiento de la obligación "
+        "de pago por el arrendatario."
     ),
     "a18": (
         "Durante la vigencia del contrato, la renta solo podrá ser actualizada por el "
@@ -77,7 +79,7 @@ LAU_EXCERPTS: dict[str, str] = {
     "a19": (
         "La realización por el arrendador de obras de mejora, transcurrido el plazo mínimo, le "
         "dará derecho, salvo pacto en contrario, a elevar la renta anual, sin que pueda exceder "
-        "el aumento de la renta del veinte por ciento de la renta vigente en aquel momento."
+        "el aumento del veinte por ciento de la renta vigente en aquel momento."
     ),
     "a20": (
         "Los gastos de gestión inmobiliaria y los de formalización del contrato serán a cargo "

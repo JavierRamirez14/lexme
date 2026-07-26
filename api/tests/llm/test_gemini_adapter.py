@@ -53,18 +53,18 @@ def test_maps_roles_and_lifts_system_messages_to_instruction() -> None:
     assert body["systemInstruction"]["parts"][0]["text"] == "you are a judge"
     assert [content["role"] for content in body["contents"]] == ["user", "model"]
     assert body["generationConfig"]["temperature"] == 0.3
-    assert body["generationConfig"]["responseMimeType"] == "application/json"
 
 
-def test_omits_response_mime_type_when_not_in_json_mode() -> None:
+def test_never_requests_native_json_mode_which_truncates_this_model() -> None:
     seen: dict = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
         seen["body"] = json.loads(request.content)
         return httpx.Response(200, json=_reply("ok"))
 
+    request = ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")], json_mode=True)
     with GeminiAdapter("k", transport=_transport(handler)) as adapter:
-        adapter.complete(ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")]))
+        adapter.complete(request)
 
     assert "responseMimeType" not in seen["body"]["generationConfig"]
 
@@ -83,6 +83,44 @@ def test_raises_on_a_response_without_candidates() -> None:
 
 def test_raises_httpstatuserror_on_non_2xx() -> None:
     def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(400, json={"error": "bad request"})
+
+    request = ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")])
+    with (
+        GeminiAdapter("k", transport=_transport(handler)) as adapter,
+        pytest.raises(httpx.HTTPStatusError),
+    ):
+        adapter.complete(request)
+
+
+def test_retries_a_rate_limit_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("lexme.llm.http_adapter.time.sleep", lambda _seconds: None)
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) < 3:
+            return httpx.Response(
+                429,
+                json={"error": {"details": [{"retryDelay": "1s"}]}},
+            )
+        return httpx.Response(200, json=_reply("done"))
+
+    with GeminiAdapter("k", transport=_transport(handler)) as adapter:
+        text = adapter.complete(ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")]))
+
+    assert text == "done"
+    assert len(calls) == 3
+
+
+def test_gives_up_after_max_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+    from lexme.llm.http_adapter import MAX_RETRIES
+
+    monkeypatch.setattr("lexme.llm.http_adapter.time.sleep", lambda _seconds: None)
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
         return httpx.Response(429, json={"error": "rate limited"})
 
     request = ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")])
@@ -91,6 +129,8 @@ def test_raises_httpstatuserror_on_non_2xx() -> None:
         pytest.raises(httpx.HTTPStatusError),
     ):
         adapter.complete(request)
+
+    assert len(calls) == MAX_RETRIES + 1
 
 
 def test_empty_api_key_is_rejected_at_construction() -> None:

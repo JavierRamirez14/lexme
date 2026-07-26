@@ -1,0 +1,1011 @@
+{
+  "suite": "modo1",
+  "created_at": "2026-07-26T17:01:57.314269Z",
+  "fingerprint": {
+    "models": {
+      "mode1_router": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_planning": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_selfcritique": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_synthesis": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_triage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_segmentation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_mapping": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_classification": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "judge": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-r1:free",
+        "temperature": 0.0
+      },
+      "refset_query_generation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.7
+      }
+    },
+    "vertical": "vivienda",
+    "prompts_hash": "378ee660b167042a",
+    "vertical_config_hash": "7e0e52ad40a99656",
+    "corpus_hash": "0c9ae9d990c75b311df55b0ae5fa9542",
+    "dataset_hash": "89cf315c6c08426e",
+    "fingerprint": "c089dbb30f299632"
+  },
+  "metrics": {
+    "cases": 17,
+    "outcomes": {
+      "respuesta": 4,
+      "rechazo_router": 3,
+      "desambiguacion": 10
+    },
+    "mean_recall": 0.26666666666666666,
+    "mean_first_pass_recall": 1.0,
+    "mean_recall_delta": 0.0,
+    "retrieval_layer_recall": {
+      "dense": 0.2857142857142857,
+      "lexical": 0.2857142857142857,
+      "fused": 0.2857142857142857,
+      "evidence": 0.2857142857142857
+    },
+    "outcome_match_rate": 0.35294117647058826,
+    "abstention_rate": 0.0,
+    "expected_abstention_recall": 0.0,
+    "mean_agentic_delta": 0.0,
+    "judge": null,
+    "citation_verdicts": {
+      "verificada_directa": 3,
+      "reparada_snap": 2,
+      "reparada_anclaje": 0,
+      "descartada": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "01-plazo-minimo",
+      "question": "¿Cuál es la duración mínima de un contrato de alquiler de vivienda habitual?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "displayed_citations": 2,
+      "retrieved_block_ids": [
+        "a9",
+        "a10",
+        "a36",
+        "daprimera",
+        "dttercera",
+        "dtsegunda",
+        "a14",
+        "a19"
+      ],
+      "gold_block_ids": [
+        "a9"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "a9"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "a9"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 1,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "02-fianza",
+      "question": "¿Cuántos meses de fianza puede exigir el arrendador en un alquiler de vivienda?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "displayed_citations": 1,
+      "retrieved_block_ids": [
+        "a36",
+        "datercera",
+        "a17",
+        "daprimera",
+        "dtsegunda",
+        "daquinta",
+        "a27",
+        "a4"
+      ],
+      "gold_block_ids": [
+        "a36"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "a36"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "a36"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 0,
+        "reparada_snap": 1,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "03-actualizacion-renta",
+      "question": "¿Puede el casero subir la renta cada año durante la vigencia del contrato?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "displayed_citations": 1,
+      "retrieved_block_ids": [
+        "dtsegunda",
+        "a18",
+        "da",
+        "daprimera",
+        "a36",
+        "dttercera",
+        "a17",
+        "a19"
+      ],
+      "gold_block_ids": [
+        "a18"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "a18"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "a18"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "04-desistimiento",
+      "question": "¿Puede el inquilino dejar el piso antes de que acabe el contrato y con cuánto preaviso?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "displayed_citations": 1,
+      "retrieved_block_ids": [
+        "dttercera",
+        "a12",
+        "a9",
+        "a11",
+        "a34",
+        "a22",
+        "daquinta",
+        "a26"
+      ],
+      "gold_block_ids": [
+        "a11"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "a11"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "a11"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "05-fuera-de-ambito",
+      "question": "¿Cómo recurro una multa de tráfico por exceso de velocidad?",
+      "outcome": "rechazo_router",
+      "expected_outcome": "rechazo_router",
+      "outcome_as_expected": true,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [],
+      "recall": null,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": null,
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-actualizacion-renta",
+      "question": "Hola, llevo un año de alquiler y mi casero me ha dicho de palabra que me va a subir el alquiler el mes que viene basándose en la inflación. ¿Esto es legal? ¿Puede subirme el precio cuando quiera y de cualquier forma, o hay límites y requisitos de preaviso?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a18"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-desistimiento",
+      "question": "Hola, llevo viviendo de alquiler 7 meses y me ha salido un trabajo en otra ciudad. ¿Puedo dejar el piso ya? ¿Tengo que avisar con tiempo? ¿Me pueden cobrar alguna penalización por irme antes de que termine el año de contrato?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a11"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-duracion-total",
+      "question": "Hola. Firmé un contrato de alquiler de vivienda con un particular, pero en el documento no pusimos ninguna duración. Ya llevo viviendo aquí 5 años completos. El propietario no me avisó con antelación de que quería que me fuera, pero ahora que se ha cumplido el plazo, me dice de repente que necesita el piso para que viva su hijo y que tengo que marcharme. Por otro lado, sé que mi piso está en una zona declarada oficialmente como tensionada y me gustaría quedarme. ¿Qué validez tiene mi contrato si no pusimos plazo, se ha prorrogado automáticamente por no avisarme a tiempo, y puede el dueño echarme ahora alegando que lo necesita su hijo estando en zona tensionada?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a9",
+        "a10"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-fianza",
+      "question": "Hola, voy a alquilar un piso para vivir y el propietario me pide tres meses de fianza en metálico, además de un aval adicional. ¿Esto es legal? ¿Cuánto es lo máximo que me pueden exigir por ley como fianza y como garantía adicional? Y otra duda, ¿qué plazo tiene el casero para devolverme el dinero cuando se termine el contrato y le entregue las llaves?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a36"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-fuera-ambito-multa",
+      "question": "Hola, me ha llegado una multa de tráfico por exceso de velocidad. Me cazó un radar a 135 km/h en una zona de 120. Querría saber qué pasos debo seguir para recurrirla, qué plazos tengo y si me conviene pagar con descuento o presentar alegaciones.",
+      "outcome": "rechazo_router",
+      "expected_outcome": "rechazo_router",
+      "outcome_as_expected": true,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [],
+      "recall": null,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": null,
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-gastos-agencia",
+      "question": "Hola, estoy por firmar un contrato de alquiler y la inmobiliaria me quiere cobrar a mí sus honorarios por buscar el piso y redactar el contrato. Además, quieren que pague los gastos de comunidad, pero en el borrador solo pone que me haré cargo de ellos sin indicar ninguna cifra. ¿Es esto legal? ¿Y quién tiene que pagar los recibos de la luz y el agua?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a20"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-obras-mejora-desistir",
+      "question": "Llevo 8 meses viviendo de alquiler y mi casero me acaba de avisar por escrito de que va a realizar unas obras de mejora importantes en el piso que me dejarán sin poder usar la mitad de la casa. Me estoy planteando dos opciones. Por un lado, ¿puedo rescindir el contrato para irme antes de que empiecen las obras sin tener que pagar la penalización por desistimiento que pactamos en el contrato para cuando me fuera antes de tiempo? Por otro lado, si decido quedarme y aguantar las obras, ¿tengo derecho a algún tipo de rebaja en el alquiler o a que me paguen los gastos que me generen?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a22",
+        "a11"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-plazo-minimo",
+      "question": "Firmé un contrato de alquiler de piso por un año con un propietario particular. ¿Tengo derecho a quedarme más tiempo si yo quiero? Es que me ha dicho que igual necesita el piso para su hijo, pero en el contrato no pone nada de eso.",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a9"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-premisa-falsa-fianza",
+      "question": "Hola, llevo dos años viviendo de alquiler en un piso alquilado a un particular y el casero me dice que, como ha subido el alquiler por el IPC, tengo que pagarle ahora una diferencia para actualizar la fianza. Tengo entendido que la fianza se tiene que actualizar obligatoriamente todos los años desde el principio del contrato, ¿es esto correcto?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a36"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-prorroga-tacita",
+      "question": "Hola, llevo ya 5 años de alquiler en mi piso y el contrato se termina el mes que viene. Ninguno de los dos (ni el casero ni yo) nos hemos dicho nada sobre si renovar o no. ¿Se prorroga automáticamente el contrato? ¿Por cuánto tiempo? Y si se prorroga, ¿puedo decidir irme yo antes de que acabe?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a10"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-sin-base-obligar-venta",
+      "question": "Hola, mi casero me ha comunicado que va a vender el piso donde vivo y quiero comprarlo usando mi derecho de tanteo. Sin embargo, no me queda claro qué impuestos (como el ITP o el IVA) tengo que pagar al formalizar la compraventa y si existe alguna deducción o beneficio fiscal especial para los inquilinos que compran su vivienda habitual. ¿Me podríais explicar detalladamente qué gastos e impuestos tendré?",
+      "outcome": "rechazo_router",
+      "expected_outcome": "abstencion",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a25"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": null,
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    },
+    {
+      "id": "gen-venta-vivienda",
+      "question": "Hola, me he enterado de que mi casero va a vender el piso en el que estoy alquilado. Llevo solo un año de contrato. ¿El nuevo comprador me puede echar inmediatamente o tiene la obligación de respetar mi alquiler?",
+      "outcome": "desambiguacion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "displayed_citations": 0,
+      "retrieved_block_ids": [],
+      "gold_block_ids": [
+        "a14"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {},
+      "judge": null,
+      "violations": []
+    }
+  ],
+  "hard_failures": [],
+  "passed": true,
+  "judge_calibration": null
+}
