@@ -113,6 +113,43 @@ def test_retries_a_rate_limit_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> 
     assert len(calls) == 3
 
 
+def test_retries_a_dropped_connection_then_succeeds(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("lexme.llm.http_adapter.time.sleep", lambda _seconds: None)
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) < 3:
+            raise httpx.RemoteProtocolError("peer closed connection", request=request)
+        return httpx.Response(200, json=_reply("done"))
+
+    with GeminiAdapter("k", transport=_transport(handler)) as adapter:
+        text = adapter.complete(ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")]))
+
+    assert text == "done"
+    assert len(calls) == 3
+
+
+def test_gives_up_after_repeated_dropped_connections(monkeypatch: pytest.MonkeyPatch) -> None:
+    from lexme.llm.http_adapter import MAX_RETRIES
+
+    monkeypatch.setattr("lexme.llm.http_adapter.time.sleep", lambda _seconds: None)
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        raise httpx.RemoteProtocolError("peer closed connection", request=request)
+
+    request = ProviderRequest("gemini-2.5-flash", 0.0, [Message("user", "hi")])
+    with (
+        GeminiAdapter("k", transport=_transport(handler)) as adapter,
+        pytest.raises(httpx.TransportError),
+    ):
+        adapter.complete(request)
+
+    assert len(calls) == MAX_RETRIES + 1
+
+
 def test_gives_up_after_max_retries(monkeypatch: pytest.MonkeyPatch) -> None:
     from lexme.llm.http_adapter import MAX_RETRIES
 

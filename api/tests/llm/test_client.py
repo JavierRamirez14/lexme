@@ -2,8 +2,8 @@
 
 import pytest
 
-from lexme.llm.client import RoutingLlmClient
-from lexme.llm.protocol import Message, TaskNotConfiguredError
+from lexme.llm.client import STRUCTURED_ATTEMPTS, RoutingLlmClient
+from lexme.llm.protocol import Message, StructuredOutputError, TaskNotConfiguredError
 from lexme.llm.provider import ProviderRequest
 from lexme.llm.registry import LlmConfigError, TaskModel, TaskRegistry
 from tests.llm.conftest import Verdict
@@ -19,6 +19,18 @@ class RecordingAdapter:
     def complete(self, request: ProviderRequest) -> str:
         self.requests.append(request)
         return self._reply
+
+
+class ReplayingAdapter:
+    """A stub provider adapter that returns a different reply per call, in order."""
+
+    def __init__(self, replies: list[str]) -> None:
+        self._replies = list(replies)
+        self.requests: list[ProviderRequest] = []
+
+    def complete(self, request: ProviderRequest) -> str:
+        self.requests.append(request)
+        return self._replies.pop(0)
 
 
 def _registry() -> TaskRegistry:
@@ -60,7 +72,53 @@ def test_structured_call_requests_json_mode_and_parses_the_reply() -> None:
     assert result == Verdict(label="reflejado", score=2)
     sent = gemini.requests[0]
     assert sent.json_mode is True
-    assert any("JSON" in message.content for message in sent.messages if message.role == "system")
+    assert any("JSON" in message.content for message in sent.messages)
+
+
+def test_the_schema_instruction_rides_the_system_message_before_the_user_turn() -> None:
+    openrouter = RecordingAdapter('{"label": "ok", "score": 1}')
+    adapters = {"gemini": RecordingAdapter(""), "openrouter": openrouter}
+    client = RoutingLlmClient(_registry(), adapters)
+    conversation = [Message("system", "eres un juez"), Message("user", "califica esto")]
+
+    client.complete_structured("judge", conversation, Verdict)
+
+    sent = openrouter.requests[0].messages
+    assert [message.role for message in sent] == ["system", "user"]
+    assert sent[0].content.startswith("eres un juez")
+    assert "JSON" in sent[0].content
+    assert sent[1].content == "califica esto"
+
+
+def test_a_task_without_a_system_message_still_gets_the_schema_instruction() -> None:
+    gemini = RecordingAdapter('{"label": "ok", "score": 1}')
+    client = RoutingLlmClient(_registry(), {"gemini": gemini, "openrouter": RecordingAdapter("")})
+
+    client.complete_structured("synthesis", [Message("user", "grade")], Verdict)
+
+    sent = gemini.requests[0].messages
+    assert [message.role for message in sent] == ["system", "user"]
+    assert "JSON" in sent[0].content
+
+
+def test_a_malformed_structured_reply_is_resampled_before_giving_up() -> None:
+    gemini = ReplayingAdapter(["{not json at all", '{"label": "ok", "score": 1}'])
+    client = RoutingLlmClient(_registry(), {"gemini": gemini, "openrouter": RecordingAdapter("")})
+
+    result = client.complete_structured("synthesis", [Message("user", "grade")], Verdict)
+
+    assert result == Verdict(label="ok", score=1)
+    assert len(gemini.requests) == 2
+
+
+def test_a_reply_that_never_parses_raises_structured_output_error() -> None:
+    gemini = ReplayingAdapter(["nope"] * (STRUCTURED_ATTEMPTS + 1))
+    client = RoutingLlmClient(_registry(), {"gemini": gemini, "openrouter": RecordingAdapter("")})
+
+    with pytest.raises(StructuredOutputError):
+        client.complete_structured("synthesis", [Message("user", "grade")], Verdict)
+
+    assert len(gemini.requests) == STRUCTURED_ATTEMPTS
 
 
 def test_unknown_task_raises_task_not_configured() -> None:

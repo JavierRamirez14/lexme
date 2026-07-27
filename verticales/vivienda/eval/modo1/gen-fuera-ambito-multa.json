@@ -10,7 +10,7 @@
     "sources": [],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:53:54.227524Z",
-    "reviewed_by": "claude",
+    "reviewed_by": "javier",
     "reviewed_at": "2026-07-25T13:56:24.086946Z",
     "review_note": "revision tecnica: caso adversarial (materia fuera del corpus); outcome esperado correcto"
   }

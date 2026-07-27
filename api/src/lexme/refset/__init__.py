@@ -22,6 +22,7 @@ from lexme.refset.clause_bank import (
 from lexme.refset.models import (
     Candidate,
     CaseKind,
+    ClarificationAnswer,
     ClauseGroundTruth,
     ExpectedAbsence,
     KeyPoint,
@@ -46,6 +47,7 @@ __all__ = [
     "Candidate",
     "CandidateStore",
     "CaseKind",
+    "ClarificationAnswer",
     "ClauseBank",
     "ClauseBankError",
     "ClauseGroundTruth",

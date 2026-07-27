@@ -5,11 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from lexme.eval.cases import load_cases
+from lexme.eval.cases import answer_for_branch, load_cases
 from lexme.mode1.models import Outcome
 from lexme.refset.models import (
     Candidate,
     CaseKind,
+    ClarificationAnswer,
     KeyPoint,
     Mode1ReferenceCase,
     Mode2ReferenceCase,
@@ -63,6 +64,21 @@ def test_accepting_materializes_the_case_with_its_provenance(tmp_path: Path) -> 
     cases = load_cases(path)
     assert cases[0].gold_block_ids == ("a9",)
     assert cases[0].expected_outcome == "respuesta"
+
+
+def test_a_materialized_case_carries_the_clarification_answer_it_pins(tmp_path: Path) -> None:
+    store = _store(tmp_path)
+    candidate = _mode1()
+    assert candidate.mode1 is not None
+    candidate.mode1.clarification_answers = [
+        ClarificationAnswer(branch_id="fecha_firma", answer="01/06/2023")
+    ]
+    store.write(candidate)
+
+    path = store.accept("plazo", reviewed_by="javier", now=_NOW)
+
+    (case,) = load_cases(path)
+    assert answer_for_branch(case.clarification_answers, "fecha_firma") == "01/06/2023"
 
 
 def test_an_accepted_candidate_records_its_reviewer(tmp_path: Path) -> None:

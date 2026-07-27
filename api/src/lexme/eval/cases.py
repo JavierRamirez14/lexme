@@ -7,6 +7,7 @@ The generated-by-construction set arrives later and produces the same shape.
 """
 
 import json
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
@@ -29,6 +30,19 @@ class KeyPoint:
 
 
 @dataclass(frozen=True)
+class ClarificationAnswer:
+    """The reply a case brings, written in advance, for one critical branch.
+
+    A run that pauses on ``branch_id`` is continued with ``answer`` exactly as
+    written, so the harness never infers a reply and the model never improvises
+    one: the answer is reviewed case data like the gold blocks or the key points.
+    """
+
+    branch_id: str
+    answer: str
+
+
+@dataclass(frozen=True)
 class EvalCase:
     """One Mode 1 evaluation case: a question and the blocks it should ground on.
 
@@ -38,6 +52,8 @@ class EvalCase:
     ``key_points`` are the reference claims the judge grades completeness against,
     each tied to a gold block. ``target_date`` pins the point-in-time clock for a
     time-sensitive case, or is ``None`` to answer at the run's default date.
+    ``clarification_answers`` are the replies the case brings for the critical
+    branches the run may pause on, at most one per branch.
     """
 
     id: str
@@ -46,6 +62,29 @@ class EvalCase:
     expected_outcome: str | None = None
     key_points: tuple[KeyPoint, ...] = ()
     target_date: date | None = None
+    clarification_answers: tuple[ClarificationAnswer, ...] = ()
+
+
+def answer_for_branch(answers: Sequence[ClarificationAnswer], branch_id: str) -> str | None:
+    """The reply pinned for ``branch_id`` among ``answers``, or ``None`` when none is."""
+    return next((pinned.answer for pinned in answers if pinned.branch_id == branch_id), None)
+
+
+def reject_unknown_branches(cases: Sequence[EvalCase], branch_ids: Collection[str]) -> None:
+    """Fail unless every pinned answer names a branch the vertical actually declares.
+
+    A case file names its branch by id, and a mistyped id is invisible at runtime:
+    the run pauses on a branch nothing answers and the case quietly goes unmeasured.
+    Checking it against the vertical's branch package turns that into a loud failure.
+    Raises :class:`CasesError` on the first unknown branch.
+    """
+    for case in cases:
+        for pinned in case.clarification_answers:
+            if pinned.branch_id not in branch_ids:
+                raise CasesError(
+                    f"case '{case.id}' pins an answer for branch '{pinned.branch_id}', "
+                    f"which the vertical does not declare; known branches: {sorted(branch_ids)}"
+                )
 
 
 def load_cases(path: Path) -> tuple[EvalCase, ...]:
@@ -104,6 +143,7 @@ def _read_case(file: Path) -> EvalCase:
         expected_outcome=expected_outcome,
         key_points=_read_key_points(raw, file, gold),
         target_date=_read_target_date(raw, file),
+        clarification_answers=_read_clarification_answers(raw, file),
     )
 
 
@@ -144,6 +184,36 @@ def _read_key_points(raw: dict, file: Path, gold: tuple[str, ...]) -> tuple[KeyP
             )
         points.append(KeyPoint(claim=claim, block_id=block_id))
     return tuple(points)
+
+
+def _read_clarification_answers(raw: dict, file: Path) -> tuple[ClarificationAnswer, ...]:
+    """Extract the optional ``clarification_answers``, one reply per critical branch.
+
+    Rejects a blank reply and a branch answered twice, so a run that pauses always
+    finds either exactly one written answer or none at all.
+    """
+    entries = raw.get("clarification_answers", [])
+    if not isinstance(entries, list):
+        raise CasesError(f"case {file} 'clarification_answers' must be an array")
+    answers: list[ClarificationAnswer] = []
+    seen: set[str] = set()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise CasesError(f"case {file} has a non-object clarification answer: {entry!r}")
+        branch_id = entry.get("branch_id")
+        answer = entry.get("answer")
+        if not isinstance(branch_id, str) or not branch_id.strip():
+            raise CasesError(f"case {file} has a clarification answer without a 'branch_id'")
+        if not isinstance(answer, str) or not answer.strip():
+            raise CasesError(
+                f"case {file} has a clarification answer for branch '{branch_id}' "
+                f"without a non-empty 'answer'"
+            )
+        if branch_id in seen:
+            raise CasesError(f"case {file} pins two clarification answers for branch '{branch_id}'")
+        seen.add(branch_id)
+        answers.append(ClarificationAnswer(branch_id=branch_id, answer=answer))
+    return tuple(answers)
 
 
 def _read_target_date(raw: dict, file: Path) -> date | None:

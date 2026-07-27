@@ -6,10 +6,13 @@ layer (dense, lexical, fused, and the evidence the run finished with) and
 attributed per sub-query, so a failure is attributable ("retrieval recalls 0.92
 but synthesis drops a citation"). The agentic delta is reported as a first-pass to
 final recall pair -- what iterating earned. The judge's end-to-end numbers ride
-along on every answered case that carries reference key points.
+along on every answered case that carries reference key points. How each case got
+past the disambiguation gate is carried alongside them, because a case that never
+got past a pause was never measured and must not be averaged in as if it had been.
 """
 
 from collections.abc import Iterable
+from enum import StrEnum
 from statistics import mean
 
 from pydantic import BaseModel
@@ -19,6 +22,21 @@ from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.judge import JudgeMetrics, JudgeVerdict, build_judge_metrics
 from lexme.mode1 import AskResponse, Outcome, RankedBlockRef, SubQueryReport
 from lexme.verification import CitationVerdict
+
+
+class Disambiguation(StrEnum):
+    """How a case got past the disambiguation gate, if it met it at all.
+
+    ``DIRECT`` never paused. ``RESUMED`` paused and was continued with the reply
+    the case pins, so its numbers describe a final answer. ``UNANSWERED`` paused
+    with no pinned reply for the branch asked, so the case was never measured past
+    the pause and must not be read as either a hit or a generic failure.
+    """
+
+    DIRECT = "directo"
+    RESUMED = "reanudado"
+    UNANSWERED = "sin_respuesta"
+
 
 LAYER_DENSE = "dense"
 LAYER_LEXICAL = "lexical"
@@ -64,6 +82,9 @@ class CaseResult(BaseModel):
     carries the per-layer and per-sub-query breakdown; ``judge`` the end-to-end
     numbers, present only for an answered case with reference key points.
     ``outcome_as_expected`` is ``None`` when the case pins no expected outcome.
+    ``disambiguation`` says whether the case answered directly, was resumed with
+    the reply it pins, or stopped at a pause it brought no reply for; it is ``None``
+    only in an artifact written before the harness measured that.
     """
 
     id: str
@@ -71,6 +92,7 @@ class CaseResult(BaseModel):
     outcome: str
     expected_outcome: str | None
     outcome_as_expected: bool | None
+    disambiguation: str | None = None
     displayed_citations: int
     retrieved_block_ids: list[str]
     gold_block_ids: list[str]
@@ -108,12 +130,18 @@ class SuiteMetrics(BaseModel):
     each retrieval layer. ``outcome_match_rate`` is the fraction of cases that
     pinned an outcome and reached it; ``abstention_rate`` the fraction that
     abstained and ``expected_abstention_recall`` how many of the cases meant to
-    abstain did, so abstention is read next to precision, never alone. ``judge`` is
-    ``None`` when no case was judged.
+    abstain did, so abstention is read next to precision, never alone.
+    ``disambiguation`` counts the cases by how they got past the disambiguation
+    gate and ``disambiguation_rate`` is the fraction of cases the gate stopped,
+    resumed or not, so how many cases a run really measured end to end is never
+    ambiguous; both are empty in an artifact written before the harness measured
+    that. ``judge`` is ``None`` when no case was judged.
     """
 
     cases: int
     outcomes: dict[str, int]
+    disambiguation: dict[str, int] = {}
+    disambiguation_rate: float | None = None
     mean_recall: float | None
     mean_first_pass_recall: float | None
     mean_recall_delta: float | None
@@ -131,6 +159,7 @@ def build_case_result(
     response: AskResponse,
     violations: list[GuardrailViolation],
     verdict: JudgeVerdict | None = None,
+    disambiguation: Disambiguation = Disambiguation.DIRECT,
 ) -> CaseResult:
     """Measure one case's response against its gold blocks, key points and verdicts."""
     retrieved = _accumulated_evidence(response)
@@ -142,6 +171,7 @@ def build_case_result(
         outcome=response.outcome.value,
         expected_outcome=case.expected_outcome,
         outcome_as_expected=_outcome_as_expected(case.expected_outcome, response.outcome.value),
+        disambiguation=disambiguation.value,
         displayed_citations=len(response.answer.fundamento) if response.answer else 0,
         retrieved_block_ids=retrieved,
         gold_block_ids=list(case.gold_block_ids),
@@ -169,6 +199,8 @@ def aggregate(results: list[CaseResult]) -> SuiteMetrics:
     return SuiteMetrics(
         cases=len(results),
         outcomes=_count_outcomes(results),
+        disambiguation=_count_disambiguation(results),
+        disambiguation_rate=_disambiguation_rate(results),
         mean_recall=mean(recalls) if recalls else None,
         mean_first_pass_recall=mean(first_recalls) if first_recalls else None,
         mean_recall_delta=mean(deltas) if deltas else None,
@@ -327,6 +359,23 @@ def _count_outcomes(results: list[CaseResult]) -> dict[str, int]:
     for result in results:
         counts[result.outcome] = counts.get(result.outcome, 0) + 1
     return counts
+
+
+def _count_disambiguation(results: list[CaseResult]) -> dict[str, int]:
+    """Count the cases by how they got past the disambiguation gate, all states listed."""
+    counts = {state.value: 0 for state in Disambiguation}
+    for result in results:
+        if result.disambiguation is not None:
+            counts[result.disambiguation] += 1
+    return counts
+
+
+def _disambiguation_rate(results: list[CaseResult]) -> float | None:
+    """The fraction of cases the gate stopped, whether or not they were resumed."""
+    if not results:
+        return None
+    paused = sum(1 for result in results if result.disambiguation != Disambiguation.DIRECT.value)
+    return paused / len(results)
 
 
 def _sum_verdicts(results: list[CaseResult]) -> dict[str, int]:

@@ -6,12 +6,17 @@ deterministically. The end-to-end harness test reuses the Mode 1 fixtures and th
 real system behind the fake LLM.
 """
 
+from collections.abc import Sequence
 from datetime import date
 
+from lexme.eval.cases import ClarificationAnswer
+from lexme.eval.metrics import Disambiguation
+from lexme.eval.runner import CaseRun
 from lexme.mode1 import (
     AgenticTrace,
     Answer,
     AskResponse,
+    Clarification,
     Outcome,
     PassReport,
     RankedBlockRef,
@@ -19,11 +24,13 @@ from lexme.mode1 import (
     SubQueryReport,
     VerifiedCitation,
 )
+from lexme.mode1.branches import AnswerKind
 from lexme.verification import CitationVerdict, ResolvedBlock, VerifiedAnchor
 from tests.mode1.conftest import (  # noqa: F401  re-exported fixtures for the integration test
     checkpointer,
     corpus_reader,
     seeded_corpus,
+    vivienda_branches,
 )
 
 AS_OF = date(2020, 1, 1)
@@ -50,19 +57,37 @@ class InMemoryCorpus:
 
 
 class StubRunner:
-    """A :class:`CaseRunner` that replays a fixed response per question, in order."""
+    """A :class:`CaseRunner` that replays a fixed run per question, in order.
 
-    def __init__(self, *responses: AskResponse) -> None:
-        """Queue the responses to return across successive :meth:`run` calls."""
-        self._responses = list(responses)
+    A queued :class:`AskResponse` stands for a case answered without pausing; queue
+    a :class:`CaseRun` instead to replay a resumed or an unanswered pause.
+    """
+
+    def __init__(self, *runs: AskResponse | CaseRun) -> None:
+        """Queue the runs to return across successive :meth:`run` calls."""
+        self._runs = [_as_case_run(run) for run in runs]
         self.questions: list[str] = []
         self.dates: list[date] = []
+        self.pinned_answers: list[tuple[ClarificationAnswer, ...]] = []
 
-    def run(self, question: str, target_date: date) -> AskResponse:
-        """Record the ``question`` and ``target_date`` and return the next response."""
+    def run(
+        self,
+        question: str,
+        target_date: date,
+        clarification_answers: Sequence[ClarificationAnswer] = (),
+    ) -> CaseRun:
+        """Record what the harness handed over and return the next queued run."""
         self.questions.append(question)
         self.dates.append(target_date)
-        return self._responses.pop(0)
+        self.pinned_answers.append(tuple(clarification_answers))
+        return self._runs.pop(0)
+
+
+def _as_case_run(run: AskResponse | CaseRun) -> CaseRun:
+    """Read a queued run, treating a bare response as a case answered directly."""
+    if isinstance(run, CaseRun):
+        return run
+    return CaseRun(response=run, disambiguation=Disambiguation.DIRECT)
 
 
 def _anchor(block_id: str) -> VerifiedAnchor:
@@ -146,6 +171,18 @@ def traced_response(
         answer=answer,
         agentic=AgenticTrace(subqueries=[subquery], passes=passes, agentic_delta=1),
         citation_verdicts={CitationVerdict.VERIFIED_DIRECT.value: len(citations)},
+    )
+
+
+def clarification_response(branch_id: str = "fecha_firma") -> AskResponse:
+    """A paused response carrying the disambiguating question and no answer."""
+    return AskResponse(
+        outcome=Outcome.CLARIFICATION,
+        thread_id="t",
+        clarification=Clarification(
+            branch_id=branch_id, question="¿cuándo firmaste?", answer_kind=AnswerKind.DATE
+        ),
+        agentic=AgenticTrace(),
     )
 
 

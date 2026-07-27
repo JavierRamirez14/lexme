@@ -6,7 +6,14 @@ from pathlib import Path
 
 import pytest
 
-from lexme.eval.cases import CasesError, load_cases
+from lexme.eval.cases import (
+    CasesError,
+    ClarificationAnswer,
+    EvalCase,
+    answer_for_branch,
+    load_cases,
+    reject_unknown_branches,
+)
 
 
 def _write_case(directory: Path, name: str, payload: dict) -> None:
@@ -130,4 +137,89 @@ def test_a_key_point_missing_its_claim_is_rejected(tmp_path: Path) -> None:
     )
 
     with pytest.raises(CasesError, match="key point"):
+        load_cases(tmp_path)
+
+
+def test_a_case_loads_the_answer_it_pins_for_each_critical_branch(tmp_path: Path) -> None:
+    _write_case(
+        tmp_path,
+        "pinned.json",
+        {
+            "id": "x",
+            "question": "q",
+            "clarification_answers": [
+                {"branch_id": "fecha_firma", "answer": "12/06/2025"},
+                {"branch_id": "uso_vivienda", "answer": "Es mi vivienda habitual."},
+            ],
+        },
+    )
+
+    (case,) = load_cases(tmp_path)
+
+    assert answer_for_branch(case.clarification_answers, "fecha_firma") == "12/06/2025"
+    assert (
+        answer_for_branch(case.clarification_answers, "uso_vivienda") == "Es mi vivienda habitual."
+    )
+
+
+def test_a_case_pins_no_answer_for_a_branch_it_does_not_declare(tmp_path: Path) -> None:
+    _write_case(tmp_path, "bare.json", {"id": "x", "question": "q"})
+
+    (case,) = load_cases(tmp_path)
+
+    assert case.clarification_answers == ()
+    assert answer_for_branch(case.clarification_answers, "fecha_firma") is None
+
+
+def test_a_blank_pinned_answer_is_rejected(tmp_path: Path) -> None:
+    _write_case(
+        tmp_path,
+        "bad.json",
+        {
+            "id": "x",
+            "question": "q",
+            "clarification_answers": [{"branch_id": "fecha_firma", "answer": "  "}],
+        },
+    )
+
+    with pytest.raises(CasesError, match="clarification answer"):
+        load_cases(tmp_path)
+
+
+def test_an_answer_pinned_to_a_branch_the_vertical_does_not_declare_is_rejected() -> None:
+    case = EvalCase(
+        id="x",
+        question="q",
+        clarification_answers=(ClarificationAnswer(branch_id="fecha_firmaa", answer="12/06/2025"),),
+    )
+
+    with pytest.raises(CasesError, match="fecha_firmaa"):
+        reject_unknown_branches([case], ("fecha_firma", "uso_vivienda"))
+
+
+def test_answers_pinned_to_declared_branches_pass_the_branch_check() -> None:
+    case = EvalCase(
+        id="x",
+        question="q",
+        clarification_answers=(ClarificationAnswer(branch_id="fecha_firma", answer="12/06/2025"),),
+    )
+
+    reject_unknown_branches([case], ("fecha_firma", "uso_vivienda"))
+
+
+def test_two_pinned_answers_for_the_same_branch_are_rejected(tmp_path: Path) -> None:
+    _write_case(
+        tmp_path,
+        "bad.json",
+        {
+            "id": "x",
+            "question": "q",
+            "clarification_answers": [
+                {"branch_id": "fecha_firma", "answer": "12/06/2025"},
+                {"branch_id": "fecha_firma", "answer": "01/01/2024"},
+            ],
+        },
+    )
+
+    with pytest.raises(CasesError, match="clarification answer"):
         load_cases(tmp_path)

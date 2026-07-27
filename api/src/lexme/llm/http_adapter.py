@@ -8,8 +8,11 @@ endpoint, the request body and how to read the reply out of the response.
 The flow retries a rate-limited or transiently-unavailable call with backoff:
 the free tiers this interface targets return ``429`` in bursts, and a harness run
 fires many calls back to back, so without backoff a run dies on its first ``429``.
-The wait honours the standard ``Retry-After`` header and any provider-specific hint
-a subclass reads from the error body (see :meth:`_body_retry_hint`), and otherwise
+A dropped connection is retried on the same terms -- a free-tier endpoint closing
+a response mid-body says nothing about the request, and losing a whole harness run
+to one severed socket is the same failure as losing it to one ``429``. The wait
+honours the standard ``Retry-After`` header and any provider-specific hint a
+subclass reads from the error body (see :meth:`_body_retry_hint`), and otherwise
 falls back to exponential backoff.
 """
 
@@ -64,30 +67,42 @@ class HttpProviderAdapter:
     def complete(self, request: ProviderRequest) -> str:
         """Return the model's reply text for ``request``.
 
-        Retries a ``429``/``503`` with backoff up to :data:`MAX_RETRIES` times,
-        then raises :class:`httpx.HTTPStatusError` on any non-2xx response and
-        :class:`~lexme.llm.protocol.ProviderResponseError` if the body carries no
-        completion.
+        Retries a ``429``/``503`` and a dropped connection with backoff up to
+        :data:`MAX_RETRIES` times, then raises :class:`httpx.HTTPStatusError` on any
+        non-2xx response, :class:`httpx.TransportError` if the connection kept
+        failing, and :class:`~lexme.llm.protocol.ProviderResponseError` if the body
+        carries no completion.
         """
         endpoint = self._endpoint(request)
         body = self._build_body(request)
         for attempt in range(MAX_RETRIES + 1):
-            response = self._client.post(endpoint, json=body)
+            try:
+                response = self._client.post(endpoint, json=body)
+            except httpx.TransportError as error:
+                if attempt >= MAX_RETRIES:
+                    raise
+                self._wait_before_retry(str(error), self._backoff(attempt), attempt)
+                continue
             if response.status_code in RETRYABLE_STATUS and attempt < MAX_RETRIES:
-                delay = self._retry_delay(response, attempt)
-                logger.warning(
-                    "%s got HTTP %d; retry %d/%d in %.1fs",
-                    type(self).__name__,
-                    response.status_code,
-                    attempt + 1,
-                    MAX_RETRIES,
-                    delay,
+                self._wait_before_retry(
+                    f"HTTP {response.status_code}", self._retry_delay(response, attempt), attempt
                 )
-                time.sleep(delay)
                 continue
             response.raise_for_status()
             return self._extract_text(response.json())
         raise AssertionError("unreachable: the loop returns or raises on the last attempt")
+
+    def _wait_before_retry(self, cause: str, delay: float, attempt: int) -> None:
+        """Log why the call is being retried and sleep for ``delay`` seconds."""
+        logger.warning(
+            "%s got %s; retry %d/%d in %.1fs",
+            type(self).__name__,
+            cause,
+            attempt + 1,
+            MAX_RETRIES,
+            delay,
+        )
+        time.sleep(delay)
 
     def _retry_delay(self, response: httpx.Response, attempt: int) -> float:
         """Seconds to wait before retrying, always at least the exponential backoff.
@@ -98,10 +113,14 @@ class HttpProviderAdapter:
         would otherwise retry instantly and burn the whole retry budget before the
         rate-limit window clears. Everything is capped at :data:`MAX_BACKOFF_SECONDS`.
         """
-        backoff = min(BASE_BACKOFF_SECONDS * 2**attempt, MAX_BACKOFF_SECONDS)
+        backoff = self._backoff(attempt)
         hinted = self._provider_hint(response)
         delay = max(hinted, backoff) if hinted is not None else backoff
         return min(delay, MAX_BACKOFF_SECONDS)
+
+    def _backoff(self, attempt: int) -> float:
+        """The exponential backoff for ``attempt``, capped at the ceiling."""
+        return min(BASE_BACKOFF_SECONDS * 2**attempt, MAX_BACKOFF_SECONDS)
 
     def _provider_hint(self, response: httpx.Response) -> float | None:
         """Read a retry delay the provider suggested, or ``None`` if it gave none.

@@ -77,14 +77,23 @@ hiding behind the other.
 | --- | --- | --- |
 | Citation literality (both modes) | 0 discarded | invariant; run fails on any discard |
 | Retrieval recall, first pass | 1.00 | gold block recovered before the agentic loop |
+| Outcome match rate (Mode 1) | 0.94 | 16 / 17 cases reached the outcome they were written for |
+| Disambiguation (Mode 1) | 0.47 | 8 / 17 cases the gate stopped; all 8 resumed, 0 left stranded |
+| Judge completeness · unsupported claims (Mode 1) | 0.86 · 0.06 | 10 judged cases, against human-reviewed key points |
 | Recall 🔴/🟠 (Mode 2) | 1.00 | 2 / 2 correctly delimited problematic clauses |
 | False-tranquility rate (Mode 2) | 0.00 | 0 / 2 real 🔴/🟠 passed off as reassuring |
 | Flag precision · abstention (Mode 2) | 0.50 · 0.00 | 2 / 4 flags correct · 0 / 10 clauses abstained |
 | Segmentation IoU ≥ 0.80 (Mode 2) | 0.625 | 10 / 16 clauses delimited |
 | Absence ⚪ recall · precision (Mode 2) | 0.68 · 1.00 | 30 / 44 omitted rights surfaced · 0 false ones |
 
+Mode 1 stops to ask one question when a case turns on a fact that changes the applicable
+regime. Each case therefore carries the answers to those branches as reviewed data, and
+the run reports how many cases answered straight through, how many were resumed with
+that answer, and how many stopped at a pause with nothing to answer it — so the number
+of cases actually measured end to end is never left ambiguous.
+
 Reports: Mode 1 →
-[`modo1-20260726T170157Z.json`](eval-runs/modo1-20260726T170157Z.json) (`c089dbb3…`),
+[`modo1-20260727T112714Z.json`](eval-runs/modo1-20260727T112714Z.json) (`08915d00…`),
 Mode 2 →
 [`modo2-20260726T184248Z.json`](eval-runs/modo2-20260726T184248Z.json) (`73c795db…`).
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
@@ -94,10 +103,12 @@ regression.
 The reference set is deliberately small and fully human-reviewed (17 Mode 1 cases, 3
 synthetic Mode 2 contracts, one of which the temporal gate correctly rejects as
 out-of-scope), which is why every denominator is shown rather than rounded away. The
-harness measures more than it reports here: the agentic self-critique loop's
-recall delta (currently flat on a single-norm corpus, where first-pass retrieval
-already recovers the target article) and an LLM-judge scored against human-reviewed
-key points. Both are wired end-to-end and grow with the corpus.
+harness measures more than it reports here, notably the agentic self-critique loop's
+recall delta — currently flat on a single-norm corpus, where first-pass retrieval
+already recovers the target article, and wired end-to-end so it grows with the corpus.
+The judge's numbers carry no human-agreement figure yet: the calibration pass is
+one-time and manual, and until it exists the run publishes them as "not calibrated"
+rather than inventing a number.
 
 ## Architecture
 

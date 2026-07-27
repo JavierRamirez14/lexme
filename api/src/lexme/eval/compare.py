@@ -16,6 +16,7 @@ MEAN_FIRST_PASS_RECALL = "mean_first_pass_recall"
 MEAN_RECALL_DELTA = "mean_recall_delta"
 OUTCOME_MATCH_RATE = "outcome_match_rate"
 ABSTENTION_RATE = "abstention_rate"
+DISAMBIGUATION_RATE = "disambiguation_rate"
 EXPECTED_ABSTENTION_RECALL = "expected_abstention_recall"
 MEAN_AGENTIC_DELTA = "mean_agentic_delta"
 JUDGE_COMPLETENESS = "judge.completeness"
@@ -72,6 +73,11 @@ def compare(base: RunArtifact, run: RunArtifact) -> Comparison:
             OUTCOME_MATCH_RATE, base.metrics.outcome_match_rate, run.metrics.outcome_match_rate
         ),
         _scalar_delta(ABSTENTION_RATE, base.metrics.abstention_rate, run.metrics.abstention_rate),
+        _scalar_delta(
+            DISAMBIGUATION_RATE,
+            base.metrics.disambiguation_rate,
+            run.metrics.disambiguation_rate,
+        ),
         _scalar_delta(
             EXPECTED_ABSTENTION_RECALL,
             base.metrics.expected_abstention_recall,

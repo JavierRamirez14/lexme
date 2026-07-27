@@ -115,9 +115,7 @@ def test_the_artifact_publishes_the_calibration_and_round_trips(tmp_path: Path) 
         dataset_hash="d",
         fingerprint="fp",
     )
-    artifact = build_artifact(
-        "modo1", REVIEWED_AT, fingerprint, [], aggregate([]), [], calibration
-    )
+    artifact = build_artifact("modo1", REVIEWED_AT, fingerprint, [], aggregate([]), [], calibration)
 
     out = tmp_path / "run.json"
     artifact.write(out)

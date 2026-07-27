@@ -26,7 +26,7 @@ from lexme.checklist import checklist_path, load_checklist
 from lexme.config import Settings, get_settings
 from lexme.eval.artifact import RunArtifact, read_artifact
 from lexme.eval.calibration import CALIBRATION_FILENAME, JudgeCalibration, load_calibration
-from lexme.eval.cases import EvalCase, load_cases
+from lexme.eval.cases import EvalCase, load_cases, reject_unknown_branches
 from lexme.eval.compare import Comparison, compare
 from lexme.eval.fingerprint import (
     ConfigFingerprint,
@@ -225,7 +225,13 @@ def _build_real_harness(
     vertical: str,
     cases: Sequence[EvalCase],
 ) -> _Harness:
-    """Wire the real Mode 1 system, corpus, judge and fingerprint for a live eval run."""
+    """Wire the real Mode 1 system, corpus, judge and fingerprint for a live eval run.
+
+    Cross-checks the cases' pinned clarification answers against the vertical's
+    branch package here, the one place both are known, so a case that names a
+    branch the vertical does not declare fails the run instead of silently going
+    unmeasured behind a pause nothing answers.
+    """
     connection = _open_connection(stack, settings.database_url)
     embedder = stack.enter_context(contextlib.closing(TeiEmbedder(settings.tei_url)))
     corpus = PsycopgCorpusReader(connection)
@@ -233,13 +239,15 @@ def _build_real_harness(
     registry = load_task_registry()
     assert_judge_distinct_from_generator(registry)
     llm = build_llm_client(settings)
+    branches = load_branches(vertical_dir / DISAMBIGUATION_FILENAME)
+    reject_unknown_branches(cases, [branch.id for branch in branches])
     deps = Mode1Deps(
         connection=connection,
         embedder=embedder,
         corpus=corpus,
         history=PsycopgVersionHistory(connection),
         llm=llm,
-        branches=load_branches(vertical_dir / DISAMBIGUATION_FILENAME),
+        branches=branches,
     )
     runner = Mode1CaseRunner(
         deps=deps,
@@ -379,6 +387,11 @@ def _report_run(artifact: RunArtifact, out_path: Path) -> None:
         "abstention_rate=%s expected_abstention_recall=%s",
         metrics.abstention_rate,
         metrics.expected_abstention_recall,
+    )
+    logger.info(
+        "disambiguation_rate=%s; cases %s",
+        metrics.disambiguation_rate,
+        metrics.disambiguation,
     )
     _report_judge(metrics.judge, artifact.judge_calibration)
     logger.info("artifact written to %s", out_path)

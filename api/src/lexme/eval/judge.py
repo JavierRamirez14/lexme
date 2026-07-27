@@ -13,6 +13,7 @@ than the generator whose answer it grades, to keep self-preference bias out of t
 score; :func:`assert_judge_distinct_from_generator` enforces that at wiring time.
 """
 
+import logging
 from dataclasses import dataclass
 from datetime import date
 from typing import Protocol, runtime_checkable
@@ -21,8 +22,11 @@ from pydantic import BaseModel, Field
 
 from lexme.eval.cases import EvalCase
 from lexme.llm import LlmClient, Message, TaskRegistry
+from lexme.llm.protocol import StructuredOutputError
 from lexme.mode1 import SYNTHESIS_TASK, AskResponse
 from lexme.verification import CorpusReader
+
+logger = logging.getLogger(__name__)
 
 JUDGE_TASK = "judge"
 
@@ -135,7 +139,13 @@ class LlmJudge:
     def judge(
         self, case: EvalCase, response: AskResponse, target_date: date
     ) -> JudgeVerdict | None:
-        """Grade ``response`` against ``case``'s key points, or ``None`` if not judgeable."""
+        """Grade ``response`` against ``case``'s key points, or ``None`` if not judgeable.
+
+        A reply that does not parse into a verdict leaves the case unjudged rather
+        than ending the run: the judge is one soft metric among many, and a free-tier
+        model that answers in prose must not cost the run every other case's numbers.
+        Provider and configuration failures still propagate.
+        """
         if not case.key_points or response.answer is None:
             return None
         cited = self._cited_articles(response, target_date)
@@ -143,7 +153,11 @@ class LlmJudge:
             Message("system", _SYSTEM_PROMPT),
             Message("user", _render_prompt(case, response, cited)),
         ]
-        return self.llm.complete_structured(JUDGE_TASK, messages, JudgeVerdict)
+        try:
+            return self.llm.complete_structured(JUDGE_TASK, messages, JudgeVerdict)
+        except StructuredOutputError as error:
+            logger.warning("case '%s' left unjudged: %s", case.id, error)
+            return None
 
     def _cited_articles(self, response: AskResponse, target_date: date) -> dict[str, str]:
         """Resolve the full in-force text of each cited block, keyed by block id."""

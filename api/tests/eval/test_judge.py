@@ -14,6 +14,7 @@ from lexme.eval.judge import (
     build_judge_metrics,
 )
 from lexme.llm import FakeLlmClient, TaskModel, TaskRegistry
+from lexme.llm.protocol import LlmError
 from lexme.mode1 import SYNTHESIS_TASK, Outcome
 from tests.eval.conftest import AS_OF, NORM_ID, InMemoryCorpus, answer_response
 
@@ -58,6 +59,23 @@ def test_the_judge_grades_an_answered_case_against_its_reference() -> None:
     prompt = call.messages[1].content
     assert ARTICLE_TEXT in prompt
     assert "la fianza es una mensualidad" in prompt
+
+
+def test_an_unusable_verdict_leaves_the_case_unjudged_instead_of_ending_the_run() -> None:
+    llm = FakeLlmClient({JUDGE_TASK: ["no soy JSON, soy una tabla markdown"]})
+    corpus = InMemoryCorpus({(NORM_ID, "a36"): ARTICLE_TEXT})
+    response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
+
+    assert LlmJudge(llm=llm, corpus=corpus).judge(_case(), response, AS_OF) is None
+
+
+def test_a_provider_failure_is_not_swallowed_as_an_unjudged_case() -> None:
+    llm = FakeLlmClient()
+    corpus = InMemoryCorpus({(NORM_ID, "a36"): ARTICLE_TEXT})
+    response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
+
+    with pytest.raises(LlmError):
+        LlmJudge(llm=llm, corpus=corpus).judge(_case(), response, AS_OF)
 
 
 def test_the_judge_skips_a_case_with_no_key_points() -> None:

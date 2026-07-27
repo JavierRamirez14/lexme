@@ -18,7 +18,15 @@ from lexme.eval.calibration import (
     compute_agreement,
     load_calibration,
 )
-from lexme.eval.cases import CasesError, EvalCase, KeyPoint, load_cases
+from lexme.eval.cases import (
+    CasesError,
+    ClarificationAnswer,
+    EvalCase,
+    KeyPoint,
+    answer_for_branch,
+    load_cases,
+    reject_unknown_branches,
+)
 from lexme.eval.compare import Comparison, MetricDelta, compare
 from lexme.eval.fingerprint import (
     ConfigFingerprint,
@@ -41,6 +49,7 @@ from lexme.eval.judge import (
 )
 from lexme.eval.metrics import (
     CaseResult,
+    Disambiguation,
     JudgeAggregate,
     LayerRecall,
     RetrievalRecall,
@@ -49,17 +58,20 @@ from lexme.eval.metrics import (
     aggregate,
     build_case_result,
 )
-from lexme.eval.runner import CaseRunner, Mode1CaseRunner, run_suite
+from lexme.eval.runner import CaseRun, CaseRunner, Mode1CaseRunner, run_suite
 
 __all__ = [
     "CalibrationError",
     "CalibrationItem",
     "CaseResult",
+    "CaseRun",
     "CaseRunner",
     "CasesError",
     "ClaimAssessment",
+    "ClarificationAnswer",
     "Comparison",
     "ConfigFingerprint",
+    "Disambiguation",
     "EvalCase",
     "GuardrailViolation",
     "Judge",
@@ -80,6 +92,7 @@ __all__ = [
     "SuiteMetrics",
     "TaskFingerprint",
     "aggregate",
+    "answer_for_branch",
     "assert_judge_distinct_from_generator",
     "build_artifact",
     "build_calibration",
@@ -94,5 +107,6 @@ __all__ = [
     "load_calibration",
     "load_cases",
     "read_artifact",
+    "reject_unknown_branches",
     "run_suite",
 ]

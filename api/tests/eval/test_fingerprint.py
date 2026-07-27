@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from lexme.eval.cases import EvalCase
+from lexme.eval.cases import ClarificationAnswer, EvalCase
 from lexme.eval.fingerprint import (
     ConfigFingerprint,
     build_fingerprint,
@@ -129,3 +129,19 @@ def test_the_dataset_digest_is_order_independent_and_content_sensitive() -> None
 
     assert compute_dataset_digest([a, b]) == compute_dataset_digest([b, a])
     assert compute_dataset_digest([a, b]) != compute_dataset_digest([a])
+
+
+def test_editing_a_pinned_clarification_answer_changes_the_dataset_digest() -> None:
+    def case(answer: str) -> EvalCase:
+        return EvalCase(
+            id="a",
+            question="q1",
+            clarification_answers=(ClarificationAnswer(branch_id="fecha_firma", answer=answer),),
+        )
+
+    assert compute_dataset_digest([case("12/06/2025")]) != compute_dataset_digest(
+        [case("01/01/2024")]
+    )
+    assert compute_dataset_digest([case("12/06/2025")]) != compute_dataset_digest(
+        [EvalCase(id="a", question="q1")]
+    )

@@ -72,6 +72,18 @@ class KeyPoint(BaseModel):
     block_id: str
 
 
+class ClarificationAnswer(BaseModel):
+    """The reply the case brings for one critical branch the run may pause on.
+
+    Unlike the question and the key points, this is not extracted from the corpus:
+    it is a fact about the tenant's own case, so it is written by the reviewer and
+    travels with the case as reviewed data rather than as a runtime guess.
+    """
+
+    branch_id: str
+    answer: str
+
+
 class Mode1ReferenceCase(BaseModel):
     """A Mode 1 case with the reference a with-reference judge checks against.
 
@@ -79,9 +91,10 @@ class Mode1ReferenceCase(BaseModel):
     construction from the seed. ``expected_outcome`` is the outcome the case was
     built to reach. ``key_points`` are the claims a good answer must contain, each
     tied to a gold block. ``target_date`` pins the point-in-time clock when the
-    case is time-sensitive, and is ``None`` otherwise. The serialized form is a
-    superset of the harness's own case shape, so an accepted case is consumed
-    directly by ``eval``.
+    case is time-sensitive, and is ``None`` otherwise. ``clarification_answers``
+    are the replies the case brings for the critical branches, at most one per
+    branch. The serialized form is a superset of the harness's own case shape, so
+    an accepted case is consumed directly by ``eval``.
     """
 
     id: str
@@ -90,6 +103,15 @@ class Mode1ReferenceCase(BaseModel):
     expected_outcome: Outcome
     key_points: list[KeyPoint] = []
     target_date: date | None = None
+    clarification_answers: list[ClarificationAnswer] = []
+
+    @model_validator(mode="after")
+    def _one_answer_per_branch(self) -> "Mode1ReferenceCase":
+        """Reject a branch answered twice, which would make the reply ambiguous."""
+        branch_ids = [pinned.branch_id for pinned in self.clarification_answers]
+        if len(branch_ids) != len(set(branch_ids)):
+            raise ValueError(f"two clarification answers pinned for the same branch: {branch_ids}")
+        return self
 
     @model_validator(mode="after")
     def _key_points_cite_gold_blocks(self) -> "Mode1ReferenceCase":

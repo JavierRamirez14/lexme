@@ -42,7 +42,7 @@
     },
     "judge": {
       "provider": "openrouter",
-      "model": "deepseek/deepseek-r1:free",
+      "model": "openai/gpt-oss-20b:free",
       "temperature": 0.0
     },
     "refset_query_generation": {

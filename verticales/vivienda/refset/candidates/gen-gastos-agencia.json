@@ -8,9 +8,9 @@
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:47:48.521951Z",
-    "reviewed_by": "claude",
-    "reviewed_at": "2026-07-25T13:51:07.233900Z",
-    "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo"
+    "reviewed_by": "javier",
+    "reviewed_at": "2026-07-27T10:05:03.642224Z",
+    "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo; respuestas de desambiguacion escritas y revisadas, con la fecha de firma dentro de la redaccion vigente de los bloques de referencia"
   },
   "mode1": {
     "id": "gen-gastos-agencia",
@@ -33,7 +33,17 @@
         "block_id": "a20"
       }
     ],
-    "target_date": null
+    "target_date": null,
+    "clarification_answers": [
+      {
+        "branch_id": "fecha_firma",
+        "answer": "01/07/2026"
+      },
+      {
+        "branch_id": "uso_vivienda",
+        "answer": "Será mi vivienda habitual."
+      }
+    ]
   },
   "mode2": null
 }

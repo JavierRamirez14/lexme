@@ -17,8 +17,37 @@ artifact stamped with its configuration fingerprint.
   answer), and a clarity rubric.
 - **Abstention** — the abstention rate and how many of the cases meant to abstain
   did, published next to the outcome match rate so abstention is never read alone.
+- **Disambiguation** — how many cases answered straight through (`directo`), were
+  resumed with the answer they pin (`reanudado`) and stopped at a pause they bring
+  no answer for (`sin_respuesta`), plus the rate of cases the gate fired on, so how
+  many cases a run really measured end to end is never ambiguous.
 - **Citation guardrail** — a hard invariant: every displayed citation must
   re-verify literally against the corpus at the case's date, or the run fails.
+
+## Cases that pause
+
+Mode 1 stops to ask one question when the case turns on a critical branch (the
+contract's signing date, the kind of use). A case that never gets past that pause
+is never measured on retrieval, citations or the judge, so each case carries the
+answers to those branches as reviewed data:
+
+```json
+"clarification_answers": [
+  { "branch_id": "fecha_firma", "answer": "01/09/2025" },
+  { "branch_id": "uso_vivienda", "answer": "Es mi vivienda habitual." }
+]
+```
+
+The harness resumes the paused run on its own thread with the answer written for
+the branch actually asked; the guardrail and the judge then rule on the answer the
+case ended with, not on the pause. A branch with no written answer leaves the case
+at outcome `desambiguacion` — counted as such, never as a hit. The answers are part
+of the dataset digest, so editing one changes the run's fingerprint.
+
+Because the signing date re-anchors the run's point-in-time clock, an answer to
+`fecha_firma` must land in the same redaction the case's `key_points` were
+extracted from, or the case would be graded against a reference that does not apply
+to it.
 
 ## The judge
 
@@ -31,11 +60,13 @@ configuration fingerprint.
 Following the blueprint's volume split, the generator (which concentrates the
 hundreds of calls a full run makes) sits on Gemini's generous free tier, and the
 judge (~1 structured call per answered case, ~70 per run) sits on an OpenRouter
-free open model of another family. The shipped judge is `deepseek/deepseek-r1:free`;
-before the first real run, confirm this is the most capable pinnable `:free` id
-currently in OpenRouter's catalog and verify both providers' live daily limits, as
-these change often (blueprint asset 04, caveats 1 and 2). Re-allocating a task to
-another provider is a one-line edit to `tasks.json`, no code change.
+free open model of another family. The shipped judge is
+`openai/gpt-oss-20b:free`. A `:free` id is not a stable contract:
+OpenRouter retires them, and a retired id fails the run with a 404 rather than
+degrading quietly, so confirm the pin is still in the catalog before a real run and
+re-check both providers' live daily limits, which change often (blueprint asset 04,
+caveats 1 and 2). Re-allocating a task to another provider is a one-line edit to
+`tasks.json`, no code change.
 
 ## Judge calibration (one-time, human)
 
@@ -55,7 +86,7 @@ Workflow:
 
 ```json
 {
-  "judge_model": "deepseek/deepseek-r1:free",
+  "judge_model": "openai/gpt-oss-20b:free",
   "reviewed_by": "<name>",
   "reviewed_at": "2026-07-25T00:00:00+00:00",
   "items": [

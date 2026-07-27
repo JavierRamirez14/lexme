@@ -1,8 +1,10 @@
 """Tests for run comparison: per-metric deltas, framed by whether config changed."""
 
+import json
 from datetime import UTC, datetime
+from pathlib import Path
 
-from lexme.eval.artifact import RunArtifact, build_artifact
+from lexme.eval.artifact import RunArtifact, build_artifact, read_artifact
 from lexme.eval.compare import compare
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.metrics import SuiteMetrics
@@ -23,11 +25,18 @@ def _fingerprint(value: str) -> ConfigFingerprint:
     )
 
 
-def _artifact(fingerprint: str, mean_recall: float, agentic_delta: float) -> RunArtifact:
+def _artifact(
+    fingerprint: str,
+    mean_recall: float,
+    agentic_delta: float,
+    disambiguation_rate: float = 0.0,
+) -> RunArtifact:
     """A metrics-only artifact carrying the headline numbers under a fingerprint."""
     metrics = SuiteMetrics(
         cases=2,
         outcomes={"respuesta": 2},
+        disambiguation={"directo": 2, "reanudado": 0, "sin_respuesta": 0},
+        disambiguation_rate=disambiguation_rate,
         mean_recall=mean_recall,
         mean_first_pass_recall=mean_recall - 0.1,
         mean_recall_delta=0.1,
@@ -78,6 +87,31 @@ def test_the_agentic_recall_pair_is_compared() -> None:
     assert _delta(comparison, "mean_first_pass_recall").delta == 0.95 - 0.80
     assert _delta(comparison, "abstention_rate").delta == 0.0
     assert _delta(comparison, "mean_recall_delta").base == 0.1
+
+
+def test_an_artifact_written_before_the_disambiguation_metric_still_reads_back(
+    tmp_path: Path,
+) -> None:
+    artifact = _artifact("fp", mean_recall=0.8, agentic_delta=1.0)
+    payload = artifact.model_dump(mode="json")
+    del payload["metrics"]["disambiguation"]
+    del payload["metrics"]["disambiguation_rate"]
+    path = tmp_path / "old.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    older = read_artifact(path)
+
+    assert older.metrics.disambiguation_rate is None
+    assert _delta(compare(older, artifact), "disambiguation_rate").delta is None
+
+
+def test_the_disambiguation_rate_is_compared() -> None:
+    base = _artifact("fp", mean_recall=0.80, agentic_delta=1.0, disambiguation_rate=0.6)
+    run = _artifact("fp", mean_recall=0.80, agentic_delta=1.0, disambiguation_rate=0.2)
+
+    comparison = compare(base, run)
+
+    assert _delta(comparison, "disambiguation_rate").delta == 0.2 - 0.6
 
 
 def test_verdict_counts_are_compared_per_verdict() -> None:

@@ -5,8 +5,15 @@ which the real Mode 1 consultation lives -- applies the citation guardrail to th
 response, measures the quality metrics and folds everything into one artifact. The
 runner is a seam so the harness itself is tested with the real system behind a
 fake LLM, and never needs a live model of its own.
+
+A case may stop mid-run on the disambiguation gate. The harness answers it only
+with the reply the case brings written down: it hands the runner the case's pinned
+answers, the runner resumes the paused thread with the one matching the branch
+actually asked, and a pause it has no written answer for is recorded as such rather
+than guessed at.
 """
 
+import logging
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -17,21 +24,42 @@ from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from lexme.eval.artifact import RunArtifact, build_artifact
 from lexme.eval.calibration import JudgeCalibration
-from lexme.eval.cases import EvalCase
+from lexme.eval.cases import ClarificationAnswer, EvalCase, answer_for_branch
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation, check_case_citations
 from lexme.eval.judge import Judge
-from lexme.eval.metrics import aggregate, build_case_result
-from lexme.mode1 import AskResponse, Mode1Deps, Mode1Run
+from lexme.eval.metrics import Disambiguation, aggregate, build_case_result
+from lexme.mode1 import AskResponse, Mode1Deps, Mode1Run, Outcome
 from lexme.verification import CorpusReader
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class CaseRun:
+    """What running one case produced: its final response and how it got there.
+
+    ``response`` is the outcome the metrics, the guardrail and the judge are
+    applied to -- the answer a resumed case reached, never the pause it stopped at.
+    ``disambiguation`` records whether the case answered directly, was resumed with
+    its pinned reply, or ended at a pause it brought no reply for.
+    """
+
+    response: AskResponse
+    disambiguation: Disambiguation
 
 
 @runtime_checkable
 class CaseRunner(Protocol):
-    """Runs one eval question through the system and returns its response."""
+    """Runs one eval question through the system and returns what it produced."""
 
-    def run(self, question: str, target_date: date) -> AskResponse:
-        """Answer ``question`` situated at ``target_date`` and return the response."""
+    def run(
+        self,
+        question: str,
+        target_date: date,
+        clarification_answers: Sequence[ClarificationAnswer] = (),
+    ) -> CaseRun:
+        """Answer ``question`` at ``target_date``, resuming with a pinned reply if asked."""
         ...
 
 
@@ -48,8 +76,18 @@ class Mode1CaseRunner:
     checkpointer: BaseCheckpointSaver
     vertical: str
 
-    def run(self, question: str, target_date: date) -> AskResponse:
-        """Start a fresh Mode 1 run for ``question`` at ``target_date``."""
+    def run(
+        self,
+        question: str,
+        target_date: date,
+        clarification_answers: Sequence[ClarificationAnswer] = (),
+    ) -> CaseRun:
+        """Start a fresh Mode 1 run for ``question`` at ``target_date``.
+
+        A run that pauses is continued on the same thread with the reply the case
+        pins for the branch asked; without such a reply the pause is returned as
+        the case's outcome.
+        """
         run = Mode1Run(
             thread_id=f"eval-{uuid4()}",
             vertical=self.vertical,
@@ -57,7 +95,24 @@ class Mode1CaseRunner:
             deps=self.deps,
             checkpointer=self.checkpointer,
         )
-        return run.answer(question)
+        response = run.answer(question)
+        if response.outcome is not Outcome.CLARIFICATION:
+            return CaseRun(response=response, disambiguation=Disambiguation.DIRECT)
+        return self._resume(run, response, clarification_answers)
+
+    def _resume(
+        self,
+        run: Mode1Run,
+        paused: AskResponse,
+        clarification_answers: Sequence[ClarificationAnswer],
+    ) -> CaseRun:
+        """Continue a paused run with the case's pinned reply, or leave it paused."""
+        branch_id = paused.clarification.branch_id if paused.clarification else None
+        pinned = answer_for_branch(clarification_answers, branch_id) if branch_id else None
+        if pinned is None:
+            logger.info("case paused on branch '%s' with no pinned answer", branch_id)
+            return CaseRun(response=paused, disambiguation=Disambiguation.UNANSWERED)
+        return CaseRun(response=run.resume(pinned), disambiguation=Disambiguation.RESUMED)
 
 
 def run_suite(
@@ -75,21 +130,26 @@ def run_suite(
 
     Each case is answered at its own ``target_date`` when it pins one, else at
     ``default_date``; the guardrail re-verifies that case's citations at the same
-    date, so a point-in-time case is measured against the law as it stood then.
-    When a ``judge`` is given, every answered case carrying key points is graded
-    against them, and ``calibration`` is the human-judge agreement those scores are
-    published with. The returned artifact's ``passed`` is false if any case's
-    citation broke the literality invariant.
+    date, so a point-in-time case is measured against the law as it stood then. A
+    case that stops on the disambiguation gate is resumed with the reply it pins,
+    and the guardrail and the judge then see that resumed answer rather than the
+    pause. When a ``judge`` is given, every answered case carrying key points is
+    graded against them, and ``calibration`` is the human-judge agreement those
+    scores are published with. The returned artifact's ``passed`` is false if any
+    case's citation broke the literality invariant.
     """
     results = []
     hard_failures: list[GuardrailViolation] = []
     for case in cases:
         case_date = case.target_date or default_date
-        response = runner.run(case.question, case_date)
+        case_run = runner.run(case.question, case_date, case.clarification_answers)
+        response = case_run.response
         violations = check_case_citations(case.id, response, corpus, case_date)
         hard_failures.extend(violations)
         verdict = judge.judge(case, response, case_date) if judge is not None else None
-        results.append(build_case_result(case, response, violations, verdict))
+        results.append(
+            build_case_result(case, response, violations, verdict, case_run.disambiguation)
+        )
     metrics = aggregate(results)
     return build_artifact(
         suite, created_at, fingerprint, results, metrics, hard_failures, calibration

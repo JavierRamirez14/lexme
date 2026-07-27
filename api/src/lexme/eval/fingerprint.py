@@ -150,8 +150,9 @@ def _hash_prompt_sources(relatives: Sequence[str]) -> str:
 def compute_dataset_digest(cases: Sequence[EvalCase]) -> str:
     """Hash the case set a run was measured over, in case-id order.
 
-    Two runs over different questions or gold blocks are different experiments, not
-    a regression pair; folding the dataset into the fingerprint keeps that honest.
+    Two runs over different questions, gold blocks or pinned clarification answers
+    are different experiments, not a regression pair; folding the dataset into the
+    fingerprint keeps that honest.
     """
     payload = [
         {
@@ -163,6 +164,10 @@ def compute_dataset_digest(cases: Sequence[EvalCase]) -> str:
                 {"claim": point.claim, "block_id": point.block_id} for point in case.key_points
             ],
             "target_date": case.target_date.isoformat() if case.target_date else None,
+            "clarification_answers": [
+                {"branch_id": pinned.branch_id, "answer": pinned.answer}
+                for pinned in case.clarification_answers
+            ],
         }
         for case in sorted(cases, key=lambda case: case.id)
     ]
