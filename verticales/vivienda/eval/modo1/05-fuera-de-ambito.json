@@ -1,6 +1,6 @@
 {
   "id": "05-fuera-de-ambito",
   "question": "¿Cómo recurro una multa de tráfico por exceso de velocidad?",
-  "gold_block_ids": [],
-  "expected_outcome": "rechazo_router"
+  "expected_outcome": "rechazo_router",
+  "gold_block_refs": []
 }

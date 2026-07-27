@@ -15,6 +15,8 @@ from lexme.eval.cases import (
     reject_unknown_branches,
 )
 
+NORM = "BOE-A-1994-26003"
+
 
 def _write_case(directory: Path, name: str, payload: dict) -> None:
     """Write a case JSON file into ``directory``."""
@@ -26,13 +28,13 @@ def test_a_directory_of_cases_loads_ordered_by_id(tmp_path: Path) -> None:
     _write_case(
         tmp_path,
         "a.json",
-        {"id": "plazo", "question": "¿plazo mínimo?", "gold_block_ids": ["a9"]},
+        {"id": "plazo", "question": "¿plazo mínimo?", "gold_block_refs": [f"{NORM}:a9"]},
     )
 
     cases = load_cases(tmp_path)
 
     assert [case.id for case in cases] == ["fianza", "plazo"]
-    assert cases[1].gold_block_ids == ("a9",)
+    assert cases[1].gold_block_refs == (f"{NORM}:a9",)
 
 
 def test_a_single_case_file_loads(tmp_path: Path) -> None:
@@ -76,8 +78,8 @@ def test_a_case_loads_its_key_points_and_target_date(tmp_path: Path) -> None:
         {
             "id": "fianza",
             "question": "¿cuánta fianza?",
-            "gold_block_ids": ["a36"],
-            "key_points": [{"claim": "la fianza es una mensualidad", "block_id": "a36"}],
+            "gold_block_refs": [f"{NORM}:a36"],
+            "key_points": [{"claim": "la fianza es una mensualidad", "block_ref": f"{NORM}:a36"}],
             "target_date": "2020-01-01",
         },
     )
@@ -86,7 +88,7 @@ def test_a_case_loads_its_key_points_and_target_date(tmp_path: Path) -> None:
 
     assert case.target_date == date(2020, 1, 1)
     assert case.key_points[0].claim == "la fianza es una mensualidad"
-    assert case.key_points[0].block_id == "a36"
+    assert case.key_points[0].block_ref == f"{NORM}:a36"
 
 
 def test_a_case_without_key_points_or_target_date_defaults_them(tmp_path: Path) -> None:
@@ -113,8 +115,8 @@ def test_a_key_point_off_the_gold_blocks_is_rejected(tmp_path: Path) -> None:
         {
             "id": "x",
             "question": "q",
-            "gold_block_ids": ["a36"],
-            "key_points": [{"claim": "c", "block_id": "a99"}],
+            "gold_block_refs": [f"{NORM}:a36"],
+            "key_points": [{"claim": "c", "block_ref": f"{NORM}:a99"}],
         },
     )
 
@@ -133,7 +135,12 @@ def test_a_key_point_missing_its_claim_is_rejected(tmp_path: Path) -> None:
     _write_case(
         tmp_path,
         "bad.json",
-        {"id": "x", "question": "q", "gold_block_ids": ["a1"], "key_points": [{"block_id": "a1"}]},
+        {
+            "id": "x",
+            "question": "q",
+            "gold_block_refs": [f"{NORM}:a1"],
+            "key_points": [{"block_ref": f"{NORM}:a1"}],
+        },
     )
 
     with pytest.raises(CasesError, match="key point"):

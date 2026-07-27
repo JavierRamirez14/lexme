@@ -1,0 +1,33 @@
+{
+  "id": "mh-04-renta-zona-tensionada",
+  "question": "Voy a firmar un contrato nuevo en un piso de una empresa que tiene alquilados más de veinte pisos en mi ciudad, que está declarada zona tensionada. Me piden 250 euros más al mes de lo que pagaba el inquilino anterior. ¿Pueden subir la renta así?",
+  "expected_outcome": "respuesta",
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a17",
+    "BOE-A-2023-12203:a3"
+  ],
+  "key_points": [
+    {
+      "claim": "Si la vivienda está en una zona de mercado residencial tensionado y la declaración sigue vigente, la renta pactada al inicio del nuevo contrato no puede exceder la última renta que estuvo vigente en esa misma vivienda en los últimos cinco años, una vez aplicada la actualización anual del contrato anterior.",
+      "block_ref": "BOE-A-1994-26003:a17"
+    },
+    {
+      "claim": "Tampoco pueden fijarse condiciones nuevas que repercutan al arrendatario cuotas o gastos que no estuvieran en el contrato anterior.",
+      "block_ref": "BOE-A-1994-26003:a17"
+    },
+    {
+      "claim": "Es gran tenedor quien es titular de más de diez inmuebles urbanos de uso residencial o de más de 1.500 metros cuadrados construidos de uso residencial, excluidos garajes y trasteros, y la declaración de zona tensionada puede rebajar ese umbral a cinco o más inmuebles en la zona.",
+      "block_ref": "BOE-A-2023-12203:a3"
+    }
+  ],
+  "clarification_answers": [
+    {
+      "branch_id": "fecha_firma",
+      "answer": "2026-06-01"
+    },
+    {
+      "branch_id": "uso_vivienda",
+      "answer": "Será mi vivienda habitual."
+    }
+  ]
+}

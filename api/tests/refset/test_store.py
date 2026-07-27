@@ -20,6 +20,8 @@ from lexme.refset.models import (
 from lexme.refset.store import CandidateStore, StoreError
 
 _NOW = datetime(2026, 7, 25, 12, 0, tzinfo=UTC)
+_NORM = "BOE-A-1994-26003"
+_REF_A9 = f"{_NORM}:a9"
 
 
 def _store(tmp_path: Path) -> CandidateStore:
@@ -30,11 +32,11 @@ def _mode1(candidate_id: str = "plazo") -> Candidate:
     case = Mode1ReferenceCase(
         id=candidate_id,
         question="¿plazo mínimo?",
-        gold_block_ids=["a9"],
+        gold_block_refs=[_REF_A9],
         expected_outcome=Outcome.ANSWER,
-        key_points=[KeyPoint(claim="cinco años", block_id="a9")],
+        key_points=[KeyPoint(claim="cinco años", block_ref=_REF_A9)],
     )
-    provenance = Provenance(generator="query_generator", sources=["a9"], generated_at=_NOW)
+    provenance = Provenance(generator="query_generator", sources=[_REF_A9], generated_at=_NOW)
     return Candidate(kind=CaseKind.MODE1, provenance=provenance, mode1=case)
 
 
@@ -62,7 +64,7 @@ def test_accepting_materializes_the_case_with_its_provenance(tmp_path: Path) -> 
 
     assert path.exists()
     cases = load_cases(path)
-    assert cases[0].gold_block_ids == ("a9",)
+    assert cases[0].gold_block_refs == (_REF_A9,)
     assert cases[0].expected_outcome == "respuesta"
 
 

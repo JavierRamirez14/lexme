@@ -1,0 +1,29 @@
+{
+  "id": "mh-02-enervacion-desahucio",
+  "question": "Me ha llegado una demanda de desahucio porque debo dos mensualidades del alquiler. Si reúno el dinero antes del juicio, ¿puedo parar el desahucio y quedarme en el piso?",
+  "expected_outcome": "respuesta",
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a27",
+    "BOE-A-2000-323:a22"
+  ],
+  "key_points": [
+    {
+      "claim": "La falta de pago de la renta, o de cualquier cantidad cuyo pago corresponda al arrendatario, es causa por la que el arrendador puede resolver de pleno derecho el contrato de arrendamiento.",
+      "block_ref": "BOE-A-1994-26003:a27"
+    },
+    {
+      "claim": "El proceso de desahucio por falta de pago termina si el arrendatario, requerido en el plazo previsto, paga al actor o pone a su disposición en el tribunal o notarialmente las cantidades reclamadas: es la enervación del desahucio.",
+      "block_ref": "BOE-A-2000-323:a22"
+    }
+  ],
+  "clarification_answers": [
+    {
+      "branch_id": "fecha_firma",
+      "answer": "2023-01-15"
+    },
+    {
+      "branch_id": "uso_vivienda",
+      "answer": "Es mi vivienda habitual."
+    }
+  ]
+}

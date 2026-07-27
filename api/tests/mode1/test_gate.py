@@ -20,12 +20,14 @@ from lexme.retrieval.models import RetrievedBlock
 from lexme.verification import VerifiedAnchor
 
 AS_OF = date(2020, 1, 1)
+NORM_ID = "BOE-A-1994-26003"
 
 
 def _block() -> RetrievedBlock:
     """A minimal retrieved block, standing in for real evidence."""
     return RetrievedBlock(
-        norm_id="BOE-A-1994-26003",
+        norm_id=NORM_ID,
+        norm_label="LAU",
         block_id="a9",
         title="Artículo 9",
         text="La duración del arrendamiento será libremente pactada por las partes",
@@ -36,6 +38,8 @@ def _block() -> RetrievedBlock:
 def _verified() -> VerifiedCitation:
     """A minimal verified citation, standing in for a survived citation."""
     anchor = VerifiedAnchor(
+        norm_id=NORM_ID,
+        norm_label="LAU",
         eli="https://www.boe.es/eli/es/l/1994/11/24/29",
         consolidated_html_url="https://example.test/a9",
         block_id="a9",
@@ -43,7 +47,7 @@ def _verified() -> VerifiedCitation:
         effective_date=AS_OF,
     )
     return VerifiedCitation(
-        block_id="a9",
+        block_ref=f"{NORM_ID}:a9",
         text="La duración del arrendamiento será libremente pactada por las partes",
         verdict=CitationVerdict.VERIFIED_DIRECT,
         anchor=anchor,

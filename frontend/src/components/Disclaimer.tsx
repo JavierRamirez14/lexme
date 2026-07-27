@@ -1,24 +1,24 @@
 import { useEffect, useState } from "react";
 import { fetchCorpusStatus } from "../api/client";
 import { formatDate } from "../format";
+import type { CorpusStatus } from "../types";
 import styles from "./Disclaimer.module.css";
 
 /**
  * The persistent legal footer: the "information, not legal advice" disclaimer,
- * the BOE source attribution the corpus licence requires, and the corpus's own
- * freshness date. It is always present but deliberately discreet, and present in
- * both modes since every screen here shows legal text.
+ * the BOE source attribution the corpus licence requires, and the corpus itself --
+ * every norm it holds, with how many articles and a link to that norm's own
+ * consolidated text, plus the freshness date. The list is read from the API rather
+ * than written here, so the scope shown is the scope actually ingested. It is
+ * always present but deliberately discreet, and present in both modes since every
+ * screen here shows legal text.
  */
 export function Disclaimer() {
-  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
+  const [status, setStatus] = useState<CorpusStatus | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
-    void fetchCorpusStatus(controller.signal).then((status) => {
-      if (status?.updated_at) {
-        setUpdatedAt(status.updated_at);
-      }
-    });
+    void fetchCorpusStatus(controller.signal).then(setStatus);
     return () => controller.abort();
   }, []);
 
@@ -35,8 +35,27 @@ export function Disclaimer() {
         </a>
         .
       </p>
-      {updatedAt && (
-        <p className={styles.line}>Corpus actualizado a fecha de {formatDate(updatedAt.slice(0, 10))}.</p>
+      {status && status.norms.length > 0 && (
+        <p className={styles.line}>
+          Corpus
+          {status.updated_at &&
+            ` actualizado a fecha de ${formatDate(status.updated_at.slice(0, 10))}`}
+          :{" "}
+          <span className={styles.norms}>
+            {status.norms.map((norm) => (
+              <a
+                key={norm.norm_id}
+                className={styles.norm}
+                href={norm.consolidated_html_url}
+                target="_blank"
+                rel="noreferrer"
+                title={norm.title}
+              >
+                {norm.label} <span className={styles.count}>{norm.blocks}</span>
+              </a>
+            ))}
+          </span>
+        </p>
       )}
     </div>
   );

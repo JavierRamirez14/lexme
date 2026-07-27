@@ -25,7 +25,8 @@ PLANNING_TASK = "mode1_planning"
 
 _BASE_PROMPT = (
     "Eres el planificador de un asistente sobre la Ley de Arrendamientos Urbanos "
-    "(LAU estatal, vivienda). Recibes la pregunta de un inquilino en lenguaje llano "
+    "(vivienda, legislación estatal: LAU, Código Civil, LEC y Ley por el derecho a "
+    "la vivienda). Recibes la pregunta de un inquilino en lenguaje llano "
     f"y la descompones en entre 1 y {MAX_SUBQUERIES} sub-consultas de recuperación, "
     "cada una redactada en VOCABULARIO LEGAL (los términos que aparecerían en el "
     "articulado), no en lenguaje llano. Cada sub-consulta lleva:\n"

@@ -18,6 +18,8 @@ from lexme.llm.protocol import LlmError
 from lexme.mode1 import SYNTHESIS_TASK, Outcome
 from tests.eval.conftest import AS_OF, NORM_ID, InMemoryCorpus, answer_response
 
+REF_A36 = f"{NORM_ID}:a36"
+
 ARTICLE_TEXT = "La fianza será de una mensualidad de renta en el arrendamiento de viviendas."
 
 
@@ -26,18 +28,20 @@ def _case() -> EvalCase:
     return EvalCase(
         id="fianza",
         question="¿cuánta fianza?",
-        gold_block_ids=("a36",),
-        key_points=(KeyPoint(claim="la fianza es una mensualidad", block_id="a36"),),
+        gold_block_refs=(REF_A36,),
+        key_points=(KeyPoint(claim="la fianza es una mensualidad", block_ref=REF_A36),),
     )
 
 
 def _verdict() -> JudgeVerdict:
     """A judge verdict covering the key point with one supported and one unsupported claim."""
     return JudgeVerdict(
-        key_points=[KeyPointCoverage(block_id="a36", covered=True, evidence="una mensualidad")],
+        key_points=[KeyPointCoverage(block_ref=REF_A36, covered=True, evidence="una mensualidad")],
         claims=[
             ClaimAssessment(
-                claim="la fianza es una mensualidad", supported=True, supporting_block_id="a36"
+                claim="la fianza es una mensualidad",
+                supported=True,
+                supporting_block_ref=REF_A36,
             ),
             ClaimAssessment(claim="se devuelve en 24h", supported=False),
         ],
@@ -82,7 +86,7 @@ def test_the_judge_skips_a_case_with_no_key_points() -> None:
     llm = FakeLlmClient()
     corpus = InMemoryCorpus({})
     response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
-    case = EvalCase(id="x", question="q", gold_block_ids=("a36",))
+    case = EvalCase(id="x", question="q", gold_block_refs=(REF_A36,))
 
     assert LlmJudge(llm=llm, corpus=corpus).judge(case, response, AS_OF) is None
     assert llm.calls == []

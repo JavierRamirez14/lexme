@@ -4,7 +4,7 @@
   "provenance": {
     "generator": "query_generator",
     "sources": [
-      "a18"
+      "BOE-A-1994-26003:a18"
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:47:48.521951Z",
@@ -15,26 +15,23 @@
   "mode1": {
     "id": "gen-actualizacion-renta",
     "question": "Hola, llevo un año de alquiler y mi casero me ha dicho de palabra que me va a subir el alquiler el mes que viene basándose en la inflación. ¿Esto es legal? ¿Puede subirme el precio cuando quiera y de cualquier forma, o hay límites y requisitos de preaviso?",
-    "gold_block_ids": [
-      "a18"
-    ],
     "expected_outcome": "respuesta",
     "key_points": [
       {
         "claim": "La renta solo puede actualizarse en la fecha en que se cumpla cada año de vigencia del contrato, y únicamente si existe un pacto expreso entre las partes; de lo contrario, no se aplicará ninguna actualización.",
-        "block_id": "a18"
+        "block_ref": "BOE-A-1994-26003:a18"
       },
       {
         "claim": "En caso de que se haya pactado actualizar la renta pero no se detalle el índice de referencia, se aplicará la variación anual del Índice de Garantía de Competitividad (IGC).",
-        "block_id": "a18"
+        "block_ref": "BOE-A-1994-26003:a18"
       },
       {
         "claim": "El incremento derivado de la actualización anual de la renta tiene como límite máximo el porcentaje de variación experimentado por el Índice de Precios al Consumo (IPC).",
-        "block_id": "a18"
+        "block_ref": "BOE-A-1994-26003:a18"
       },
       {
         "claim": "La renta actualizada solo será exigible a partir del mes siguiente a aquel en que el arrendador lo notifique por escrito, indicando el porcentaje de alteración aplicado y aportando la certificación del INE si el inquilino lo solicita.",
-        "block_id": "a18"
+        "block_ref": "BOE-A-1994-26003:a18"
       }
     ],
     "target_date": null,
@@ -47,6 +44,9 @@
         "branch_id": "uso_vivienda",
         "answer": "Es mi vivienda habitual."
       }
+    ],
+    "gold_block_refs": [
+      "BOE-A-1994-26003:a18"
     ]
   },
   "mode2": null

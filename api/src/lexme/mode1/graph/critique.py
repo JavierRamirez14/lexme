@@ -10,6 +10,7 @@ without extra instrumentation.
 
 from pydantic import BaseModel
 
+from lexme.blocks import BlockRef
 from lexme.llm import LlmClient, Message
 from lexme.mode1.graph.deps import Mode1Deps
 from lexme.mode1.graph.state import Mode1State, PassRecord, SubQueryState
@@ -20,8 +21,9 @@ from lexme.retrieval.models import RetrievedBlock
 CRITIQUE_TASK = "mode1_selfcritique"
 
 _SYSTEM_PROMPT = (
-    "Eres el crítico de un asistente sobre la LAU. Para cada sub-consulta recibes "
-    "los bloques recuperados y dictaminas si permiten responderla CON UNA CITA "
+    "Eres el crítico de un asistente jurídico sobre alquiler de vivienda. Para cada "
+    "sub-consulta recibes los bloques recuperados, que pueden venir de varias normas "
+    "estatales, y dictaminas si permiten responderla CON UNA CITA "
     "LITERAL del texto (no si 'parecen relevantes'):\n"
     "- verdict: 'suficiente' o 'insuficiente'.\n"
     "- reformulation: si es 'insuficiente', una reformulación de la consulta con "
@@ -94,16 +96,16 @@ def _record(pass_number: int, subqueries: list[SubQueryState]) -> PassRecord:
         sufficient_ids=sufficient,
         insufficient_ids=insufficient,
         evidence_count=evidence_count,
-        evidence_block_ids=_accumulated_block_ids(subqueries),
+        evidence_block_refs=_accumulated_block_refs(subqueries),
     )
 
 
-def _accumulated_block_ids(subqueries: list[SubQueryState]) -> list[str]:
-    """The distinct evidence block ids across every sub-query, first-seen order."""
+def _accumulated_block_refs(subqueries: list[SubQueryState]) -> list[str]:
+    """The distinct evidence block references across every sub-query, first-seen order."""
     seen: dict[str, None] = {}
     for sub in subqueries:
         for block in sub.evidence:
-            seen.setdefault(block.block_id, None)
+            seen.setdefault(str(BlockRef(norm_id=block.norm_id, block_id=block.block_id)), None)
     return list(seen)
 
 
@@ -119,5 +121,6 @@ def _render_one(sub: SubQueryState) -> str:
 
 
 def _render_block(block: RetrievedBlock) -> str:
-    """Render one evidence block as its citable id, title and text."""
-    return f"- block_id {block.block_id} ({block.title}): {block.text}"
+    """Render one evidence block as its citable reference, source norm, title and text."""
+    ref = BlockRef(norm_id=block.norm_id, block_id=block.block_id)
+    return f"- block_ref {ref} ({block.norm_label}, {block.title}): {block.text}"

@@ -1,8 +1,9 @@
 """Generate Mode 1 reference cases by walking the corpus backwards.
 
-The corpus is read in reverse: a seed names one to three related blocks and the
-outcome the case should reach, and the model writes the user-language question and
-extracts, from those blocks' own text, the key points a good answer must contain.
+The corpus is read in reverse: a seed names one to three related blocks, by
+norm-qualified reference so a seed may span several norms, and the outcome the
+case should reach; the model writes the user-language question and extracts,
+from those blocks' own text, the key points a good answer must contain.
 The gold blocks are the seed's blocks by construction -- never the model's choice --
 so recall has a correct reference without a human labelling it. Adversarial seeds
 (a matter outside the corpus, a question with no sufficient ground) reach the same
@@ -15,6 +16,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel
 
+from lexme.blocks import BlockRef
 from lexme.llm import LlmClient, Message
 from lexme.mode1.models import Outcome
 from lexme.refset.models import (
@@ -55,13 +57,14 @@ class QueryStyle(StrEnum):
 class QuerySeed(BaseModel):
     """The construction inputs for one Mode 1 case: blocks, target outcome, style.
 
-    ``block_ids`` are the gold blocks by construction; an out-of-scope seed leaves
-    them empty and sets ``topic`` instead, naming the foreign matter to ask about.
-    ``target_date`` pins the point-in-time clock for a time-sensitive case.
+    ``block_refs`` are the gold blocks by construction, each a ``norm:block``
+    reference; an out-of-scope seed leaves them empty and sets ``topic`` instead,
+    naming the foreign matter to ask about. ``target_date`` pins the point-in-time
+    clock for a time-sensitive case.
     """
 
     id: str
-    block_ids: list[str] = []
+    block_refs: list[str] = []
     expected_outcome: Outcome
     style: QueryStyle = QueryStyle.CORE
     topic: str = ""
@@ -72,7 +75,7 @@ class _GeneratedKeyPoint(BaseModel):
     """A key point as the model proposes it, before code checks its block."""
 
     claim: str
-    block_id: str
+    block_ref: str
 
 
 class GeneratedQuery(BaseModel):
@@ -91,10 +94,11 @@ _SYSTEM_PROMPT = (
     "de Arrendamientos Urbanos. A partir de uno o varios artículos de la ley, redactas "
     "UNA consulta en el lenguaje natural de un inquilino y extraes los 'puntos clave': "
     "las afirmaciones jurídicas que una buena respuesta debe contener, cada una copiada "
-    "o parafraseada del texto del artículo y anclada a su 'block_id'. Devuelves un objeto "
-    "JSON con 'question' y 'key_points' (lista de objetos con 'claim' y 'block_id'). "
-    "Reglas: la consulta suena a persona real, no cita artículos por número; cada "
-    "'block_id' de un punto clave DEBE ser uno de los bloques que se te dan; nunca "
+    "o parafraseada del texto del artículo y anclada a su 'block_ref'. Devuelves un "
+    "objeto JSON con 'question' y 'key_points' (lista de objetos con 'claim' y "
+    "'block_ref'). Reglas: la consulta suena a persona real, no cita artículos por "
+    "número; cada 'block_ref' de un punto clave DEBE ser uno de los bloques que se "
+    "te dan, copiado tal cual; nunca "
     "inventes un bloque ni un dato que no esté en el texto."
 )
 
@@ -128,7 +132,6 @@ def generate_query_case(
     *,
     corpus: CorpusReader,
     llm: LlmClient,
-    norm_id: str,
     now: datetime,
     resolve_date: date,
     model: str | None = None,
@@ -145,20 +148,20 @@ def generate_query_case(
     reference that contradicts the seed's outcome.
     """
     _validate_seed(seed)
-    blocks = _resolve_blocks(seed, corpus, norm_id, resolve_date)
+    blocks = _resolve_blocks(seed, corpus, resolve_date)
     proposal = _propose(seed, blocks, llm)
     key_points = _accept_key_points(seed, proposal)
     case = Mode1ReferenceCase(
         id=seed.id,
         question=proposal.question.strip(),
-        gold_block_ids=list(seed.block_ids),
+        gold_block_refs=list(seed.block_refs),
         expected_outcome=seed.expected_outcome,
         key_points=key_points,
         target_date=seed.target_date,
     )
     provenance = Provenance(
         generator=_GENERATOR_NAME,
-        sources=list(seed.block_ids),
+        sources=list(seed.block_refs),
         model=model,
         generated_at=now,
     )
@@ -168,28 +171,28 @@ def generate_query_case(
 def _validate_seed(seed: QuerySeed) -> None:
     """Check the seed's shape against its outcome before any model call."""
     if seed.style is QueryStyle.OUT_OF_SCOPE:
-        if seed.block_ids:
+        if seed.block_refs:
             raise GenerationError(f"seed '{seed.id}': an out-of-scope seed has no gold blocks")
         if not seed.topic.strip():
             raise GenerationError(f"seed '{seed.id}': an out-of-scope seed needs a 'topic'")
         return
-    if not seed.block_ids:
+    if not seed.block_refs:
         raise GenerationError(f"seed '{seed.id}': a grounded seed needs at least one block")
 
 
-def _resolve_blocks(
-    seed: QuerySeed, corpus: CorpusReader, norm_id: str, resolve_date: date
-) -> dict[str, str]:
+def _resolve_blocks(seed: QuerySeed, corpus: CorpusReader, resolve_date: date) -> dict[str, str]:
     """Resolve each seed block's text at ``resolve_date``, failing on a broken block."""
     blocks: dict[str, str] = {}
-    for block_id in seed.block_ids:
-        resolved = corpus.resolve_block(norm_id, block_id, resolve_date)
+    for raw in seed.block_refs:
+        ref = BlockRef.parse(raw)
+        if ref is None:
+            raise GenerationError(f"seed '{seed.id}': '{raw}' is not a 'norm:block' reference")
+        resolved = corpus.resolve_block(ref.norm_id, ref.block_id, resolve_date)
         if resolved is None:
             raise GenerationError(
-                f"seed '{seed.id}': block '{block_id}' does not resolve in {norm_id} "
-                f"at {resolve_date.isoformat()}"
+                f"seed '{seed.id}': block '{raw}' does not resolve at {resolve_date.isoformat()}"
             )
-        blocks[block_id] = resolved.text
+        blocks[raw] = resolved.text
     return blocks
 
 
@@ -208,7 +211,9 @@ def _render_prompt(seed: QuerySeed, blocks: dict[str, str]) -> str:
     if seed.topic.strip():
         prompt += f"\n\nTema ajeno a tratar: {seed.topic.strip()}"
     if blocks:
-        rendered = "\n\n".join(f"block_id: {block_id}\n{text}" for block_id, text in blocks.items())
+        rendered = "\n\n".join(
+            f"block_ref: {block_ref}\n{text}" for block_ref, text in blocks.items()
+        )
         prompt += f"\n\nBloques de la ley:\n{rendered}"
     return prompt
 
@@ -220,14 +225,14 @@ def _accept_key_points(seed: QuerySeed, proposal: GeneratedQuery) -> list[KeyPoi
     what the seed's outcome allows: none for a rejection or abstention, at least
     one for an answer.
     """
-    gold = set(seed.block_ids)
+    gold = set(seed.block_refs)
     for point in proposal.key_points:
-        if point.block_id not in gold:
+        if point.block_ref not in gold:
             raise GenerationError(
-                f"seed '{seed.id}': model cited block '{point.block_id}' outside the seed"
+                f"seed '{seed.id}': model cited block '{point.block_ref}' outside the seed"
             )
     key_points = [
-        KeyPoint(claim=point.claim.strip(), block_id=point.block_id)
+        KeyPoint(claim=point.claim.strip(), block_ref=point.block_ref)
         for point in proposal.key_points
     ]
     _validate_reference(seed, key_points)

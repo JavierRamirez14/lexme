@@ -16,6 +16,7 @@ from lexme.mode1.graph.router import ROUTER_TASK
 from lexme.mode1.models import SubQueryVerdict
 from lexme.mode1.synthesis import SYNTHESIS_TASK
 from tests.mode1.conftest import (
+    LAU_NORM_ID,
     critique_of,
     in_scope,
     out_of_scope,
@@ -47,7 +48,7 @@ def test_a_grounded_question_returns_a_cited_answer_with_agentic_trace(
     body = response.json()
     assert body["outcome"] == "respuesta"
     citation = body["answer"]["fundamento"][0]
-    assert citation["block_id"] == "a9"
+    assert citation["block_ref"] == f"{LAU_NORM_ID}:a9"
     assert citation["verdict"] == "verificada_directa"
     assert body["agentic"]["subqueries"][0]["verdict"] == "suficiente"
     assert body["agentic"]["subqueries"][0]["retrieval"]["dense"]

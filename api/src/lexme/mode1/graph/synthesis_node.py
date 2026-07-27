@@ -9,6 +9,7 @@ gate abstains.
 
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.mode1.graph.deps import Mode1Deps
 from lexme.mode1.graph.state import Mode1State
 from lexme.mode1.graph.steps import Step
@@ -19,7 +20,6 @@ from lexme.verification import (
     CitationResult,
     CitationVerdict,
     CorpusReader,
-    EvidenceBlock,
     summarize,
     verify_citations,
 )
@@ -80,7 +80,7 @@ def _verify(
     target_date: date,
 ) -> list[CitationResult]:
     """Verify the proposed citations against the retrieved evidence."""
-    blocks = [EvidenceBlock(norm_id=block.norm_id, block_id=block.block_id) for block in evidence]
+    blocks = [BlockRef(norm_id=block.norm_id, block_id=block.block_id) for block in evidence]
     return verify_citations(synthesis.fundamento, blocks, target_date, corpus)
 
 
@@ -95,9 +95,9 @@ def _to_verified(result: CitationResult) -> VerifiedCitation:
     A non-discarded result always carries an anchor, so it is safe to require one.
     """
     if result.anchor is None:
-        raise ValueError(f"citation {result.block_id} held with no anchor")
+        raise ValueError(f"citation {result.block_ref} held with no anchor")
     return VerifiedCitation(
-        block_id=result.block_id,
+        block_ref=result.block_ref,
         text=result.text,
         verdict=result.verdict,
         anchor=result.anchor,

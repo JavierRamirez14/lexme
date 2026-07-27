@@ -13,10 +13,10 @@
   "mode1": {
     "id": "gen-fuera-ambito-multa",
     "question": "Hola, me ha llegado una multa de tráfico por exceso de velocidad. Me cazó un radar a 135 km/h en una zona de 120. Querría saber qué pasos debo seguir para recurrirla, qué plazos tengo y si me conviene pagar con descuento o presentar alegaciones.",
-    "gold_block_ids": [],
     "expected_outcome": "rechazo_router",
     "key_points": [],
-    "target_date": null
+    "target_date": null,
+    "gold_block_refs": []
   },
   "mode2": null
 }

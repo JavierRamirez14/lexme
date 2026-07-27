@@ -55,4 +55,20 @@ def test_reports_no_freshness_when_the_corpus_is_empty(corpus_status_server: str
     response = httpx.get(f"{corpus_status_server}/corpus/status", timeout=10)
 
     assert response.status_code == 200
-    assert response.json() == {"vertical": "vivienda", "updated_at": None}
+    assert response.json() == {"vertical": "vivienda", "updated_at": None, "norms": []}
+
+
+def test_names_every_norm_the_vertical_answers_from(
+    corpus_status_server: str,
+    corpus_db: psycopg.Connection,
+    deterministic_embedder: DeterministicEmbedder,
+) -> None:
+    seed_norm(corpus_db, parse_norm_xml(LAU_XML), deterministic_embedder, label="LAU")
+
+    response = httpx.get(f"{corpus_status_server}/corpus/status", timeout=10)
+
+    (norm,) = response.json()["norms"]
+    assert norm["norm_id"] == "BOE-A-1994-26003"
+    assert norm["label"] == "LAU"
+    assert norm["blocks"] == 3
+    assert norm["consolidated_html_url"].endswith("BOE-A-1994-26003")

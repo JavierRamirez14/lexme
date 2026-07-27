@@ -11,10 +11,12 @@ literally present, is a hard failure, exactly as in Mode 1.
 
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.eval.guardrail import (
     REASON_DISCARDED,
     REASON_EMPTY,
     REASON_NOT_LITERAL,
+    REASON_UNQUALIFIED,
     REASON_UNRESOLVED,
     GuardrailViolation,
 )
@@ -32,13 +34,12 @@ def check_mode2_citations(
     case_id: str,
     analysis: ContractAnalysis,
     corpus: CorpusReader,
-    norm_id: str,
     target_date: date,
 ) -> list[GuardrailViolation]:
     """Re-verify every citation the risk map displays, returning its violations.
 
     Walks the clause findings and the absence whites, re-resolving each citation's
-    block against ``corpus`` under ``norm_id`` at ``target_date`` and checking the
+    own norm-qualified block against ``corpus`` at ``target_date`` and checking the
     shown quote is literally present. Returns an empty list when the analysis
     produced no risk map or every citation re-verifies.
     """
@@ -46,9 +47,9 @@ def check_mode2_citations(
         return []
     violations = []
     for finding in analysis.risk_map.clause_findings:
-        _collect(violations, case_id, finding.citation, corpus, norm_id, target_date)
+        _collect(violations, case_id, finding.citation, corpus, target_date)
     for absence in analysis.risk_map.absence_findings:
-        _collect(violations, case_id, absence.citation, corpus, norm_id, target_date)
+        _collect(violations, case_id, absence.citation, corpus, target_date)
     return violations
 
 
@@ -57,29 +58,30 @@ def _collect(
     case_id: str,
     citation: VerifiedCitation | None,
     corpus: CorpusReader,
-    norm_id: str,
     target_date: date,
 ) -> None:
     """Append a violation for ``citation`` when it fails re-verification."""
     if citation is None:
         return
-    reason = _check_one(citation, corpus, norm_id, target_date)
+    reason = _check_one(citation, corpus, target_date)
     if reason is not None:
         violations.append(
-            GuardrailViolation(case_id=case_id, block_id=citation.block_id, reason=reason)
+            GuardrailViolation(case_id=case_id, block_ref=citation.block_ref, reason=reason)
         )
 
 
 def _check_one(
     citation: VerifiedCitation,
     corpus: CorpusReader,
-    norm_id: str,
     target_date: date,
 ) -> str | None:
     """Check one displayed citation, returning a failure reason or ``None`` if it holds."""
     if citation.verdict is CitationVerdict.DISCARDED:
         return REASON_DISCARDED
-    resolved = corpus.resolve_block(norm_id, citation.block_id, target_date)
+    cited = BlockRef.parse(citation.block_ref)
+    if cited is None:
+        return REASON_UNQUALIFIED
+    resolved = corpus.resolve_block(cited.norm_id, cited.block_id, target_date)
     if resolved is None:
         return REASON_UNRESOLVED
     segments, _ = split_into_segments(citation.text)

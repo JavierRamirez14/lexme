@@ -14,6 +14,7 @@ from enum import StrEnum
 
 from pydantic import BaseModel, field_validator
 
+from lexme.blocks import BlockRef
 from lexme.mode1.branches import AnswerKind
 from lexme.mode1.notices import InForceNotice
 from lexme.verification import CitationVerdict, ProposedCitation, VerifiedAnchor
@@ -44,9 +45,9 @@ class SubQueryVerdict(StrEnum):
 class Mode1Synthesis(BaseModel):
     """The three-layer answer as the synthesizer proposes it, before verification.
 
-    ``fundamento`` are the citations the model wants to make, each a block id and
-    the literal text it claims that block contains. Nothing here is trusted until
-    the verifier re-checks every citation against the corpus.
+    ``fundamento`` are the citations the model wants to make, each a norm-qualified
+    block reference and the literal text it claims that block contains. Nothing
+    here is trusted until the verifier re-checks every citation against the corpus.
     """
 
     fundamento: list[ProposedCitation]
@@ -57,11 +58,12 @@ class Mode1Synthesis(BaseModel):
 class VerifiedCitation(BaseModel):
     """A citation that survived verification, with its code-hydrated anchor.
 
-    ``text`` is the literal corpus text to show (the verified quote, or the real
-    span it was repaired to); ``verdict`` records how it was resolved.
+    ``block_ref`` is the ``norm:block`` reference the citation anchors to; ``text``
+    is the literal corpus text to show (the verified quote, or the real span it was
+    repaired to); ``verdict`` records how it was resolved.
     """
 
-    block_id: str
+    block_ref: str
     text: str
     verdict: CitationVerdict
     anchor: VerifiedAnchor
@@ -129,6 +131,11 @@ class RankedBlockRef(BaseModel):
     norm_id: str
     block_id: str
 
+    @property
+    def ref(self) -> str:
+        """The block's norm-qualified reference, as citations and gold blocks name it."""
+        return str(BlockRef(norm_id=self.norm_id, block_id=self.block_id))
+
 
 class RetrievalTrace(BaseModel):
     """The dense, lexical and fused rankings behind one sub-query, in order.
@@ -164,7 +171,7 @@ class PassReport(BaseModel):
 
     ``evidence_count`` is the total number of evidence blocks across all
     sub-queries at the end of this pass; comparing it across passes is the raw
-    signal behind the agentic delta. ``evidence_block_ids`` is the accumulated
+    signal behind the agentic delta. ``evidence_block_refs`` is the accumulated
     distinct evidence at the end of this pass, which the harness compares against
     the gold blocks to read the recall the pass had reached.
     """
@@ -173,7 +180,7 @@ class PassReport(BaseModel):
     sufficient_ids: list[str]
     insufficient_ids: list[str]
     evidence_count: int
-    evidence_block_ids: list[str] = []
+    evidence_block_refs: list[str] = []
 
 
 class AgenticTrace(BaseModel):

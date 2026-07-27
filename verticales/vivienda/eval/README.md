@@ -90,14 +90,14 @@ Workflow:
   "reviewed_by": "<name>",
   "reviewed_at": "2026-07-25T00:00:00+00:00",
   "items": [
-    { "case_id": "gen-fianza", "kind": "key_point", "ref": "a36", "judge_label": true, "human_label": true },
+    { "case_id": "gen-fianza", "kind": "key_point", "ref": "BOE-A-1994-26003:a36", "judge_label": true, "human_label": true },
     { "case_id": "gen-fianza", "kind": "claim", "ref": "…", "judge_label": false, "human_label": false }
   ]
 }
 ```
 
 - `kind` — `key_point` or `claim`.
-- `ref` — the key point's `block_id`, or the claim text.
+- `ref` — the key point's `block_ref`, or the claim text.
 - The agreement is derived from `items` at load time, never trusted from the file.
 
 Disagreements are inspected → the judge prompt is adjusted → the pass is repeated.

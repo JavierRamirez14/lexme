@@ -78,3 +78,36 @@ def test_norm_without_precepto_blocks_raises() -> None:
     )
     with pytest.raises(BoeXmlError):
         parse_norm_xml(xml)
+
+
+def test_only_the_named_blocks_are_parsed(lau_sample_xml: str) -> None:
+    norm = parse_norm_xml(lau_sample_xml, ["a1", "a9"])
+
+    assert [block.block_id for block in norm.blocks] == ["a1", "a9"]
+
+
+def test_a_malformed_block_outside_the_selection_does_not_fail_the_parse(
+    lau_sample_xml: str,
+) -> None:
+    broken = lau_sample_xml.replace('fecha_vigencia="19950101"', 'fecha_vigencia=""', 1)
+
+    norm = parse_norm_xml(broken, ["a9"])
+
+    assert [block.block_id for block in norm.blocks] == ["a9"]
+
+
+def test_a_selection_matching_no_block_raises(lau_sample_xml: str) -> None:
+    with pytest.raises(BoeXmlError):
+        parse_norm_xml(lau_sample_xml, ["a404"])
+
+
+def test_two_redactions_in_force_on_the_same_date_collapse_to_the_last(
+    lau_sample_xml: str,
+) -> None:
+    duplicated = lau_sample_xml.replace('fecha_vigencia="20130606"', 'fecha_vigencia="20091224"', 1)
+
+    (block,) = [b for b in parse_norm_xml(duplicated).blocks if b.block_id == "a9"]
+
+    by_date = {version.effective_date: version for version in block.versions}
+    assert len(by_date) == len(block.versions)
+    assert "tres años" in by_date[date(2009, 12, 24)].text_content

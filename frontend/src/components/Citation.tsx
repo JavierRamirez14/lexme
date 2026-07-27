@@ -14,18 +14,26 @@ interface CitationProps {
 }
 
 /**
- * One verified citation: the literal quoted text set apart in a serif face, its
- * article title, the effective date of the cited redaction, and distinct links
- * to the ELI and the consolidated BOE text. The verified badge and the source
- * links make the guarantee -- this text really is in the law -- readable at a
- * glance.
+ * One verified citation: the literal quoted text set apart in a serif face, the
+ * law it comes from and its article title, the effective date of the cited
+ * redaction, and distinct links to the ELI and the consolidated BOE text. The
+ * corpus spans several norms, so the law's short name leads the header and its
+ * full title is the tooltip: two citations of "artículo 9" are never confusable,
+ * and each link goes to its own consolidated text. The verified badge and the
+ * source links make the guarantee -- this text really is in the law -- readable
+ * at a glance.
  */
 export function Citation({ citation }: CitationProps) {
   const { anchor, verdict, text } = citation;
   return (
     <figure className={styles.citation}>
       <div className={styles.head}>
-        <span className={styles.article}>{anchor.title}</span>
+        <span className={styles.article}>
+          <span className={styles.norm} title={anchor.norm_id}>
+            {anchor.norm_label}
+          </span>
+          {anchor.title}
+        </span>
         <span className={styles.badge} data-verdict={verdict}>
           {VERDICT_LABELS[verdict]}
         </span>

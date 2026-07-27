@@ -1,6 +1,84 @@
 {
   "vertical": "vivienda",
   "norms": [
-    { "norm_id": "BOE-A-1994-26003" }
+    {
+      "norm_id": "BOE-A-1994-26003",
+      "label": "LAU"
+    },
+    {
+      "norm_id": "BOE-A-2023-12203",
+      "label": "Ley de Vivienda",
+      "blocks": [
+        "a3",
+        "a6",
+        "a1-10",
+        "a3-3",
+        "dt-4"
+      ]
+    },
+    {
+      "norm_id": "BOE-A-1889-4763",
+      "label": "Código Civil",
+      "blocks": [
+        "art1542",
+        "art1543",
+        "art1544",
+        "art1545",
+        "art1546",
+        "art1547",
+        "art1548",
+        "art1549",
+        "art1550",
+        "art1551",
+        "art1552",
+        "art1553",
+        "art1554",
+        "art1555",
+        "art1556",
+        "art1557",
+        "art1558",
+        "art1559",
+        "art1560",
+        "art1561",
+        "art1562",
+        "art1563",
+        "art1564",
+        "art1565",
+        "art1566",
+        "art1567",
+        "art1568",
+        "art1569",
+        "art1570",
+        "art1571",
+        "art1572",
+        "art1573",
+        "art1574",
+        "art1575",
+        "art1576",
+        "art1577",
+        "art1578",
+        "art1579",
+        "art1580",
+        "art1581",
+        "art1582"
+      ]
+    },
+    {
+      "norm_id": "BOE-A-2000-323",
+      "label": "LEC",
+      "blocks": [
+        "a22",
+        "a250",
+        "a437",
+        "a438",
+        "a439",
+        "a440",
+        "a444",
+        "a447",
+        "a549",
+        "a703",
+        "a704"
+      ]
+    }
   ]
 }

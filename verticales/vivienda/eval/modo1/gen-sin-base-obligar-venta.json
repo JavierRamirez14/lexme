@@ -1,9 +1,6 @@
 {
   "id": "gen-sin-base-obligar-venta",
   "question": "Hola, mi casero me ha comunicado que va a vender el piso donde vivo y quiero comprarlo usando mi derecho de tanteo. Sin embargo, no me queda claro qué impuestos (como el ITP o el IVA) tengo que pagar al formalizar la compraventa y si existe alguna deducción o beneficio fiscal especial para los inquilinos que compran su vivienda habitual. ¿Me podríais explicar detalladamente qué gastos e impuestos tendré?",
-  "gold_block_ids": [
-    "a25"
-  ],
   "expected_outcome": "abstencion",
   "key_points": [],
   "target_date": null,
@@ -20,12 +17,15 @@
   "provenance": {
     "generator": "query_generator",
     "sources": [
-      "a25"
+      "BOE-A-1994-26003:a25"
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:53:54.227524Z",
     "reviewed_by": "javier",
     "reviewed_at": "2026-07-27T10:05:03.642224Z",
     "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo; respuestas de desambiguacion escritas y revisadas, con la fecha de firma dentro de la redaccion vigente de los bloques de referencia"
-  }
+  },
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a25"
+  ]
 }

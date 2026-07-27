@@ -3,11 +3,14 @@
 **Agentic RAG over Spanish tenancy law that refuses to reassure you when the law doesn't.**
 
 Lexme answers rental-law questions and analyses rental contracts against the
-official consolidated text of the *Ley de Arrendamientos Urbanos* (LAU), published
-by Spain's *Boletín Oficial del Estado* (BOE). Every legal claim it shows is a
-literal, re-verified quote of a specific article, or it abstains. I built it to see
-how far you can push a RAG system when "sounds plausible" is not good enough and
-every answer has to be checkable against the source.
+official consolidated text of the Spanish state law on renting a home — the *Ley de
+Arrendamientos Urbanos* (LAU), the *Código Civil*'s lease title, the eviction
+procedure in the *Ley de Enjuiciamiento Civil* and the *Ley por el derecho a la
+vivienda* — as published by Spain's *Boletín Oficial del Estado* (BOE). Every legal
+claim it shows is a literal, re-verified quote of a specific article of a specific
+law, or it abstains. I built it to see how far you can push a RAG system when
+"sounds plausible" is not good enough and every answer has to be checkable against
+the source.
 
 `Python` · `FastAPI` · `LangGraph` · `PostgreSQL + pgvector` · `BGE-M3 / TEI` · `Docker Compose` · `React + Vite`
 
@@ -76,10 +79,11 @@ hiding behind the other.
 | Metric | Value | Denominator |
 | --- | --- | --- |
 | Citation literality (both modes) | 0 discarded | invariant; run fails on any discard |
-| Retrieval recall, first pass | 1.00 | gold block recovered before the agentic loop |
-| Outcome match rate (Mode 1) | 0.94 | 16 / 17 cases reached the outcome they were written for |
-| Disambiguation (Mode 1) | 0.47 | 8 / 17 cases the gate stopped; all 8 resumed, 0 left stranded |
-| Judge completeness · unsupported claims (Mode 1) | 0.86 · 0.06 | 10 judged cases, against human-reviewed key points |
+| Retrieval recall, first pass (Mode 1) | 0.97 | gold blocks recovered before the agentic loop, over a four-norm corpus |
+| Multi-hop recall (Mode 1) | 0.88 | 7 / 8 gold blocks across the 4 cases that need more than one norm |
+| Outcome match rate (Mode 1) | 0.90 | 19 / 21 cases reached the outcome they were written for |
+| Disambiguation (Mode 1) | 0.52 | 11 / 21 cases the gate stopped; all 11 resumed, 0 left stranded |
+| Judge completeness · unsupported claims (Mode 1) | 0.75 · 0.00 | 13 judged cases, against human-reviewed key points |
 | Recall 🔴/🟠 (Mode 2) | 1.00 | 2 / 2 correctly delimited problematic clauses |
 | False-tranquility rate (Mode 2) | 0.00 | 0 / 2 real 🔴/🟠 passed off as reassuring |
 | Flag precision · abstention (Mode 2) | 0.50 · 0.00 | 2 / 4 flags correct · 0 / 10 clauses abstained |
@@ -93,19 +97,30 @@ that answer, and how many stopped at a pause with nothing to answer it — so th
 of cases actually measured end to end is never left ambiguous.
 
 Reports: Mode 1 →
-[`modo1-20260727T112714Z.json`](eval-runs/modo1-20260727T112714Z.json) (`08915d00…`),
+[`modo1-20260727T160707Z.json`](eval-runs/modo1-20260727T160707Z.json) (`d870d388…`),
 Mode 2 →
 [`modo2-20260726T184248Z.json`](eval-runs/modo2-20260726T184248Z.json) (`73c795db…`).
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
 regression.
 
-The reference set is deliberately small and fully human-reviewed (17 Mode 1 cases, 3
-synthetic Mode 2 contracts, one of which the temporal gate correctly rejects as
-out-of-scope), which is why every denominator is shown rather than rounded away. The
-harness measures more than it reports here, notably the agentic self-critique loop's
-recall delta — currently flat on a single-norm corpus, where first-pass retrieval
-already recovers the target article, and wired end-to-end so it grows with the corpus.
+The reference set is deliberately small and fully human-reviewed (21 Mode 1 cases, of
+which 4 are multi-hop — their gold blocks live in more than one norm — and 3 synthetic
+Mode 2 contracts, one of which the temporal gate correctly rejects as out-of-scope),
+which is why every denominator is shown rather than rounded away.
+
+**The agentic self-critique loop's recall delta is 0.00, and I am publishing it flat.**
+The loop only earns something when the first retrieval pass misses; on this corpus it
+does not miss — first-pass recall is 0.97, and quadrupling the corpus to four norms did
+not change that. So the honest reading is not "the loop works", it is "retrieval
+saturates before the loop gets a turn", and the number that would move it is a harder
+reference set, not more law. The corpus expansion did buy one thing the single-norm set
+could not show: the one multi-hop case that misses (`mh-01`, the tensioned-zone
+extension) retrieves the LAU article but not the definition it depends on in the Ley por
+el derecho a la vivienda, and the gate **abstains** rather than answering half-grounded.
+A recall gap surfacing as an abstention instead of a confident half-answer is the
+behaviour the whole design is for.
+
 The judge's numbers carry no human-agreement figure yet: the calibration pass is
 one-time and manual, and until it exists the run publishes them as "not calibrated"
 rather than inventing a number.
@@ -124,7 +139,13 @@ Four containers on one Compose network:
 - **Ingestion** builds the corpus from the BOE Consolidated Legislation API (XML),
   one *precept-block* (article) per chunk, keeping every historical version with its
   validity dates. That's what lets Mode 1 answer "as of" a past date with a plain SQL
-  substitution rather than a second index.
+  substitution rather than a second index. The corpus spans four norms, and the
+  vertical's manifest declares how much of each one enters — the whole LAU, but only
+  the lease title of the Código Civil and the eviction articles of the LEC, because a
+  corpus should hold what a tenant asks about, not every article of every law it
+  touches. A block is identified corpus-wide by `<norm_id>:<block_id>`; a bare
+  article number is ambiguous once four laws each have an "article 9", and every
+  citation, gold block and notice carries the qualified form end to end.
 - **Retrieval** is hybrid: pgvector (BGE-M3 dense) plus Postgres full-text `spanish`,
   fused with a Reciprocal Rank Fusion I wrote by hand rather than pulling in a
   reranker for v1.
@@ -175,7 +196,7 @@ No hosted demo by design — the whole thing comes up from nothing with Compose.
 git clone <this-repo> && cd lexme_v2
 cp .env.example .env          # DB credentials; GEMINI_API_KEY / OPENROUTER_API_KEY for the LLM modes
 docker compose up -d          # or: make up-d
-make ingest                   # build the LAU corpus from the BOE API (one command)
+make ingest                   # build the whole corpus from the BOE API (one command)
 make ask Q="¿puede subirme el alquiler un 10%?"     # Mode 1
 make contract F=path/to/contrato.pdf                # Mode 2
 ```
@@ -192,11 +213,22 @@ make eval-modo2    # reproduce the Mode 2 numbers
 
 ## Scope
 
-Housing, **state law only** (LAU), shipped as a single data/config vertical (corpus +
+Housing, **state law only**, shipped as a single data/config vertical (corpus +
 checklist + prompts + reference set) with no plugin machinery in the core — adding a
-second vertical shouldn't touch it. Out for v1: a second vertical, regional law,
-contracts under earlier LAU redactions in Mode 2 (the temporal gate rejects them
-honestly), OCR of scanned documents, accounts, and any live hosting.
+second vertical shouldn't touch it. The corpus is four norms, chosen because the LAU
+itself sends the reader outside it:
+
+| Norm | What it contributes | Why it is in |
+| --- | --- | --- |
+| Ley 29/1994 (LAU) | whole law | the regime the vertical is about |
+| Código Civil, arts. 1542–1582 | lease title | LAU art. 4.2 makes it the supletory regime, and arts. 21, 25 and 27 point at it by name |
+| LEC, arts. 22, 250, 437–447, 549, 703–704 | eviction | "can they throw me out?" is the question the LAU deliberately does not answer; the procedure lives here |
+| Ley 12/2023 (vivienda), arts. 3, 6, 18, 31 and DT 4.ª | definitions | LAU arts. 10 and 17 condition rights on "tensioned market area" and "large holder", both defined only here |
+
+Mode 2 still contrasts contracts against the LAU checklist alone. Out for v1: a
+second vertical, regional law, contracts under earlier LAU redactions in Mode 2 (the
+temporal gate rejects them honestly), OCR of scanned documents, accounts, and any
+live hosting.
 
 ## License & data
 

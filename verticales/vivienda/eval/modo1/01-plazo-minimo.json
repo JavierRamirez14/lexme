@@ -1,6 +1,8 @@
 {
   "id": "01-plazo-minimo",
   "question": "¿Cuál es la duración mínima de un contrato de alquiler de vivienda habitual?",
-  "gold_block_ids": ["a9"],
-  "expected_outcome": "respuesta"
+  "expected_outcome": "respuesta",
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a9"
+  ]
 }

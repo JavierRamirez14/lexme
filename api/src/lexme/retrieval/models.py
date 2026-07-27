@@ -17,10 +17,13 @@ class RetrievedBlock:
     """A candidate block surfaced by a retriever, with its in-force redaction.
 
     ``text`` is the version of the block in force at the run's target date; it is
-    what synthesis quotes and what verification re-checks.
+    what synthesis quotes and what verification re-checks. ``norm_label`` is the
+    short name of the law it comes from, so a prompt showing blocks from several
+    norms can say which is which rather than offering two "article 9"s.
     """
 
     norm_id: str
+    norm_label: str
     block_id: str
     title: str
     text: str

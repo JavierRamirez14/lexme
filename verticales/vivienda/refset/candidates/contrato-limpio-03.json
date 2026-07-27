@@ -4,11 +4,11 @@
   "provenance": {
     "generator": "assembler",
     "sources": [
-      "BANK-plazo-cinco-anios",
-      "BANK-fianza-una-mensualidad",
-      "BANK-actualizacion-ipc",
-      "BANK-renuncia-tanteo",
-      "BANK-limpieza-final"
+      "BOE-A-1994-26003:BANK-plazo-cinco-anios",
+      "BOE-A-1994-26003:BANK-fianza-una-mensualidad",
+      "BOE-A-1994-26003:BANK-actualizacion-ipc",
+      "BOE-A-1994-26003:BANK-renuncia-tanteo",
+      "BOE-A-1994-26003:BANK-limpieza-final"
     ],
     "model": null,
     "generated_at": "2026-07-25T12:21:38.292112Z",

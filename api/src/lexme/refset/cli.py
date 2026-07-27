@@ -114,7 +114,6 @@ def _do_generate_queries(
     """Generate pending Mode 1 candidates from the seed file."""
     created_at = now or datetime.now(UTC)
     resolve_date = today or date.today()
-    checklist = load_checklist(checklist_path(settings.verticals_dir, args.vertical))
     seeds = _load_seeds(_seeds_path(args, settings, args.vertical))
     store = _store(settings, args.vertical)
 
@@ -127,7 +126,6 @@ def _do_generate_queries(
                 seed,
                 corpus=corpus,
                 llm=llm,
-                norm_id=checklist.norm_id,
                 now=created_at,
                 resolve_date=resolve_date,
                 model=model,

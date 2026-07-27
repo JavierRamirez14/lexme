@@ -25,6 +25,7 @@ from lexme.api.dependencies import (
     get_text_extractor,
     get_today,
 )
+from lexme.blocks import BlockRef
 from lexme.checklist import (
     Checklist,
     ChecklistCitation,
@@ -86,6 +87,8 @@ def resolved_block(block_id: str, text: str, *, title: str = "Artículo") -> Res
     return ResolvedBlock(
         text=text,
         anchor=VerifiedAnchor(
+            norm_id=NORM_ID,
+            norm_label="LAU",
             eli=f"https://www.boe.es/eli/es/l/1994/11/24/29/{block_id}",
             consolidated_html_url="https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003",
             block_id=block_id,
@@ -144,8 +147,17 @@ def classification_of(
         level=level,
         explanation=explanation,
         what_you_can_do=what_you_can_do or [],
-        citation=ProposedCitation(block_id=citation[0], text=citation[1]) if citation else None,
+        citation=(
+            ProposedCitation(block_ref=block_ref(citation[0]), text=citation[1])
+            if citation
+            else None
+        ),
     )
+
+
+def block_ref(block_id: str, norm_id: str = NORM_ID) -> str:
+    """The norm-qualified reference the vivienda norm's blocks are cited by."""
+    return str(BlockRef(norm_id=norm_id, block_id=block_id))
 
 
 class FakeExtractor:

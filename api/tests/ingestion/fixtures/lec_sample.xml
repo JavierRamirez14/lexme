@@ -1,0 +1,56 @@
+<?xml version='1.0' encoding='utf-8'?>
+<response>
+  <status>
+    <code>200</code>
+    <text>ok</text>
+  </status>
+  <data>
+    <metadatos>
+      <fecha_actualizacion>20260430T081500Z</fecha_actualizacion>
+      <identificador>BOE-A-2000-323</identificador>
+      <ambito codigo="1">Estatal</ambito>
+      <departamento codigo="7723">Jefatura del Estado</departamento>
+      <rango codigo="1300">Ley</rango>
+      <fecha_disposicion>20000107</fecha_disposicion>
+      <numero_oficial>1/2000</numero_oficial>
+      <titulo>Ley 1/2000, de 7 de enero, de Enjuiciamiento Civil.</titulo>
+      <diario>Boletín Oficial del Estado</diario>
+      <fecha_publicacion>20000108</fecha_publicacion>
+      <diario_numero>7</diario_numero>
+      <fecha_vigencia>20010108</fecha_vigencia>
+      <estatus_derogacion>N</estatus_derogacion>
+      <estatus_anulacion>N</estatus_anulacion>
+      <vigencia_agotada>N</vigencia_agotada>
+      <estado_consolidacion codigo="3">Finalizado</estado_consolidacion>
+      <url_eli>https://www.boe.es/eli/es/l/2000/01/07/1</url_eli>
+      <url_html_consolidada>https://www.boe.es/buscar/act.php?id=BOE-A-2000-323</url_html_consolidada>
+    </metadatos>
+    <texto>
+      <bloque id="a2" tipo="precepto" titulo="Artículo 2">
+        <version id_norma="BOE-A-2000-323" fecha_publicacion="20000108" fecha_vigencia="20010108">
+          <p class="articulo">Artículo 2. Aplicación en el tiempo de las normas procesales civiles.</p>
+          <p class="parrafo">Salvo que otra cosa se establezca en disposiciones legales de Derecho transitorio, los asuntos que correspondan a los tribunales civiles se sustanciarán siempre por éstos con arreglo a las normas procesales vigentes, que nunca serán retroactivas.</p>
+        </version>
+      </bloque>
+      <bloque id="a22" tipo="precepto" titulo="Artículo 22">
+        <version id_norma="BOE-A-2000-323" fecha_publicacion="20000108" fecha_vigencia="20010108">
+          <p class="articulo">Artículo 22. Terminación del proceso por satisfacción extraprocesal. Caso especial de enervación del desahucio.</p>
+          <p class="parrafo">Los procesos de desahucio de finca urbana por falta de pago de las rentas terminarán si, antes de la celebración de la vista, el arrendatario paga al actor o pone a su disposición el importe de las cantidades reclamadas en la demanda.</p>
+        </version>
+        <version id_norma="BOE-A-2009-17493" fecha_publicacion="20091031" fecha_vigencia="20100504">
+          <p class="articulo">Artículo 22. Terminación del proceso por satisfacción extraprocesal. Caso especial de enervación del desahucio.</p>
+          <p class="parrafo">Los procesos de desahucio de finca urbana o rústica por falta de pago de las rentas o cantidades debidas por el arrendatario terminarán si, antes de la celebración de la vista, el arrendatario paga al actor o pone a su disposición en el tribunal o notarialmente el importe de las cantidades reclamadas en la demanda y el de las que adeude en el momento de dicho pago enervador del desahucio.</p>
+          <blockquote>
+            <p class="nota_pie">Se modifica el apartado 4 por la disposición final 3.2 de la Ley 13/2009, de 3 de noviembre. <a class="refPost">Ref. BOE-A-2009-17493</a></p>
+          </blockquote>
+        </version>
+      </bloque>
+      <bloque id="a250" tipo="precepto" titulo="Artículo 250">
+        <version id_norma="BOE-A-2000-323" fecha_publicacion="20000108" fecha_vigencia="20010108">
+          <p class="articulo">Artículo 250. Ámbito del juicio verbal.</p>
+          <p class="parrafo">Se decidirán en juicio verbal, cualquiera que sea su cuantía, las demandas que pretendan la recuperación de la posesión de una finca rústica o urbana, dada en arrendamiento, por impago de la renta o cantidades debidas por el arrendatario, o por expiración del plazo fijado contractual o legalmente.</p>
+        </version>
+      </bloque>
+      </texto>
+  </data>
+</response>

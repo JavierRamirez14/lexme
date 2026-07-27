@@ -35,7 +35,7 @@ def test_a_fabricated_displayed_citation_is_a_hard_failure() -> None:
 
     assert len(violations) == 1
     assert violations[0].case_id == "plazo"
-    assert violations[0].block_id == "a9"
+    assert violations[0].block_ref == "BOE-A-1994-26003:a9"
     assert violations[0].reason == REASON_NOT_LITERAL
 
 

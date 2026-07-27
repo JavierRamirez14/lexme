@@ -4,11 +4,11 @@
   "provenance": {
     "generator": "assembler",
     "sources": [
-      "BANK-plazo-cinco-anios",
-      "BANK-actualizacion-superior-ipc",
-      "BANK-penaliza-desistimiento",
-      "BANK-fianza-una-mensualidad",
-      "BANK-seguro-hogar"
+      "BOE-A-1994-26003:BANK-plazo-cinco-anios",
+      "BOE-A-1994-26003:BANK-actualizacion-superior-ipc",
+      "BOE-A-1994-26003:BANK-penaliza-desistimiento",
+      "BOE-A-1994-26003:BANK-fianza-una-mensualidad",
+      "BOE-A-1994-26003:BANK-seguro-hogar"
     ],
     "model": null,
     "generated_at": "2026-07-25T12:21:38.292112Z",

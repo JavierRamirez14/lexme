@@ -13,11 +13,11 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.checklist.models import Checklist, ChecklistItem
 from lexme.verification import (
     CitationVerdict,
     CorpusReader,
-    EvidenceBlock,
     ProposedCitation,
     verify_citations,
 )
@@ -72,15 +72,15 @@ def _validate_item(
     target_date: date,
 ) -> list[ChecklistFinding]:
     """Collect the anchor-resolution and citation-verification findings for one item."""
-    evidence = [EvidenceBlock(norm_id=norm_id, block_id=anchor) for anchor in item.anchors]
+    evidence = [BlockRef(norm_id=norm_id, block_id=anchor) for anchor in item.anchors]
     findings = list(_unresolved_anchors(item, evidence, corpus, target_date))
-    findings.extend(_citation_findings(item, evidence, corpus, target_date))
+    findings.extend(_citation_findings(item, norm_id, evidence, corpus, target_date))
     return findings
 
 
 def _unresolved_anchors(
     item: ChecklistItem,
-    evidence: Sequence[EvidenceBlock],
+    evidence: Sequence[BlockRef],
     corpus: CorpusReader,
     target_date: date,
 ) -> list[ChecklistFinding]:
@@ -103,12 +103,14 @@ def _unresolved_anchors(
 
 def _citation_findings(
     item: ChecklistItem,
-    evidence: Sequence[EvidenceBlock],
+    norm_id: str,
+    evidence: Sequence[BlockRef],
     corpus: CorpusReader,
     target_date: date,
 ) -> list[ChecklistFinding]:
     """A finding when the item's citation does not verify directly against its block."""
-    citation = ProposedCitation(block_id=item.citation.block_id, text=item.citation.text)
+    ref = BlockRef(norm_id=norm_id, block_id=item.citation.block_id)
+    citation = ProposedCitation(block_ref=str(ref), text=item.citation.text)
     (result,) = verify_citations([citation], evidence, target_date, corpus)
     if result.verdict is CitationVerdict.VERIFIED_DIRECT:
         return []

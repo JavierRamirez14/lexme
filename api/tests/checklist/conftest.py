@@ -48,6 +48,8 @@ class FakeCorpusReader:
         return ResolvedBlock(
             text=text,
             anchor=VerifiedAnchor(
+                norm_id=norm_id,
+                norm_label="LAU",
                 eli=_ELI,
                 consolidated_html_url=_URL,
                 block_id=block_id,

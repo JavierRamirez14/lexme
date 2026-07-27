@@ -83,7 +83,7 @@ def test_a_citation_amended_after_the_target_date_is_flagged_as_superseded() -> 
     assert NoticeCode.SUPERSEDED_REDACTION in codes(notices)
     superseded = next(n for n in notices if n.code is NoticeCode.SUPERSEDED_REDACTION)
     assert "Artículo 9" in superseded.message
-    assert superseded.block_id == "a9"
+    assert superseded.block_ref == f"{NORM}:a9"
 
 
 def test_a_version_not_yet_in_force_today_does_not_supersede_anything() -> None:
@@ -162,7 +162,7 @@ def test_a_bare_year_that_straddles_an_amendment_is_flagged_as_ambiguous() -> No
     )
 
     ambiguous = next(n for n in notices if n.code is NoticeCode.AMBIGUOUS_TARGET_YEAR)
-    assert ambiguous.block_id == "a9"
+    assert ambiguous.block_ref == f"{NORM}:a9"
     assert "2019" in ambiguous.message
     assert "6 de marzo de 2019" in ambiguous.message
 

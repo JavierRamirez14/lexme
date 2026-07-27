@@ -7,7 +7,7 @@ interface RouterRejectionProps {
 
 /**
  * The out-of-scope state: the router declined before any retrieval because the
- * question is not about the state LAU. It is deliberately distinct from an
+ * question is not about renting a home under state law. It is deliberately distinct from an
  * abstention -- nothing was searched -- so it reads as "wrong door", redirecting
  * the user to what this assistant does cover rather than as a failure to answer.
  */

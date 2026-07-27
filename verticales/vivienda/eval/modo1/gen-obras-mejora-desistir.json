@@ -1,23 +1,19 @@
 {
   "id": "gen-obras-mejora-desistir",
   "question": "Llevo 8 meses viviendo de alquiler y mi casero me acaba de avisar por escrito de que va a realizar unas obras de mejora importantes en el piso que me dejarán sin poder usar la mitad de la casa. Me estoy planteando dos opciones. Por un lado, ¿puedo rescindir el contrato para irme antes de que empiecen las obras sin tener que pagar la penalización por desistimiento que pactamos en el contrato para cuando me fuera antes de tiempo? Por otro lado, si decido quedarme y aguantar las obras, ¿tengo derecho a algún tipo de rebaja en el alquiler o a que me paguen los gastos que me generen?",
-  "gold_block_ids": [
-    "a22",
-    "a11"
-  ],
   "expected_outcome": "respuesta",
   "key_points": [
     {
       "claim": "En caso de obras de mejora que afecten de forma relevante a la vivienda, el arrendatario tiene derecho a desistir del contrato en el plazo de un mes desde la notificación, extinguiéndose el arrendamiento en el plazo de dos meses sin que puedan comenzar las obras en ese tiempo.",
-      "block_id": "a22"
+      "block_ref": "BOE-A-1994-26003:a22"
     },
     {
       "claim": "Si el arrendatario opta por soportar las obras de mejora, tendrá derecho a una reducción de la renta proporcional a la parte de la vivienda de la que se vea privado, así como a que se le indemnicen los gastos que las obras le obliguen a efectuar.",
-      "block_id": "a22"
+      "block_ref": "BOE-A-1994-26003:a22"
     },
     {
       "claim": "Para el desistimiento general del contrato (fuera de la excepción por obras de mejora), es necesario que hayan transcurrido al menos seis meses y se comunique con treinta días de antelación, pudiendo pactarse una indemnización de una mensualidad de renta por cada año que reste por cumplir.",
-      "block_id": "a11"
+      "block_ref": "BOE-A-1994-26003:a11"
     }
   ],
   "target_date": null,
@@ -34,13 +30,17 @@
   "provenance": {
     "generator": "query_generator",
     "sources": [
-      "a22",
-      "a11"
+      "BOE-A-1994-26003:a22",
+      "BOE-A-1994-26003:a11"
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:51:32.332436Z",
     "reviewed_by": "javier",
     "reviewed_at": "2026-07-27T10:05:03.642224Z",
     "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo; respuestas de desambiguacion escritas y revisadas, con la fecha de firma dentro de la redaccion vigente de los bloques de referencia"
-  }
+  },
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a22",
+    "BOE-A-1994-26003:a11"
+  ]
 }

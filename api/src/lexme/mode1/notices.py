@@ -15,6 +15,7 @@ from typing import Protocol
 
 from pydantic import BaseModel
 
+from lexme.blocks import BlockRef
 from lexme.mode1.dates import TargetDate
 
 RECENT_AMENDMENT_WINDOW = timedelta(days=365)
@@ -47,13 +48,13 @@ class NoticeCode(StrEnum):
 class InForceNotice(BaseModel):
     """One notice: its machine code, its user-facing text and the block it concerns.
 
-    ``block_id`` is ``None`` for a notice about the run as a whole rather than
-    about a single citation.
+    ``block_ref`` is the norm-qualified reference of the cited block, or ``None``
+    for a notice about the run as a whole rather than about a single citation.
     """
 
     code: NoticeCode
     message: str
-    block_id: str | None = None
+    block_ref: str | None = None
 
 
 @dataclass(frozen=True)
@@ -64,6 +65,11 @@ class CitedBlock:
     block_id: str
     title: str
     effective_date: date
+
+    @property
+    def ref(self) -> str:
+        """The block's norm-qualified reference, as a notice names it."""
+        return str(BlockRef(norm_id=self.norm_id, block_id=self.block_id))
 
 
 class VersionHistory(Protocol):
@@ -142,7 +148,7 @@ def _ambiguous_year_notices(
         notices.append(
             InForceNotice(
                 code=NoticeCode.AMBIGUOUS_TARGET_YEAR,
-                block_id=citation.block_id,
+                block_ref=citation.ref,
                 message=(
                     f"Has situado la consulta en {target_date.value.year} sin día concreto, y el "
                     f"{citation.title} cambió el {_spell(min(amendments))}, dentro de ese mismo "
@@ -168,7 +174,7 @@ def _superseded_notices(
         notices.append(
             InForceNotice(
                 code=NoticeCode.SUPERSEDED_REDACTION,
-                block_id=citation.block_id,
+                block_ref=citation.ref,
                 message=(
                     f"El {citation.title} que cito es la redacción en vigor el "
                     f"{_spell(target_date)}; se modificó después ({_spell(min(amendments))}) "
@@ -187,7 +193,7 @@ def _recent_amendment_notices(
     return [
         InForceNotice(
             code=NoticeCode.RECENT_AMENDMENT,
-            block_id=citation.block_id,
+            block_ref=citation.ref,
             message=(
                 f"El {citation.title} se modificó hace poco ({_spell(citation.effective_date)}). "
                 "Si tu contrato es anterior, puede seguir rigiéndose por la redacción previa."

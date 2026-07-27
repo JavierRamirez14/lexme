@@ -64,12 +64,12 @@ class KeyPoint(BaseModel):
     """One legal claim a good Mode 1 answer must contain, anchored to its block.
 
     ``claim`` is extracted from the block's own text, so the reference the judge
-    checks against is correct by construction; ``block_id`` must be one of the
+    checks against is correct by construction; ``block_ref`` must be one of the
     case's gold blocks.
     """
 
     claim: str
-    block_id: str
+    block_ref: str
 
 
 class ClarificationAnswer(BaseModel):
@@ -87,8 +87,8 @@ class ClarificationAnswer(BaseModel):
 class Mode1ReferenceCase(BaseModel):
     """A Mode 1 case with the reference a with-reference judge checks against.
 
-    ``gold_block_ids`` are the blocks a correct answer must ground on, fixed by
-    construction from the seed. ``expected_outcome`` is the outcome the case was
+    ``gold_block_refs`` are the norm-qualified blocks a correct answer must
+    ground on, fixed by construction from the seed. ``expected_outcome`` is the outcome the case was
     built to reach. ``key_points`` are the claims a good answer must contain, each
     tied to a gold block. ``target_date`` pins the point-in-time clock when the
     case is time-sensitive, and is ``None`` otherwise. ``clarification_answers``
@@ -99,7 +99,7 @@ class Mode1ReferenceCase(BaseModel):
 
     id: str
     question: str
-    gold_block_ids: list[str] = []
+    gold_block_refs: list[str] = []
     expected_outcome: Outcome
     key_points: list[KeyPoint] = []
     target_date: date | None = None
@@ -116,11 +116,11 @@ class Mode1ReferenceCase(BaseModel):
     @model_validator(mode="after")
     def _key_points_cite_gold_blocks(self) -> "Mode1ReferenceCase":
         """Reject a key point whose block is not among the case's gold blocks."""
-        gold = set(self.gold_block_ids)
+        gold = set(self.gold_block_refs)
         for point in self.key_points:
-            if point.block_id not in gold:
+            if point.block_ref not in gold:
                 raise ValueError(
-                    f"key point cites block '{point.block_id}' absent from "
+                    f"key point cites block '{point.block_ref}' absent from "
                     f"gold blocks {sorted(gold)}"
                 )
         return self

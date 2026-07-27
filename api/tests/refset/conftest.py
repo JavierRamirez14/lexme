@@ -2,6 +2,7 @@
 
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.checklist import (
     Checklist,
     ChecklistCitation,
@@ -12,6 +13,11 @@ from lexme.checklist import (
 from lexme.verification.models import ResolvedBlock, VerifiedAnchor
 
 _NORM_ID = "BOE-A-1994-26003"
+
+
+def block_ref(block_id: str, norm_id: str = _NORM_ID) -> str:
+    """The norm-qualified reference a seed or a gold block names a corpus block by."""
+    return str(BlockRef(norm_id=norm_id, block_id=block_id))
 
 
 def make_item(item_id: str, silence: SilenceTone = SilenceTone.FAVORABLE) -> ChecklistItem:
@@ -51,6 +57,8 @@ class FakeCorpus:
         return ResolvedBlock(
             text=self._texts[block_id],
             anchor=VerifiedAnchor(
+                norm_id=norm_id,
+                norm_label="LAU",
                 eli=f"eli/{block_id}",
                 consolidated_html_url=f"https://boe.es/{block_id}",
                 block_id=block_id,

@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+from lexme.blocks import BlockRef
+
 
 class CasesError(ValueError):
     """Raised when a cases file or directory is missing or malformed."""
@@ -22,11 +24,12 @@ class KeyPoint:
     """One legal claim a good answer must contain, anchored to a gold block.
 
     ``claim`` is the reference the with-reference judge checks completeness
-    against; ``block_id`` is the gold block the claim was extracted from.
+    against; ``block_ref`` is the norm-qualified gold block the claim was
+    extracted from.
     """
 
     claim: str
-    block_id: str
+    block_ref: str
 
 
 @dataclass(frozen=True)
@@ -46,8 +49,9 @@ class ClarificationAnswer:
 class EvalCase:
     """One Mode 1 evaluation case: a question and the blocks it should ground on.
 
-    ``gold_block_ids`` are the corpus blocks a correct answer must cite, the
-    reference recall is measured against. ``expected_outcome`` is the outcome the
+    ``gold_block_refs`` are the norm-qualified corpus blocks a correct answer must
+    cite, the reference recall is measured against; a multi-hop case names blocks
+    of more than one norm. ``expected_outcome`` is the outcome the
     case was written to reach, or ``None`` when the case pins no outcome.
     ``key_points`` are the reference claims the judge grades completeness against,
     each tied to a gold block. ``target_date`` pins the point-in-time clock for a
@@ -58,7 +62,7 @@ class EvalCase:
 
     id: str
     question: str
-    gold_block_ids: tuple[str, ...] = ()
+    gold_block_refs: tuple[str, ...] = ()
     expected_outcome: str | None = None
     key_points: tuple[KeyPoint, ...] = ()
     target_date: date | None = None
@@ -130,7 +134,7 @@ def _read_case(file: Path) -> EvalCase:
     if not isinstance(question, str) or not question.strip():
         raise CasesError(f"case {file} missing a non-empty 'question'")
 
-    gold = _read_gold_block_ids(raw, file)
+    gold = _read_gold_block_refs(raw, file)
 
     expected_outcome = raw.get("expected_outcome")
     if expected_outcome is not None and not isinstance(expected_outcome, str):
@@ -139,7 +143,7 @@ def _read_case(file: Path) -> EvalCase:
     return EvalCase(
         id=case_id,
         question=question,
-        gold_block_ids=gold,
+        gold_block_refs=gold,
         expected_outcome=expected_outcome,
         key_points=_read_key_points(raw, file, gold),
         target_date=_read_target_date(raw, file),
@@ -147,21 +151,27 @@ def _read_case(file: Path) -> EvalCase:
     )
 
 
-def _read_gold_block_ids(raw: dict, file: Path) -> tuple[str, ...]:
-    """Extract the optional ``gold_block_ids`` array of non-empty strings."""
-    gold = raw.get("gold_block_ids", [])
+def _read_gold_block_refs(raw: dict, file: Path) -> tuple[str, ...]:
+    """Extract the optional ``gold_block_refs`` array of norm-qualified references.
+
+    A bare block id is rejected: with several norms in the corpus it would silently
+    measure recall against a block the case never meant.
+    """
+    gold = raw.get("gold_block_refs", [])
     if not isinstance(gold, list):
-        raise CasesError(f"case {file} 'gold_block_ids' must be an array")
-    for block_id in gold:
-        if not isinstance(block_id, str) or not block_id:
-            raise CasesError(f"case {file} has a non-string 'gold_block_ids' entry: {block_id!r}")
+        raise CasesError(f"case {file} 'gold_block_refs' must be an array")
+    for ref in gold:
+        if not isinstance(ref, str) or BlockRef.parse(ref) is None:
+            raise CasesError(
+                f"case {file} has a gold block that is not a 'norm:block' reference: {ref!r}"
+            )
     return tuple(gold)
 
 
 def _read_key_points(raw: dict, file: Path, gold: tuple[str, ...]) -> tuple[KeyPoint, ...]:
     """Extract the optional ``key_points``, each a claim tied to a gold block.
 
-    Rejects a key point whose ``block_id`` is not among the case's gold blocks, so
+    Rejects a key point whose ``block_ref`` is not among the case's gold blocks, so
     the reference the judge grades against stays anchored to the case's evidence.
     """
     entries = raw.get("key_points", [])
@@ -172,17 +182,17 @@ def _read_key_points(raw: dict, file: Path, gold: tuple[str, ...]) -> tuple[KeyP
         if not isinstance(entry, dict):
             raise CasesError(f"case {file} has a non-object key point: {entry!r}")
         claim = entry.get("claim")
-        block_id = entry.get("block_id")
+        block_ref = entry.get("block_ref")
         if not isinstance(claim, str) or not claim.strip():
             raise CasesError(f"case {file} has a key point missing a non-empty 'claim'")
-        if not isinstance(block_id, str) or not block_id:
-            raise CasesError(f"case {file} has a key point missing a non-empty 'block_id'")
-        if block_id not in gold:
+        if not isinstance(block_ref, str) or not block_ref:
+            raise CasesError(f"case {file} has a key point missing a non-empty 'block_ref'")
+        if block_ref not in gold:
             raise CasesError(
-                f"case {file} key point cites block '{block_id}' "
+                f"case {file} key point cites block '{block_ref}' "
                 f"absent from gold blocks {list(gold)}"
             )
-        points.append(KeyPoint(claim=claim, block_id=block_id))
+        points.append(KeyPoint(claim=claim, block_ref=block_ref))
     return tuple(points)
 
 

@@ -4,7 +4,7 @@
   "provenance": {
     "generator": "query_generator",
     "sources": [
-      "a9"
+      "BOE-A-1994-26003:a9"
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:47:48.521951Z",
@@ -15,26 +15,23 @@
   "mode1": {
     "id": "gen-plazo-minimo",
     "question": "Firmé un contrato de alquiler de piso por un año con un propietario particular. ¿Tengo derecho a quedarme más tiempo si yo quiero? Es que me ha dicho que igual necesita el piso para su hijo, pero en el contrato no pone nada de eso.",
-    "gold_block_ids": [
-      "a9"
-    ],
     "expected_outcome": "respuesta",
     "key_points": [
       {
         "claim": "Si la duración pactada en el contrato es inferior a cinco años y el arrendador es una persona física, el arrendamiento se prorrogará obligatoriamente por plazos anuales hasta alcanzar una duración mínima de cinco años, salvo que el inquilino manifieste con al menos treinta días de antelación su voluntad de no renovarlo.",
-        "block_id": "a9"
+        "block_ref": "BOE-A-1994-26003:a9"
       },
       {
         "claim": "Para impedir la prórroga obligatoria por necesidad de ocupar la vivienda para sí o para sus familiares en primer grado de consanguinidad o adopción, este derecho debe haberse hecho constar de forma expresa en el contrato al momento de su firma.",
-        "block_id": "a9"
+        "block_ref": "BOE-A-1994-26003:a9"
       },
       {
         "claim": "La exclusión de la prórroga obligatoria por necesidad del arrendador o sus familiares solo puede solicitarse una vez que haya transcurrido el primer año de duración del contrato.",
-        "block_id": "a9"
+        "block_ref": "BOE-A-1994-26003:a9"
       },
       {
         "claim": "El arrendador debe comunicar al arrendatario la necesidad de recuperar la vivienda especificando las causas con al menos dos meses de antelación a la fecha en que la vaya a necesitar.",
-        "block_id": "a9"
+        "block_ref": "BOE-A-1994-26003:a9"
       }
     ],
     "target_date": null,
@@ -47,6 +44,9 @@
         "branch_id": "uso_vivienda",
         "answer": "Es mi vivienda habitual."
       }
+    ],
+    "gold_block_refs": [
+      "BOE-A-1994-26003:a9"
     ]
   },
   "mode2": null

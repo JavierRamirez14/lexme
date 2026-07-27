@@ -80,13 +80,14 @@ def seed_norm(
     norm: ConsolidatedNorm,
     embedder: DeterministicEmbedder,
     vertical: str = "vivienda",
+    label: str = "LAU",
 ) -> None:
-    """Store ``norm`` with one embedding per version, then commit."""
+    """Store ``norm`` under ``label`` with one embedding per version, then commit."""
     embeddings_by_block = {
         block.block_id: embedder.embed_many([version.text_content for version in block.versions])
         for block in norm.blocks
     }
-    repository.replace_norm(conn, vertical, norm, embeddings_by_block)
+    repository.replace_norm(conn, vertical, norm, embeddings_by_block, label=label)
     conn.commit()
 
 

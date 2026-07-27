@@ -1,0 +1,33 @@
+{
+  "id": "mh-03-reparaciones-conservacion",
+  "question": "La caldera del piso que tengo alquilado lleva un mes rota y llevo un mes sin agua caliente. He avisado al propietario y me dice que la arregle yo porque la uso yo. ¿Quién tiene que pagar esa reparación?",
+  "expected_outcome": "respuesta",
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a21",
+    "BOE-A-1889-4763:art1554"
+  ],
+  "key_points": [
+    {
+      "claim": "El arrendador está obligado a realizar, sin derecho a subir la renta por ello, todas las reparaciones necesarias para conservar la vivienda en condiciones de habitabilidad, salvo que el deterioro sea imputable al arrendatario.",
+      "block_ref": "BOE-A-1994-26003:a21"
+    },
+    {
+      "claim": "Las pequeñas reparaciones que exige el desgaste por el uso ordinario de la vivienda sí corren a cargo del arrendatario.",
+      "block_ref": "BOE-A-1994-26003:a21"
+    },
+    {
+      "claim": "El Código Civil, como régimen supletorio del arrendamiento, obliga igualmente al arrendador a hacer durante el arrendamiento todas las reparaciones necesarias para conservar la cosa en estado de servir para el uso a que se destina.",
+      "block_ref": "BOE-A-1889-4763:art1554"
+    }
+  ],
+  "clarification_answers": [
+    {
+      "branch_id": "fecha_firma",
+      "answer": "2022-06-01"
+    },
+    {
+      "branch_id": "uso_vivienda",
+      "answer": "Es mi vivienda habitual."
+    }
+  ]
+}

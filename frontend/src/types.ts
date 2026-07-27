@@ -23,6 +23,8 @@ export type CitationVerdict =
   | "descartada";
 
 export interface VerifiedAnchor {
+  norm_id: string;
+  norm_label: string;
   eli: string;
   consolidated_html_url: string;
   block_id: string;
@@ -31,7 +33,7 @@ export interface VerifiedAnchor {
 }
 
 export interface VerifiedCitation {
-  block_id: string;
+  block_ref: string;
   text: string;
   verdict: CitationVerdict;
   anchor: VerifiedAnchor;
@@ -45,7 +47,7 @@ export type NoticeCode =
 export interface InForceNotice {
   code: NoticeCode;
   message: string;
-  block_id: string | null;
+  block_ref: string | null;
 }
 
 export interface Answer {
@@ -108,6 +110,7 @@ export interface PassReport {
   sufficient_ids: string[];
   insufficient_ids: string[];
   evidence_count: number;
+  evidence_block_refs: string[];
 }
 
 export interface AgenticTrace {
@@ -130,10 +133,21 @@ export interface AskResponse {
   citation_verdicts: Record<string, number>;
 }
 
-/** The vertical's corpus freshness, mirroring the API's `CorpusStatus`. */
+/** One norm the corpus holds, mirroring the API's `CorpusNorm`. */
+export interface CorpusNorm {
+  norm_id: string;
+  label: string;
+  title: string;
+  consolidated_html_url: string;
+  updated_at: string;
+  blocks: number;
+}
+
+/** The vertical's corpus and its freshness, mirroring the API's `CorpusStatus`. */
 export interface CorpusStatus {
   vertical: string;
   updated_at: string | null;
+  norms: CorpusNorm[];
 }
 
 /** Which surface a feedback vote was given on, and the vote itself. */

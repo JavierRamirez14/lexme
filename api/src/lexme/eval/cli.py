@@ -438,7 +438,7 @@ def _log_guardrail(
         logger.error(
             "guardrail failure in case '%s' [%s]: %s",
             failure.case_id,
-            failure.block_id,
+            failure.block_ref,
             failure.reason,
         )
     logger.error("citation guardrail FAILED: %d hard failure(s)", len(hard_failures))

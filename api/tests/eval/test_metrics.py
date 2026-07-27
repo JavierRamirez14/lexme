@@ -6,6 +6,9 @@ from lexme.eval.metrics import aggregate, build_case_result
 from lexme.mode1 import Outcome
 from tests.eval.conftest import NORM_ID, answer_response
 
+REF_A9 = f"{NORM_ID}:a9"
+REF_A36 = f"{NORM_ID}:a36"
+
 
 def _abstention() -> object:
     """An abstention response with an agentic trace but no answer."""
@@ -14,13 +17,13 @@ def _abstention() -> object:
 
 
 def test_recall_counts_gold_blocks_in_the_accumulated_evidence() -> None:
-    case = EvalCase(id="c", question="q", gold_block_ids=("a9", "a36"))
+    case = EvalCase(id="c", question="q", gold_block_refs=(REF_A9, REF_A36))
     response = answer_response(("a9", "quote"), evidence=((NORM_ID, "a9"),))
 
     result = build_case_result(case, response, [])
 
     assert result.recall == 0.5
-    assert result.retrieved_block_ids == ["a9"]
+    assert result.retrieved_block_refs == [REF_A9]
 
 
 def test_a_case_without_gold_blocks_has_no_recall() -> None:
@@ -34,7 +37,7 @@ def test_a_case_without_gold_blocks_has_no_recall() -> None:
 
 def test_the_aggregate_averages_only_scored_recalls() -> None:
     scored = build_case_result(
-        EvalCase(id="scored", question="q", gold_block_ids=("a9",)),
+        EvalCase(id="scored", question="q", gold_block_refs=(REF_A9,)),
         answer_response(("a9", "quote"), evidence=((NORM_ID, "a9"),)),
         [],
     )
@@ -96,13 +99,13 @@ def test_the_judge_aggregate_pools_unsupported_claims_across_cases() -> None:
     case = EvalCase(
         id="c",
         question="q",
-        gold_block_ids=("a9",),
-        key_points=(KeyPoint(claim="k", block_id="a9"),),
+        gold_block_refs=(REF_A9,),
+        key_points=(KeyPoint(claim="k", block_ref=REF_A9),),
     )
     verdict = JudgeVerdict(
-        key_points=[KeyPointCoverage(block_id="a9", covered=True)],
+        key_points=[KeyPointCoverage(block_ref=REF_A9, covered=True)],
         claims=[
-            ClaimAssessment(claim="a", supported=True, supporting_block_id="a9"),
+            ClaimAssessment(claim="a", supported=True, supporting_block_ref=REF_A9),
             ClaimAssessment(claim="b", supported=False),
         ],
         clarity=5,

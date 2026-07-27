@@ -13,7 +13,8 @@ class NormMetadata:
     """Governance metadata for a consolidated norm.
 
     ``updated_at`` is the BOE ``fecha_actualizacion`` and drives incremental
-    re-ingestion: a norm is only reprocessed when this timestamp changes.
+    re-ingestion: a norm is only reprocessed when this timestamp, or the manifest
+    selection it was ingested under, changes.
     """
 
     norm_id: str

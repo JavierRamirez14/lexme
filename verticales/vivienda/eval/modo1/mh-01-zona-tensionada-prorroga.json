@@ -1,0 +1,33 @@
+{
+  "id": "mh-01-zona-tensionada-prorroga",
+  "question": "Llevo cinco años alquilado en un piso y el contrato vence en septiembre. La ciudad está declarada zona de mercado residencial tensionado y el casero me dice que no me renueva. ¿Puedo alargar el contrato más allá de esos cinco años?",
+  "expected_outcome": "respuesta",
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a10",
+    "BOE-A-2023-12203:a1-10"
+  ],
+  "key_points": [
+    {
+      "claim": "Si el piso está en una zona de mercado residencial tensionado y termina la prórroga obligatoria, el inquilino puede pedir una prórroga extraordinaria por plazos anuales de hasta tres años más, con los mismos términos y condiciones del contrato en vigor.",
+      "block_ref": "BOE-A-1994-26003:a10"
+    },
+    {
+      "claim": "Esa prórroga extraordinaria debe ser aceptada obligatoriamente por el arrendador, salvo que se acuerden otros términos, se firme un nuevo contrato con las limitaciones de renta que procedan, o el arrendador haya comunicado que necesita la vivienda para sí o para determinados familiares.",
+      "block_ref": "BOE-A-1994-26003:a10"
+    },
+    {
+      "claim": "Las zonas de mercado residencial tensionado las declaran las Administraciones competentes en materia de vivienda, y la prórroga extraordinaria solo cabe dentro del periodo de vigencia de esa declaración.",
+      "block_ref": "BOE-A-2023-12203:a1-10"
+    }
+  ],
+  "clarification_answers": [
+    {
+      "branch_id": "fecha_firma",
+      "answer": "2021-09-01"
+    },
+    {
+      "branch_id": "uso_vivienda",
+      "answer": "Es mi vivienda habitual."
+    }
+  ]
+}

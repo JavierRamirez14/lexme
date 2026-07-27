@@ -44,7 +44,7 @@ export function InForceBanner({ answer }: InForceBannerProps) {
       {notices.length > 0 && (
         <ul className={styles.notices}>
           {notices.map((notice, index) => (
-            <li key={`${notice.code}-${notice.block_id ?? index}`} className={styles.notice}>
+            <li key={`${notice.code}-${notice.block_ref ?? index}`} className={styles.notice}>
               {notice.message}
             </li>
           ))}

@@ -61,6 +61,8 @@ def case_of(
 def anchor(block_id: str) -> VerifiedAnchor:
     """A filled-in anchor for a finding's citation."""
     return VerifiedAnchor(
+        norm_id=NORM_ID,
+        norm_label="LAU",
         eli="https://www.boe.es/eli/es/l/1994/11/24/29",
         consolidated_html_url="https://www.boe.es/buscar/act.php?id=" + NORM_ID,
         block_id=block_id,
@@ -146,7 +148,7 @@ def _citation(citation: tuple[str, str] | None) -> VerifiedCitation | None:
         return None
     block_id, text = citation
     return VerifiedCitation(
-        block_id=block_id,
+        block_ref=f"{NORM_ID}:{block_id}",
         text=text,
         verdict=CitationVerdict.VERIFIED_DIRECT,
         anchor=anchor(block_id),

@@ -2,83 +2,107 @@
   "seeds": [
     {
       "id": "gen-plazo-minimo",
-      "block_ids": ["a9"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a9"
+      ]
     },
     {
       "id": "gen-prorroga-tacita",
-      "block_ids": ["a10"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a10"
+      ]
     },
     {
       "id": "gen-fianza",
-      "block_ids": ["a36"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a36"
+      ]
     },
     {
       "id": "gen-actualizacion-renta",
-      "block_ids": ["a18"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a18"
+      ]
     },
     {
       "id": "gen-desistimiento",
-      "block_ids": ["a11"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a11"
+      ]
     },
     {
       "id": "gen-gastos-agencia",
-      "block_ids": ["a20"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a20"
+      ]
     },
     {
       "id": "gen-venta-vivienda",
-      "block_ids": ["a14"],
       "expected_outcome": "respuesta",
-      "style": "nucleo"
+      "style": "nucleo",
+      "block_refs": [
+        "BOE-A-1994-26003:a14"
+      ]
     },
     {
       "id": "gen-duracion-total",
-      "block_ids": ["a9", "a10"],
       "expected_outcome": "respuesta",
-      "style": "multiarticulo"
+      "style": "multiarticulo",
+      "block_refs": [
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a10"
+      ]
     },
     {
       "id": "gen-obras-mejora-desistir",
-      "block_ids": ["a22", "a11"],
       "expected_outcome": "respuesta",
-      "style": "multiarticulo"
+      "style": "multiarticulo",
+      "block_refs": [
+        "BOE-A-1994-26003:a22",
+        "BOE-A-1994-26003:a11"
+      ]
     },
     {
       "id": "gen-premisa-falsa-fianza",
-      "block_ids": ["a36"],
       "expected_outcome": "respuesta",
-      "style": "premisa_falsa"
+      "style": "premisa_falsa",
+      "block_refs": [
+        "BOE-A-1994-26003:a36"
+      ]
     },
     {
       "id": "gen-sin-base-obligar-venta",
-      "block_ids": ["a25"],
       "expected_outcome": "abstencion",
-      "style": "sin_base"
+      "style": "sin_base",
+      "block_refs": [
+        "BOE-A-1994-26003:a25"
+      ]
     },
     {
       "id": "gen-fuera-ambito-multa",
-      "block_ids": [],
       "expected_outcome": "rechazo_router",
       "style": "fuera_de_ambito",
-      "topic": "cómo recurrir una multa de tráfico por exceso de velocidad"
+      "topic": "cómo recurrir una multa de tráfico por exceso de velocidad",
+      "block_refs": []
     },
     {
       "id": "gen-fuera-ambito-hipoteca",
-      "block_ids": [],
       "expected_outcome": "rechazo_router",
       "style": "fuera_de_ambito",
-      "topic": "condiciones de una hipoteca para comprar una vivienda"
+      "topic": "condiciones de una hipoteca para comprar una vivienda",
+      "block_refs": []
     }
   ]
 }

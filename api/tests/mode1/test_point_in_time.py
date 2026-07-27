@@ -13,7 +13,7 @@ notices warning it is not today's law are there. The clock is fixed at
 import httpx
 
 from lexme.llm import FakeLlmClient
-from tests.mode1.conftest import AS_OF, program_single_sufficient
+from tests.mode1.conftest import AS_OF, LAU_NORM_ID, program_single_sufficient
 
 QUESTION_2017 = "firmé el contrato en 2017, ¿qué duración mínima me aplicaba?"
 QUESTION_NOW = "¿cuál es la duración mínima del arrendamiento de vivienda?"
@@ -106,7 +106,7 @@ def test_the_superseded_notice_names_the_article_and_the_amendment_date(
         for notice in body["answer"]["avisos_vigencia"]
         if notice["code"] == "redaccion_superada"
     )
-    assert superseded["block_id"] == "a9"
+    assert superseded["block_ref"] == f"{LAU_NORM_ID}:a9"
     assert "Artículo 9" in superseded["message"]
     assert "19 de diciembre de 2018" in superseded["message"]
 

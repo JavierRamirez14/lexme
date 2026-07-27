@@ -18,13 +18,16 @@ from lexme.refset.query_generator import (
 from tests.refset.conftest import FakeCorpus
 
 _NORM = "BOE-A-1994-26003"
+_REF_A9 = f"{_NORM}:a9"
+_REF_A10 = f"{_NORM}:a10"
+_REF_A99 = f"{_NORM}:a99"
 _NOW = datetime(2026, 7, 25, tzinfo=UTC)
 _DATE = date(2024, 1, 1)
 
 
 def _generate(seed: QuerySeed, corpus: FakeCorpus, llm: FakeLlmClient):
     return generate_query_case(
-        seed, corpus=corpus, llm=llm, norm_id=_NORM, now=_NOW, resolve_date=_DATE, model="pin-1"
+        seed, corpus=corpus, llm=llm, now=_NOW, resolve_date=_DATE, model="pin-1"
     )
 
 
@@ -35,22 +38,22 @@ def test_gold_blocks_come_from_the_seed_not_the_model() -> None:
             QUERY_GENERATION_TASK: [
                 GeneratedQuery(
                     question="¿cuánto puedo quedarme?",
-                    key_points=[{"claim": "cinco años", "block_id": "a9"}],
+                    key_points=[{"claim": "cinco años", "block_ref": _REF_A9}],
                 )
             ]
         }
     )
-    seed = QuerySeed(id="plazo", block_ids=["a9"], expected_outcome=Outcome.ANSWER)
+    seed = QuerySeed(id="plazo", block_refs=[_REF_A9], expected_outcome=Outcome.ANSWER)
 
     candidate = _generate(seed, corpus, llm)
 
     assert candidate.kind is CaseKind.MODE1
     assert candidate.status is ReviewStatus.PENDING
     assert candidate.mode1 is not None
-    assert candidate.mode1.gold_block_ids == ["a9"]
+    assert candidate.mode1.gold_block_refs == [_REF_A9]
     assert candidate.mode1.key_points[0].claim == "cinco años"
     assert candidate.provenance.model == "pin-1"
-    assert candidate.provenance.sources == ["a9"]
+    assert candidate.provenance.sources == [_REF_A9]
 
 
 def test_a_key_point_citing_a_block_outside_the_seed_is_rejected() -> None:
@@ -58,11 +61,11 @@ def test_a_key_point_citing_a_block_outside_the_seed_is_rejected() -> None:
     llm = FakeLlmClient(
         {
             QUERY_GENERATION_TASK: [
-                GeneratedQuery(question="q", key_points=[{"claim": "x", "block_id": "a10"}])
+                GeneratedQuery(question="q", key_points=[{"claim": "x", "block_ref": _REF_A10}])
             ]
         }
     )
-    seed = QuerySeed(id="plazo", block_ids=["a9"], expected_outcome=Outcome.ANSWER)
+    seed = QuerySeed(id="plazo", block_refs=[_REF_A9], expected_outcome=Outcome.ANSWER)
 
     with pytest.raises(GenerationError, match="outside the seed"):
         _generate(seed, corpus, llm)
@@ -71,7 +74,7 @@ def test_a_key_point_citing_a_block_outside_the_seed_is_rejected() -> None:
 def test_an_answer_seed_needs_at_least_one_key_point() -> None:
     corpus = FakeCorpus({"a9": "texto"})
     llm = FakeLlmClient({QUERY_GENERATION_TASK: [GeneratedQuery(question="q", key_points=[])]})
-    seed = QuerySeed(id="plazo", block_ids=["a9"], expected_outcome=Outcome.ANSWER)
+    seed = QuerySeed(id="plazo", block_refs=[_REF_A9], expected_outcome=Outcome.ANSWER)
 
     with pytest.raises(GenerationError, match="at least one key point"):
         _generate(seed, corpus, llm)
@@ -92,14 +95,14 @@ def test_an_out_of_scope_seed_needs_no_blocks_and_carries_no_reference() -> None
     candidate = _generate(seed, corpus, llm)
 
     assert candidate.mode1 is not None
-    assert candidate.mode1.gold_block_ids == []
+    assert candidate.mode1.gold_block_refs == []
     assert candidate.mode1.key_points == []
 
 
 def test_an_out_of_scope_seed_with_blocks_is_rejected() -> None:
     seed = QuerySeed(
         id="bad",
-        block_ids=["a9"],
+        block_refs=[_REF_A9],
         expected_outcome=Outcome.ROUTER_REJECTION,
         style=QueryStyle.OUT_OF_SCOPE,
         topic="x",
@@ -110,7 +113,7 @@ def test_an_out_of_scope_seed_with_blocks_is_rejected() -> None:
 
 
 def test_a_seed_block_that_does_not_resolve_is_rejected() -> None:
-    seed = QuerySeed(id="plazo", block_ids=["a99"], expected_outcome=Outcome.ANSWER)
+    seed = QuerySeed(id="plazo", block_refs=[_REF_A99], expected_outcome=Outcome.ANSWER)
 
     with pytest.raises(GenerationError, match="does not resolve"):
         _generate(seed, FakeCorpus({"a9": "t"}), FakeLlmClient())
@@ -121,7 +124,7 @@ def test_an_out_of_scope_reference_cannot_carry_key_points() -> None:
     llm = FakeLlmClient(
         {
             QUERY_GENERATION_TASK: [
-                GeneratedQuery(question="q", key_points=[{"claim": "x", "block_id": "a9"}])
+                GeneratedQuery(question="q", key_points=[{"claim": "x", "block_ref": _REF_A9}])
             ]
         }
     )

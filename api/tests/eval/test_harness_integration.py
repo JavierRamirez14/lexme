@@ -72,7 +72,7 @@ def _pausing_case(
         EvalCase(
             id=case_id,
             question=QUESTION,
-            gold_block_ids=("a9",),
+            gold_block_refs=("BOE-A-1994-26003:a9",),
             clarification_answers=pinned,
         ),
     )
@@ -111,7 +111,7 @@ def test_the_harness_runs_a_case_end_to_end_and_emits_a_passing_artifact(
     tmp_path: Path,
 ) -> None:
     program_single_sufficient(fake_llm, query_text=QUESTION, citation=("a9", QUOTE))
-    cases = (EvalCase(id="plazo", question=QUESTION, gold_block_ids=("a9",)),)
+    cases = (EvalCase(id="plazo", question=QUESTION, gold_block_refs=("BOE-A-1994-26003:a9",)),)
     runner = _runner(seeded_corpus, deterministic_embedder, corpus_reader, fake_llm, checkpointer)
     fingerprint = build_fingerprint(
         load_task_registry(),

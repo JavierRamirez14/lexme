@@ -19,6 +19,7 @@ from lexme.retrieval.models import RetrievedBlock
 _LATEST_PER_BLOCK = """
     SELECT DISTINCT ON (v.block_id)
            b.norm_id AS norm_id,
+           n.label AS norm_label,
            b.block_id AS block_id,
            b.title AS title,
            v.text_content AS text_content,
@@ -46,7 +47,7 @@ def search_dense(
     than a float array, which the distance operator would not accept.
     """
     query = f"""
-        SELECT norm_id, block_id, title, text_content AS text, effective_date
+        SELECT norm_id, norm_label, block_id, title, text_content AS text, effective_date
         FROM ({_LATEST_PER_BLOCK}) latest
         ORDER BY latest.embedding <=> %(embedding)s
         LIMIT %(limit)s
@@ -86,7 +87,7 @@ def search_lexical(
                      plainto_tsquery('spanish', %(query_text)s)::text, ' & ', ' | '
                  )::tsquery AS query
              )
-        SELECT norm_id, block_id, title, text_content AS text, effective_date
+        SELECT norm_id, norm_label, block_id, title, text_content AS text, effective_date
         FROM latest, search
         WHERE to_tsvector('spanish', latest.text_content) @@ search.query
         ORDER BY ts_rank(to_tsvector('spanish', latest.text_content), search.query) DESC

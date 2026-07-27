@@ -3,15 +3,18 @@
 import httpx
 
 EMBEDDING_DIMENSIONS = 1024
-DEFAULT_BATCH_SIZE = 32
-DEFAULT_TIMEOUT_SECONDS = 60.0
+DEFAULT_BATCH_SIZE = 8
+DEFAULT_TIMEOUT_SECONDS = 300.0
 
 
 class TeiEmbedder:
     """Embeds text via a TEI ``/embed`` endpoint, in bounded batches.
 
     Requests are split into batches of at most ``batch_size`` inputs so a large
-    call cannot exceed the TEI container's per-request limits.
+    call cannot exceed the TEI container's per-request limits. The batch is small
+    and the timeout generous because the model runs on CPU here and a procedural
+    article can be several thousand tokens: one batch of long redactions is minutes
+    of work, not seconds.
     """
 
     def __init__(

@@ -21,6 +21,8 @@ VERSION = VersionInForce(
     html_content="<p>El plazo mínimo será de cinco años.</p>",
 )
 ANCHOR = CitationAnchor(
+    norm_id="BOE-A-1994-26003",
+    norm_label="LAU",
     eli="https://www.boe.es/eli/es/l/1994/11/24/29",
     consolidated_html_url="https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003",
     block_id="a9",
@@ -39,6 +41,8 @@ def test_resolve_block_merges_version_text_and_anchor_fields(
     assert resolved is not None
     assert resolved.text == "El plazo mínimo será de cinco años."
     assert resolved.anchor.eli == ANCHOR.eli
+    assert resolved.anchor.norm_id == "BOE-A-1994-26003"
+    assert resolved.anchor.norm_label == "LAU"
     assert resolved.anchor.title == "Artículo 9"
     assert resolved.anchor.effective_date == date(2019, 3, 6)
 

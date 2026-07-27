@@ -41,7 +41,7 @@ def _corpus() -> OneBlockCorpus:
 def test_a_literal_clause_citation_passes() -> None:
     analysis = analysis_of(evaluated("c1", RiskLevel.ILEGAL, citation=("a9", QUOTE)))
 
-    violations = check_mode2_citations("case", analysis, _corpus(), NORM_ID, TARGET_DATE)
+    violations = check_mode2_citations("case", analysis, _corpus(), TARGET_DATE)
 
     assert violations == []
 
@@ -49,16 +49,16 @@ def test_a_literal_clause_citation_passes() -> None:
 def test_a_non_literal_clause_citation_is_a_hard_failure() -> None:
     analysis = analysis_of(evaluated("c1", RiskLevel.ILEGAL, citation=("a9", "texto inventado")))
 
-    violations = check_mode2_citations("case", analysis, _corpus(), NORM_ID, TARGET_DATE)
+    violations = check_mode2_citations("case", analysis, _corpus(), TARGET_DATE)
 
     assert [v.reason for v in violations] == [REASON_NOT_LITERAL]
-    assert violations[0].block_id == "a9"
+    assert violations[0].block_ref == f"{NORM_ID}:a9"
 
 
 def test_a_citation_that_no_longer_resolves_is_a_hard_failure() -> None:
     analysis = analysis_of(evaluated("c1", RiskLevel.ILEGAL, citation=("a404", QUOTE)))
 
-    violations = check_mode2_citations("case", analysis, _corpus(), NORM_ID, TARGET_DATE)
+    violations = check_mode2_citations("case", analysis, _corpus(), TARGET_DATE)
 
     assert [v.reason for v in violations] == [REASON_UNRESOLVED]
 
@@ -69,7 +69,7 @@ def test_the_guardrail_also_covers_absence_whites() -> None:
         absences=(absence("CHK-02", citation=("a9", "no aparece literalmente aquí")),),
     )
 
-    violations = check_mode2_citations("case", analysis, _corpus(), NORM_ID, TARGET_DATE)
+    violations = check_mode2_citations("case", analysis, _corpus(), TARGET_DATE)
 
     assert [v.reason for v in violations] == [REASON_NOT_LITERAL]
 
@@ -77,7 +77,7 @@ def test_the_guardrail_also_covers_absence_whites() -> None:
 def test_a_finding_without_a_citation_is_not_checked() -> None:
     analysis = analysis_of(evaluated("c1", RiskLevel.NEGOCIABLE))
 
-    violations = check_mode2_citations("case", analysis, _corpus(), NORM_ID, TARGET_DATE)
+    violations = check_mode2_citations("case", analysis, _corpus(), TARGET_DATE)
 
     assert violations == []
 
@@ -85,6 +85,6 @@ def test_a_finding_without_a_citation_is_not_checked() -> None:
 def test_a_rejected_analysis_has_no_citations_to_check() -> None:
     analysis = rejected(RejectionReason.NOT_EXTRACTABLE)
 
-    violations = check_mode2_citations("case", analysis, _corpus(), NORM_ID, TARGET_DATE)
+    violations = check_mode2_citations("case", analysis, _corpus(), TARGET_DATE)
 
     assert violations == []

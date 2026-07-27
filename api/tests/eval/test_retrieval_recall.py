@@ -2,7 +2,7 @@
 
 from lexme.eval.cases import EvalCase
 from lexme.eval.metrics import build_case_result
-from tests.eval.conftest import NORM_ID, traced_response
+from tests.eval.conftest import NORM_ID, block_ref, traced_response
 
 
 def _keys(*block_ids: str) -> tuple[tuple[str, str], ...]:
@@ -10,8 +10,13 @@ def _keys(*block_ids: str) -> tuple[tuple[str, str], ...]:
     return tuple((NORM_ID, block_id) for block_id in block_ids)
 
 
+def _gold(*block_ids: str) -> tuple[str, ...]:
+    """Turn block ids into the norm-qualified references a case declares as gold."""
+    return tuple(block_ref(block_id) for block_id in block_ids)
+
+
 def test_recall_is_attributed_per_retrieval_layer() -> None:
-    case = EvalCase(id="c", question="q", gold_block_ids=("a9", "a36"))
+    case = EvalCase(id="c", question="q", gold_block_refs=_gold("a9", "a36"))
     response = traced_response(
         dense=_keys("a9", "x"),
         lexical=_keys("a36", "y"),
@@ -29,7 +34,7 @@ def test_recall_is_attributed_per_retrieval_layer() -> None:
 
 
 def test_recall_is_attributed_per_sub_query() -> None:
-    case = EvalCase(id="c", question="q", gold_block_ids=("a9", "a36"))
+    case = EvalCase(id="c", question="q", gold_block_refs=_gold("a9", "a36"))
     response = traced_response(
         dense=_keys("a9"),
         lexical=_keys("a36"),
@@ -41,12 +46,12 @@ def test_recall_is_attributed_per_sub_query() -> None:
 
     (sub,) = result.retrieval.subqueries
     assert sub.id == "sq1"
-    assert sub.recovered_gold == ["a9", "a36"]
+    assert sub.recovered_gold == list(_gold("a9", "a36"))
     assert sub.recall == 1.0
 
 
 def test_the_agentic_delta_is_a_first_pass_to_final_recall_pair() -> None:
-    case = EvalCase(id="c", question="q", gold_block_ids=("a9", "a36"))
+    case = EvalCase(id="c", question="q", gold_block_refs=_gold("a9", "a36"))
     response = traced_response(
         dense=_keys("a9", "a36"),
         lexical=_keys("a9", "a36"),

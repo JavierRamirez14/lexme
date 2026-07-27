@@ -1,18 +1,15 @@
 {
   "id": "gen-venta-vivienda",
   "question": "Hola, me he enterado de que mi casero va a vender el piso en el que estoy alquilado. Llevo solo un año de contrato. ¿El nuevo comprador me puede echar inmediatamente o tiene la obligación de respetar mi alquiler?",
-  "gold_block_ids": [
-    "a14"
-  ],
   "expected_outcome": "respuesta",
   "key_points": [
     {
       "claim": "El adquirente de la vivienda arrendada queda subrogado en los derechos y obligaciones del arrendador durante los cinco primeros años de vigencia del contrato, o siete años si el arrendador anterior fuese persona jurídica.",
-      "block_id": "a14"
+      "block_ref": "BOE-A-1994-26003:a14"
     },
     {
       "claim": "Incluso si las partes hubieran pactado que la venta de la vivienda extinguiría el arrendamiento, el nuevo comprador deberá soportar el alquiler durante el tiempo que reste para cumplir los cinco años (o siete años si el arrendador anterior era persona jurídica).",
-      "block_id": "a14"
+      "block_ref": "BOE-A-1994-26003:a14"
     }
   ],
   "target_date": null,
@@ -29,12 +26,15 @@
   "provenance": {
     "generator": "query_generator",
     "sources": [
-      "a14"
+      "BOE-A-1994-26003:a14"
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:51:32.332436Z",
     "reviewed_by": "javier",
     "reviewed_at": "2026-07-27T10:05:03.642224Z",
     "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo; respuestas de desambiguacion escritas y revisadas, con la fecha de firma dentro de la redaccion vigente de los bloques de referencia"
-  }
+  },
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a14"
+  ]
 }

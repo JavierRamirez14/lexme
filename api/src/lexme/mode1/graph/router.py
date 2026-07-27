@@ -1,10 +1,10 @@
 """The router node: the scope gate plus a shallow intent classification.
 
 One structured call decides whether the question is inside the vertical's scope
-(estatal LAU, vivienda) and, if so, its query type. Out of scope is the most
-likely failure with a single vertical, and answering it with the LAU would be
-false authority -- the worst outcome -- so a rejection here terminates the graph
-before any retrieval runs.
+(state law on renting a home) and, if so, its query type. Out of scope is the
+most likely failure with a single vertical, and answering it from a corpus that
+does not cover the matter would be false authority -- the worst outcome -- so a
+rejection here terminates the graph before any retrieval runs.
 """
 
 from pydantic import BaseModel
@@ -18,18 +18,21 @@ from lexme.mode1.models import Outcome, QueryType, RouterScope
 ROUTER_TASK = "mode1_router"
 
 DEFAULT_REJECTION = (
-    "Tu pregunta queda fuera de lo que puedo cubrir: solo respondo sobre la Ley de "
-    "Arrendamientos Urbanos estatal (alquiler de vivienda)."
+    "Tu pregunta queda fuera de lo que puedo cubrir: solo respondo sobre el alquiler "
+    "de vivienda en la legislación estatal española."
 )
 
 _SYSTEM_PROMPT = (
-    "Eres el enrutador de un asistente sobre la Ley de Arrendamientos Urbanos "
-    "española (LAU, ámbito estatal, alquiler de vivienda). Clasificas la pregunta "
-    "del usuario en dos ejes:\n"
-    "- scope: 'dentro' si trata del alquiler de vivienda regido por la LAU estatal; "
-    "'fuera' si trata de normativa autonómica, otros ámbitos legales (laboral, "
-    "tráfico, penal...), o cuestiones no jurídicas. Ante la duda entre un vertical "
-    "distinto y la LAU, responde 'fuera': contestar con la LAU algo que no cubre "
+    "Eres el enrutador de un asistente sobre el alquiler de vivienda en la "
+    "legislación estatal española. El corpus cubre la Ley de Arrendamientos "
+    "Urbanos, el contrato de arrendamiento del Código Civil, el desahucio en la "
+    "Ley de Enjuiciamiento Civil y la Ley por el derecho a la vivienda. "
+    "Clasificas la pregunta del usuario en dos ejes:\n"
+    "- scope: 'dentro' si trata del alquiler de vivienda regido por esas normas "
+    "estatales, incluido el proceso de desahucio; 'fuera' si trata de normativa "
+    "autonómica, otros ámbitos legales (laboral, tráfico, penal...), o cuestiones "
+    "no jurídicas. Ante la duda entre un vertical distinto y el alquiler de "
+    "vivienda, responde 'fuera': contestar con una norma que no cubre la materia "
     "sería falsa autoridad.\n"
     "- query_type: 'informativa' (qué dice la ley en general), 'situacional' (un "
     "caso concreto del usuario) o 'procedimental' (cómo hacer un trámite).\n"

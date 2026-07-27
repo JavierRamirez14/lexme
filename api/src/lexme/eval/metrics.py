@@ -15,7 +15,7 @@ from collections.abc import Iterable
 from enum import StrEnum
 from statistics import mean
 
-from pydantic import BaseModel
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from lexme.eval.cases import EvalCase
 from lexme.eval.guardrail import GuardrailViolation
@@ -48,8 +48,9 @@ RETRIEVAL_LAYERS = (LAYER_DENSE, LAYER_LEXICAL, LAYER_FUSED, LAYER_EVIDENCE)
 class LayerRecall(BaseModel):
     """The gold blocks one retrieval layer recovered, accumulated across sub-queries.
 
-    ``recovered_gold`` are the case's gold blocks present in this layer's rankings;
-    ``recall`` is their fraction of the gold, or ``None`` when the case has no gold.
+    ``recovered_gold`` are the case's gold block references present in this layer's
+    rankings; ``recall`` is their fraction of the gold, or ``None`` when the case
+    has no gold.
     """
 
     layer: str
@@ -75,17 +76,25 @@ class RetrievalRecall(BaseModel):
 class CaseResult(BaseModel):
     """The measured outcome of one case: what it retrieved, cited, recalled and judged.
 
-    ``recall`` is the final accumulated-evidence recall, ``None`` when the case
-    declares no gold blocks so it is excluded from the mean rather than counted as
-    zero. ``first_pass_recall`` is the recall the first retrieval pass reached and
-    ``recall_delta`` is the gain the agentic loop earned over it. ``retrieval``
+    ``recall`` is the final accumulated-evidence recall over norm-qualified block
+    references, ``None`` when the case declares no gold blocks so it is excluded
+    from the mean rather than counted as zero. ``first_pass_recall`` is the recall
+    the first retrieval pass reached and ``recall_delta`` is the gain the agentic
+    loop earned over it. ``retrieval``
     carries the per-layer and per-sub-query breakdown; ``judge`` the end-to-end
     numbers, present only for an answered case with reference key points.
     ``outcome_as_expected`` is ``None`` when the case pins no expected outcome.
     ``disambiguation`` says whether the case answered directly, was resumed with
     the reply it pins, or stopped at a pause it brought no reply for; it is ``None``
     only in an artifact written before the harness measured that.
+
+    The two reference lists also read their pre-expansion names, so run artifacts
+    written when a block was named by a bare id still load and can be compared
+    against -- across a corpus change the fingerprint already marks the comparison
+    as an experiment rather than a regression.
     """
+
+    model_config = ConfigDict(populate_by_name=True)
 
     id: str
     question: str
@@ -94,8 +103,12 @@ class CaseResult(BaseModel):
     outcome_as_expected: bool | None
     disambiguation: str | None = None
     displayed_citations: int
-    retrieved_block_ids: list[str]
-    gold_block_ids: list[str]
+    retrieved_block_refs: list[str] = Field(
+        validation_alias=AliasChoices("retrieved_block_refs", "retrieved_block_ids")
+    )
+    gold_block_refs: list[str] = Field(
+        validation_alias=AliasChoices("gold_block_refs", "gold_block_ids")
+    )
     recall: float | None
     first_pass_recall: float | None
     recall_delta: float | None
@@ -163,8 +176,8 @@ def build_case_result(
 ) -> CaseResult:
     """Measure one case's response against its gold blocks, key points and verdicts."""
     retrieved = _accumulated_evidence(response)
-    recall = _recall(retrieved, case.gold_block_ids)
-    first_pass = _first_pass_recall(response, case.gold_block_ids)
+    recall = _recall(retrieved, case.gold_block_refs)
+    first_pass = _first_pass_recall(response, case.gold_block_refs)
     return CaseResult(
         id=case.id,
         question=case.question,
@@ -173,13 +186,13 @@ def build_case_result(
         outcome_as_expected=_outcome_as_expected(case.expected_outcome, response.outcome.value),
         disambiguation=disambiguation.value,
         displayed_citations=len(response.answer.fundamento) if response.answer else 0,
-        retrieved_block_ids=retrieved,
-        gold_block_ids=list(case.gold_block_ids),
+        retrieved_block_refs=retrieved,
+        gold_block_refs=list(case.gold_block_refs),
         recall=recall,
         first_pass_recall=first_pass,
         recall_delta=_delta(first_pass, recall),
         agentic_delta=response.agentic.agentic_delta if response.agentic else 0,
-        retrieval=_retrieval_recall(response, case.gold_block_ids),
+        retrieval=_retrieval_recall(response, case.gold_block_refs),
         citation_verdicts=dict(response.citation_verdicts),
         judge=build_judge_metrics(verdict) if verdict is not None else None,
         violations=violations,
@@ -218,7 +231,7 @@ def _accumulated_evidence(response: AskResponse) -> list[str]:
     """The distinct block ids retrieved across the run, first occurrence order."""
     if response.agentic is None:
         return []
-    return _union_block_ids(sub.evidence for sub in response.agentic.subqueries)
+    return _union_block_refs(sub.evidence for sub in response.agentic.subqueries)
 
 
 def _retrieval_recall(response: AskResponse, gold: tuple[str, ...]) -> RetrievalRecall | None:
@@ -237,8 +250,8 @@ def _retrieval_recall(response: AskResponse, gold: tuple[str, ...]) -> Retrieval
     subqueries = [
         SubQueryRecall(
             id=sub.id,
-            recovered_gold=_recovered([block.block_id for block in sub.evidence], gold),
-            recall=_recall([block.block_id for block in sub.evidence], gold),
+            recovered_gold=_recovered([block.ref for block in sub.evidence], gold),
+            recall=_recall([block.ref for block in sub.evidence], gold),
         )
         for sub in subs
     ]
@@ -246,11 +259,11 @@ def _retrieval_recall(response: AskResponse, gold: tuple[str, ...]) -> Retrieval
 
 
 def _layer_union(subqueries: list[SubQueryReport], layer: str) -> list[str]:
-    """The distinct block ids a retrieval layer surfaced across every sub-query."""
+    """The distinct block references a retrieval layer surfaced across every sub-query."""
     if layer == LAYER_EVIDENCE:
-        return _union_block_ids(sub.evidence for sub in subqueries)
+        return _union_block_refs(sub.evidence for sub in subqueries)
     rankings = [_ranking(sub, layer) for sub in subqueries if sub.retrieval is not None]
-    return _union_block_ids(rankings)
+    return _union_block_refs(rankings)
 
 
 def _ranking(sub: SubQueryReport, layer: str) -> list[RankedBlockRef]:
@@ -264,12 +277,12 @@ def _ranking(sub: SubQueryReport, layer: str) -> list[RankedBlockRef]:
     return rankings[layer]
 
 
-def _union_block_ids(groups: Iterable[Iterable[RankedBlockRef]]) -> list[str]:
-    """Flatten groups of block references into distinct block ids, first-seen order."""
+def _union_block_refs(groups: Iterable[Iterable[RankedBlockRef]]) -> list[str]:
+    """Flatten groups of ranked blocks into distinct qualified references, first-seen order."""
     seen: dict[str, None] = {}
     for group in groups:
-        for ref in group:
-            seen.setdefault(ref.block_id, None)
+        for ranked in group:
+            seen.setdefault(ranked.ref, None)
     return list(seen)
 
 
@@ -277,12 +290,12 @@ def _first_pass_recall(response: AskResponse, gold: tuple[str, ...]) -> float | 
     """Recall over the evidence the first self-critique pass had accumulated."""
     if response.agentic is None or not response.agentic.passes or not gold:
         return None
-    return _recall(response.agentic.passes[0].evidence_block_ids, gold)
+    return _recall(response.agentic.passes[0].evidence_block_refs, gold)
 
 
 def _recovered(retrieved: list[str], gold: tuple[str, ...]) -> list[str]:
-    """The gold blocks present in ``retrieved``, in gold order."""
-    return [block_id for block_id in gold if block_id in retrieved]
+    """The gold block references present in ``retrieved``, in gold order."""
+    return [ref for ref in gold if ref in retrieved]
 
 
 def _delta(first: float | None, final: float | None) -> float | None:
@@ -303,7 +316,7 @@ def _recall(retrieved: list[str], gold: tuple[str, ...]) -> float | None:
     """Fraction of gold blocks present in ``retrieved``, or ``None`` when no gold."""
     if not gold:
         return None
-    hits = sum(1 for block_id in gold if block_id in retrieved)
+    hits = sum(1 for ref in gold if ref in retrieved)
     return hits / len(gold)
 
 

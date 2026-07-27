@@ -35,6 +35,8 @@ class PsycopgCorpusReader:
         return ResolvedBlock(
             text=version.text_content,
             anchor=VerifiedAnchor(
+                norm_id=anchor.norm_id,
+                norm_label=anchor.norm_label,
                 eli=anchor.eli,
                 consolidated_html_url=anchor.consolidated_html_url,
                 block_id=anchor.block_id,

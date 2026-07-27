@@ -25,12 +25,14 @@ from lexme.mode1.models import (
 from lexme.retrieval.models import BlockKey
 
 SCOPE_REMINDER = (
-    "Solo cubro la Ley de Arrendamientos Urbanos estatal (vivienda). "
+    "Solo cubro el alquiler de vivienda en la legislación estatal española: la Ley "
+    "de Arrendamientos Urbanos, el arrendamiento del Código Civil, el desahucio en "
+    "la Ley de Enjuiciamiento Civil y la Ley por el derecho a la vivienda. "
     "No cubro normativa autonómica ni otros ámbitos."
 )
 
 _NO_EVIDENCE_MESSAGE = (
-    "No he encontrado ninguna base en la LAU para responder a tu pregunta. "
+    "No he encontrado ninguna base en mi corpus para responder a tu pregunta. "
     "Prueba a reformularla centrándote en el arrendamiento de vivienda."
 )
 _NO_VERIFIABLE_CITATION_MESSAGE = (
@@ -158,7 +160,7 @@ def _insufficient_core_message(state: Mode1State) -> str:
     ]
     detail = "; ".join(missing) if missing else "la parte central de tu pregunta"
     return (
-        f"No he encontrado base suficiente en la LAU para lo esencial de tu consulta "
+        f"No he encontrado base suficiente en mi corpus para lo esencial de tu consulta "
         f"({detail}), así que prefiero no responder antes que hacerlo sin apoyo. "
         "Prueba a acotar la pregunta o reformularla."
     )
@@ -195,7 +197,7 @@ def _pass_report(record: PassRecord) -> PassReport:
         sufficient_ids=record.sufficient_ids,
         insufficient_ids=record.insufficient_ids,
         evidence_count=record.evidence_count,
-        evidence_block_ids=record.evidence_block_ids,
+        evidence_block_refs=record.evidence_block_refs,
     )
 
 

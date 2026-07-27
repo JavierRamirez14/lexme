@@ -27,7 +27,7 @@ export function AnswerView({ answer }: AnswerViewProps) {
         <p className={styles.layerNote}>Citas literales verificadas contra el texto vigente.</p>
         <div className={styles.citations}>
           {answer.fundamento.map((citation, index) => (
-            <Citation key={`${citation.block_id}-${index}`} citation={citation} />
+            <Citation key={`${citation.block_ref}-${index}`} citation={citation} />
           ))}
         </div>
       </section>

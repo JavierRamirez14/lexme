@@ -14,9 +14,11 @@ versioned together with where each case came from.
   negotiable clauses for burdens the LAU is silent on. Every clause carries its
   expected level and the checklist items it reflects. `refset validate-bank` fails if
   the bank stops covering the checklist.
-- `seeds.json` — Mode 1 query seeds. Each names the corpus blocks that are the gold
-  blocks *by construction* and the outcome the case should reach; the generator writes
-  the user-language question and extracts the key points from the blocks' own text.
+- `seeds.json` — Mode 1 query seeds. Each names, by norm-qualified
+  `<norm_id>:<block_id>` reference, the corpus blocks that are the gold blocks *by
+  construction* and the outcome the case should reach; the generator writes the
+  user-language question and extracts the key points from the blocks' own text. A
+  seed may name blocks of more than one norm.
 - `recipes.json` — Mode 2 contract recipes. Each lists the bank clauses to assemble
   into one synthetic contract, in order.
 

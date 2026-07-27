@@ -9,6 +9,7 @@ real system behind the fake LLM.
 from collections.abc import Sequence
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.eval.cases import ClarificationAnswer
 from lexme.eval.metrics import Disambiguation
 from lexme.eval.runner import CaseRun
@@ -53,7 +54,7 @@ class InMemoryCorpus:
         text = self._blocks.get((norm_id, block_id))
         if text is None:
             return None
-        return ResolvedBlock(text=text, anchor=_anchor(block_id))
+        return ResolvedBlock(text=text, anchor=_anchor(block_id, norm_id))
 
 
 class StubRunner:
@@ -90,9 +91,16 @@ def _as_case_run(run: AskResponse | CaseRun) -> CaseRun:
     return CaseRun(response=run, disambiguation=Disambiguation.DIRECT)
 
 
-def _anchor(block_id: str) -> VerifiedAnchor:
+def block_ref(block_id: str, norm_id: str = NORM_ID) -> str:
+    """The norm-qualified reference a citation names a corpus block by."""
+    return str(BlockRef(norm_id=norm_id, block_id=block_id))
+
+
+def _anchor(block_id: str, norm_id: str = NORM_ID) -> VerifiedAnchor:
     """A filled-in anchor for a block, enough for a resolved response."""
     return VerifiedAnchor(
+        norm_id=norm_id,
+        norm_label="LAU",
         eli="https://www.boe.es/eli/es/l/1994/11/24/29",
         consolidated_html_url="https://www.boe.es/buscar/act.php?id=" + NORM_ID,
         block_id=block_id,
@@ -141,20 +149,20 @@ def traced_response(
             sufficient_ids=[],
             insufficient_ids=["sq1"],
             evidence_count=len(first_pass_evidence),
-            evidence_block_ids=list(first_pass_evidence),
+            evidence_block_refs=[block_ref(block_id) for block_id in first_pass_evidence],
         ),
         PassReport(
             pass_number=2,
             sufficient_ids=["sq1"],
             insufficient_ids=[],
             evidence_count=len(evidence),
-            evidence_block_ids=[block_id for _, block_id in evidence],
+            evidence_block_refs=[block_ref(block_id, norm_id) for norm_id, block_id in evidence],
         ),
     ]
     answer = Answer(
         fundamento=[
             VerifiedCitation(
-                block_id=block_id,
+                block_ref=block_ref(block_id),
                 text=text,
                 verdict=CitationVerdict.VERIFIED_DIRECT,
                 anchor=_anchor(block_id),
@@ -198,7 +206,12 @@ def answer_response(
     test can hand out a verdict the corpus will not back up.
     """
     fundamento = [
-        VerifiedCitation(block_id=block_id, text=text, verdict=verdict, anchor=_anchor(block_id))
+        VerifiedCitation(
+            block_ref=block_ref(block_id),
+            text=text,
+            verdict=verdict,
+            anchor=_anchor(block_id),
+        )
         for block_id, text in citations
     ]
     subquery = SubQueryReport(

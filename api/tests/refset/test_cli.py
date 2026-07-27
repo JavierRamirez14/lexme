@@ -14,6 +14,7 @@ from lexme.refset.query_generator import QUERY_GENERATION_TASK, GeneratedQuery
 from tests.refset.conftest import FakeCorpus
 
 _NORM = "BOE-A-1994-26003"
+_REF_A9 = f"{_NORM}:a9"
 _NOW = datetime(2026, 7, 25, 12, 0, tzinfo=UTC)
 _DATE = date(2024, 1, 1)
 
@@ -110,7 +111,7 @@ def test_assemble_then_accept_materializes_a_contract(vertical: Path) -> None:
 def test_generate_queries_then_accept_feeds_eval(vertical: Path) -> None:
     seeds = {
         "seeds": [
-            {"id": "plazo", "block_ids": ["a9"], "expected_outcome": "respuesta"},
+            {"id": "plazo", "block_refs": [_REF_A9], "expected_outcome": "respuesta"},
         ]
     }
     (vertical / "refset" / "seeds.json").write_text(json.dumps(seeds), encoding="utf-8")
@@ -120,7 +121,7 @@ def test_generate_queries_then_accept_feeds_eval(vertical: Path) -> None:
             QUERY_GENERATION_TASK: [
                 GeneratedQuery(
                     question="¿cuánto puedo quedarme?",
-                    key_points=[{"claim": "cinco años", "block_id": "a9"}],
+                    key_points=[{"claim": "cinco años", "block_ref": _REF_A9}],
                 )
             ]
         }
@@ -145,7 +146,7 @@ def test_generate_queries_then_accept_feeds_eval(vertical: Path) -> None:
     eval_case = vertical / "eval" / "modo1" / "plazo.json"
     cases = load_cases(eval_case)
     assert cases[0].question == "¿cuánto puedo quedarme?"
-    assert cases[0].gold_block_ids == ("a9",)
+    assert cases[0].gold_block_refs == (_REF_A9,)
 
 
 def test_review_reject_keeps_the_case_out_of_the_set(vertical: Path) -> None:

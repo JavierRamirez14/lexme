@@ -114,7 +114,7 @@ def run_mode2_suite(
     hard_failures: list[GuardrailViolation] = []
     for case in cases:
         analysis = runner.run(case.document, default_date)
-        violations = check_mode2_citations(case.id, analysis, corpus, norm_id, default_date)
+        violations = check_mode2_citations(case.id, analysis, corpus, default_date)
         hard_failures.extend(violations)
         results.append(build_mode2_case_result(case, analysis, violations))
     metrics = aggregate_mode2(results)

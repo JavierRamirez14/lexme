@@ -1,22 +1,19 @@
 {
   "id": "gen-gastos-agencia",
   "question": "Hola, estoy por firmar un contrato de alquiler y la inmobiliaria me quiere cobrar a mí sus honorarios por buscar el piso y redactar el contrato. Además, quieren que pague los gastos de comunidad, pero en el borrador solo pone que me haré cargo de ellos sin indicar ninguna cifra. ¿Es esto legal? ¿Y quién tiene que pagar los recibos de la luz y el agua?",
-  "gold_block_ids": [
-    "a20"
-  ],
   "expected_outcome": "respuesta",
   "key_points": [
     {
       "claim": "Los gastos de gestión inmobiliaria y los de formalización del contrato serán en todo caso a cargo del arrendador.",
-      "block_id": "a20"
+      "block_ref": "BOE-A-1994-26003:a20"
     },
     {
       "claim": "Para que sea válido el pacto de que el inquilino pague los gastos generales, este debe constar por escrito y determinar el importe anual de dichos gastos a la fecha del contrato.",
-      "block_id": "a20"
+      "block_ref": "BOE-A-1994-26003:a20"
     },
     {
       "claim": "Los gastos por servicios de la finca arrendada que se individualicen mediante aparatos contadores serán siempre a cargo del arrendatario.",
-      "block_id": "a20"
+      "block_ref": "BOE-A-1994-26003:a20"
     }
   ],
   "target_date": null,
@@ -33,12 +30,15 @@
   "provenance": {
     "generator": "query_generator",
     "sources": [
-      "a20"
+      "BOE-A-1994-26003:a20"
     ],
     "model": "gemini-3.5-flash",
     "generated_at": "2026-07-25T13:47:48.521951Z",
     "reviewed_by": "javier",
     "reviewed_at": "2026-07-27T10:05:03.642224Z",
     "review_note": "revision tecnica: pregunta y puntos clave verificados contra el texto vigente del articulo; respuestas de desambiguacion escritas y revisadas, con la fecha de firma dentro de la redaccion vigente de los bloques de referencia"
-  }
+  },
+  "gold_block_refs": [
+    "BOE-A-1994-26003:a20"
+  ]
 }

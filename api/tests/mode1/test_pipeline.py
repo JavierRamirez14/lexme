@@ -18,6 +18,7 @@ from lexme.mode1.synthesis import SYNTHESIS_TASK
 from lexme.verification import CitationVerdict, CorpusReader
 from tests.conftest import DeterministicEmbedder
 from tests.mode1.conftest import (
+    LAU_NORM_ID,
     build_run,
     critique_of,
     in_force_text,
@@ -64,7 +65,7 @@ def test_a_grounded_question_yields_a_cited_answer_with_assumptions(
 
     assert response.outcome is Outcome.ANSWER
     assert response.answer is not None
-    assert response.answer.fundamento[0].block_id == "a9"
+    assert response.answer.fundamento[0].block_ref == f"{LAU_NORM_ID}:a9"
     assert response.answer.fundamento[0].verdict is CitationVerdict.VERIFIED_DIRECT
     assert response.answer.asunciones == ["Asumo vivienda habitual y no de temporada."]
     assert response.agentic is not None

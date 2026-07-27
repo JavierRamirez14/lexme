@@ -158,10 +158,10 @@ def compute_dataset_digest(cases: Sequence[EvalCase]) -> str:
         {
             "id": case.id,
             "question": case.question,
-            "gold_block_ids": list(case.gold_block_ids),
+            "gold_block_refs": list(case.gold_block_refs),
             "expected_outcome": case.expected_outcome,
             "key_points": [
-                {"claim": point.claim, "block_id": point.block_id} for point in case.key_points
+                {"claim": point.claim, "block_ref": point.block_ref} for point in case.key_points
             ],
             "target_date": case.target_date.isoformat() if case.target_date else None,
             "clarification_answers": [

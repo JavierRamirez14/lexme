@@ -26,6 +26,7 @@ class _Redaction:
 class _BlockRecord:
     """A block's anchor fields plus its ordered redaction history."""
 
+    norm_label: str
     eli: str
     consolidated_html_url: str
     title: str
@@ -47,9 +48,11 @@ class FakeCorpusReader:
         eli: str = "https://www.boe.es/eli/es/l/1994/11/24/29",
         url: str = "https://www.boe.es/buscar/act.php?id=BOE-A-1994-26003",
         title: str | None = None,
+        label: str = "LAU",
     ) -> None:
         """Register a block with one or more (effective_date, text) redactions."""
         self._blocks[(norm_id, block_id)] = _BlockRecord(
+            norm_label=label,
             eli=eli,
             consolidated_html_url=url,
             title=title or f"Artículo {block_id}",
@@ -68,6 +71,8 @@ class FakeCorpusReader:
         return ResolvedBlock(
             text=redaction.text,
             anchor=VerifiedAnchor(
+                norm_id=norm_id,
+                norm_label=record.norm_label,
                 eli=record.eli,
                 consolidated_html_url=record.consolidated_html_url,
                 block_id=block_id,

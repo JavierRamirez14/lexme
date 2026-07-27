@@ -1,9 +1,11 @@
 """State types for citation verification: the verdict enum, the citation the
 synthesizer emits, the corpus port and the per-citation result.
 
-The synthesizer only ever emits ``(block_id, text)``; every anchor field (ELI,
-URL, effective date, title) is hydrated here by code from the corpus, so an
-anchor can never contradict the block it points at.
+The synthesizer only ever emits ``(block_ref, text)``; every anchor field (norm,
+ELI, URL, effective date, title) is hydrated here by code from the corpus, so an
+anchor can never contradict the block it points at. The reference is norm
+qualified because the corpus holds several norms and a bare block id would leave
+"article 9" ambiguous between them.
 """
 
 from dataclasses import dataclass
@@ -30,17 +32,25 @@ class CitationVerdict(StrEnum):
 class ProposedCitation(BaseModel):
     """A citation as the synthesizer emits it: a block reference and literal text.
 
-    ``block_id`` must reference a block retrieved as evidence in this run. The
-    model never emits the anchor; code hydrates it from the corpus.
+    ``block_ref`` is the ``norm:block`` token of a block retrieved as evidence in
+    this run, copied from the evidence rather than assembled: one token cannot be
+    mismatched the way a separate norm and block id could. The model never emits
+    the anchor; code hydrates it from the corpus.
     """
 
-    block_id: str
+    block_ref: str
     text: str
 
 
 class VerifiedAnchor(BaseModel):
-    """A citation's anchor, hydrated by code from the corpus and point-in-time state."""
+    """A citation's anchor, hydrated by code from the corpus and point-in-time state.
 
+    ``norm_id`` and ``norm_label`` name the law the block belongs to, so a reader
+    can tell two norms' article 9 apart and follow the right consolidated text.
+    """
+
+    norm_id: str
+    norm_label: str
     eli: str
     consolidated_html_url: str
     block_id: str
@@ -51,28 +61,18 @@ class VerifiedAnchor(BaseModel):
 class CitationResult(BaseModel):
     """The outcome of verifying one citation.
 
-    ``text`` is the literal text to show: the verified quote, or -- after a
-    repair -- the real corpus text it was snapped to. ``anchor`` is present for
-    every non-discarded verdict. ``snap_similarity`` is set only for repairs.
+    ``block_ref`` echoes the reference the citation ended up anchored to -- the one
+    proposed, or the one it was re-anchored to. ``text`` is the literal text to
+    show: the verified quote, or -- after a repair -- the real corpus text it was
+    snapped to. ``anchor`` is present for every non-discarded verdict.
+    ``snap_similarity`` is set only for repairs.
     """
 
     verdict: CitationVerdict
-    block_id: str
+    block_ref: str
     text: str
     anchor: VerifiedAnchor | None = None
     snap_similarity: float | None = None
-
-
-@dataclass(frozen=True)
-class EvidenceBlock:
-    """A block surfaced as evidence in a run: enough to resolve and hydrate it.
-
-    ``block_id`` is assumed unique within a run's evidence; on a collision the
-    first occurrence wins.
-    """
-
-    norm_id: str
-    block_id: str
 
 
 @dataclass(frozen=True)

@@ -19,6 +19,9 @@ from lexme.refset.models import (
 )
 
 _NOW = datetime(2026, 7, 25, tzinfo=UTC)
+_NORM = "BOE-A-1994-26003"
+_REF_A9 = f"{_NORM}:a9"
+_REF_A10 = f"{_NORM}:a10"
 
 
 def _provenance() -> Provenance:
@@ -29,14 +32,14 @@ def test_a_mode1_case_accepts_key_points_anchored_to_gold_blocks() -> None:
     case = Mode1ReferenceCase(
         id="plazo",
         question="¿plazo mínimo?",
-        gold_block_ids=["a9"],
+        gold_block_refs=[_REF_A9],
         expected_outcome=Outcome.ANSWER,
-        key_points=[KeyPoint(claim="cinco años", block_id="a9")],
+        key_points=[KeyPoint(claim="cinco años", block_ref=_REF_A9)],
         target_date=date(2024, 1, 1),
     )
 
     assert case.expected_outcome is Outcome.ANSWER
-    assert case.key_points[0].block_id == "a9"
+    assert case.key_points[0].block_ref == _REF_A9
 
 
 def test_a_key_point_off_the_gold_blocks_is_rejected() -> None:
@@ -44,9 +47,9 @@ def test_a_key_point_off_the_gold_blocks_is_rejected() -> None:
         Mode1ReferenceCase(
             id="plazo",
             question="¿plazo mínimo?",
-            gold_block_ids=["a9"],
+            gold_block_refs=[_REF_A9],
             expected_outcome=Outcome.ANSWER,
-            key_points=[KeyPoint(claim="x", block_id="a10")],
+            key_points=[KeyPoint(claim="x", block_ref=_REF_A10)],
         )
 
 
@@ -79,7 +82,7 @@ def test_a_candidate_payload_must_match_its_kind() -> None:
 
 def test_a_candidate_round_trips_through_json() -> None:
     case = Mode1ReferenceCase(
-        id="plazo", question="¿plazo?", gold_block_ids=["a9"], expected_outcome=Outcome.ANSWER
+        id="plazo", question="¿plazo?", gold_block_refs=[_REF_A9], expected_outcome=Outcome.ANSWER
     )
     candidate = Candidate(kind=CaseKind.MODE1, provenance=_provenance(), mode1=case)
 

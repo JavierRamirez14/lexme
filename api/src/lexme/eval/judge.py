@@ -20,6 +20,7 @@ from typing import Protocol, runtime_checkable
 
 from pydantic import BaseModel, Field
 
+from lexme.blocks import BlockRef
 from lexme.eval.cases import EvalCase
 from lexme.llm import LlmClient, Message, TaskRegistry
 from lexme.llm.protocol import StructuredOutputError
@@ -41,11 +42,11 @@ class JudgeConfigError(ValueError):
 class KeyPointCoverage(BaseModel):
     """The judge's ruling on whether the answer covers one reference key point.
 
-    ``block_id`` ties the ruling back to the key point's gold block; ``evidence``
+    ``block_ref`` ties the ruling back to the key point's gold block; ``evidence``
     quotes where in the answer the point is made, empty when it is not covered.
     """
 
-    block_id: str
+    block_ref: str
     covered: bool
     evidence: str = ""
 
@@ -53,14 +54,14 @@ class KeyPointCoverage(BaseModel):
 class ClaimAssessment(BaseModel):
     """The judge's ruling on one legal claim the answer makes.
 
-    ``supported`` is whether a cited article backs the claim; ``supporting_block_id``
+    ``supported`` is whether a cited article backs the claim; ``supporting_block_ref``
     names that article, or is ``None`` for an unsupported claim -- the unit the
     hallucination rate counts.
     """
 
     claim: str
     supported: bool
-    supporting_block_id: str | None = None
+    supporting_block_ref: str | None = None
 
 
 class JudgeVerdict(BaseModel):
@@ -106,17 +107,18 @@ class Judge(Protocol):
 
 
 _SYSTEM_PROMPT = (
-    "Eres un juez de calidad de respuestas jurídicas sobre la LAU. No opinas en "
-    "abstracto: cotejas la respuesta contra una referencia dada. Recibes la "
+    "Eres un juez de calidad de respuestas jurídicas sobre el alquiler de vivienda "
+    "en España. No opinas en abstracto: cotejas la respuesta contra una referencia "
+    "dada. Recibes la "
     "pregunta, la respuesta en lenguaje llano, los artículos que la respuesta ha "
     "citado (con su texto) y una lista de puntos clave de referencia que una buena "
     "respuesta debe contener. Devuelves tres lecturas:\n"
     "- key_points: por cada punto clave de referencia (identificado por su "
-    "'block_id'), si la respuesta lo cubre (covered) y, si lo cubre, una cita "
+    "'block_ref'), si la respuesta lo cubre (covered) y, si lo cubre, una cita "
     "breve de dónde (evidence).\n"
     "- claims: enumera las afirmaciones jurídicas que hace la respuesta; por cada "
     "una, si algún artículo citado la sostiene (supported) y cuál "
-    "(supporting_block_id), o supported=false si ninguno la respalda.\n"
+    "(supporting_block_ref), o supported=false si ninguno la respalda.\n"
     "- clarity: un entero de 1 a 5 sobre lo clara que es en lenguaje llano.\n"
     "Juzga afirmación a afirmación: una afirmación jurídica sin artículo que la "
     "respalde es 'supported=false', aunque suene razonable."
@@ -160,17 +162,16 @@ class LlmJudge:
             return None
 
     def _cited_articles(self, response: AskResponse, target_date: date) -> dict[str, str]:
-        """Resolve the full in-force text of each cited block, keyed by block id."""
-        norm_by_block = _evidence_norm_index(response)
+        """Resolve the full in-force text of each cited block, keyed by its reference."""
         texts: dict[str, str] = {}
         assert response.answer is not None  # guarded by the caller
         for citation in response.answer.fundamento:
-            norm_id = norm_by_block.get(citation.block_id)
-            if norm_id is None:
+            cited = BlockRef.parse(citation.block_ref)
+            if cited is None:
                 continue
-            resolved = self.corpus.resolve_block(norm_id, citation.block_id, target_date)
+            resolved = self.corpus.resolve_block(cited.norm_id, cited.block_id, target_date)
             if resolved is not None:
-                texts[citation.block_id] = resolved.text
+                texts[citation.block_ref] = resolved.text
         return texts
 
 
@@ -217,24 +218,13 @@ def _render_prompt(case: EvalCase, response: AskResponse, cited: dict[str, str])
     """Build the judge's user message from the answer, cited articles and reference."""
     assert response.answer is not None  # guarded by the caller
     articles = (
-        "\n\n".join(f"[{block_id}]\n{text}" for block_id, text in cited.items())
+        "\n\n".join(f"[{block_ref}]\n{text}" for block_ref, text in cited.items())
         or "(la respuesta no citó ningún artículo)"
     )
-    key_points = "\n".join(f"- [{point.block_id}] {point.claim}" for point in case.key_points)
+    key_points = "\n".join(f"- [{point.block_ref}] {point.claim}" for point in case.key_points)
     return (
         f"Pregunta:\n{case.question}\n\n"
         f"Respuesta (explicación en lenguaje llano):\n{response.answer.explicacion}\n\n"
         f"Artículos citados por la respuesta:\n{articles}\n\n"
         f"Puntos clave de referencia que debe contener:\n{key_points}"
     )
-
-
-def _evidence_norm_index(response: AskResponse) -> dict[str, str]:
-    """Map each evidence block id to its norm id, from the run's agentic trace."""
-    index: dict[str, str] = {}
-    if response.agentic is None:
-        return index
-    for subquery in response.agentic.subqueries:
-        for block in subquery.evidence:
-            index.setdefault(block.block_id, block.norm_id)
-    return index

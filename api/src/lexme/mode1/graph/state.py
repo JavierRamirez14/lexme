@@ -70,7 +70,7 @@ class SubQueryState(BaseModel):
 class PassRecord(BaseModel):
     """The tally of one self-critique pass, kept to measure the agentic delta.
 
-    ``evidence_block_ids`` is the accumulated distinct evidence across every
+    ``evidence_block_refs`` is the accumulated distinct evidence across every
     sub-query at the end of this pass; comparing the first pass's set against the
     last pass's is what turns the agentic delta into a recall gain.
     """
@@ -79,7 +79,7 @@ class PassRecord(BaseModel):
     sufficient_ids: list[str]
     insufficient_ids: list[str]
     evidence_count: int
-    evidence_block_ids: list[str] = []
+    evidence_block_refs: list[str] = []
 
 
 class Mode1State(BaseModel):
@@ -135,19 +135,19 @@ class Mode1State(BaseModel):
 
     @property
     def cited_blocks(self) -> list[CitedBlock]:
-        """Each verified citation paired with the norm its evidence block belongs to."""
-        norm_ids = {
-            block.block_id: block.norm_id for sub in self.subqueries for block in sub.evidence
-        }
+        """Each verified citation as the block it anchors to, norm included.
+
+        The norm is read off the citation's own anchor rather than looked up by
+        block id, which two norms in the corpus can share.
+        """
         return [
             CitedBlock(
-                norm_id=norm_ids[citation.block_id],
-                block_id=citation.block_id,
+                norm_id=citation.anchor.norm_id,
+                block_id=citation.anchor.block_id,
                 title=citation.anchor.title,
                 effective_date=citation.anchor.effective_date,
             )
             for citation in self.verified
-            if citation.block_id in norm_ids
         ]
 
     @property

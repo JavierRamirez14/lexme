@@ -4,12 +4,12 @@
   "provenance": {
     "generator": "assembler",
     "sources": [
-      "BANK-plazo-11-meses",
-      "BANK-fianza-tres-meses",
-      "BANK-comision-agencia-inquilino",
-      "BANK-reparaciones-al-inquilino",
-      "BANK-renta-anticipada",
-      "BANK-mascotas-prohibidas"
+      "BOE-A-1994-26003:BANK-plazo-11-meses",
+      "BOE-A-1994-26003:BANK-fianza-tres-meses",
+      "BOE-A-1994-26003:BANK-comision-agencia-inquilino",
+      "BOE-A-1994-26003:BANK-reparaciones-al-inquilino",
+      "BOE-A-1994-26003:BANK-renta-anticipada",
+      "BOE-A-1994-26003:BANK-mascotas-prohibidas"
     ],
     "model": null,
     "generated_at": "2026-07-25T12:21:38.292112Z",

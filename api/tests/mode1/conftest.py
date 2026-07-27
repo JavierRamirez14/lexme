@@ -28,6 +28,7 @@ from lexme.api.dependencies import (
     get_llm_client,
     get_today,
 )
+from lexme.blocks import BlockRef
 from lexme.ingestion import repository
 from lexme.ingestion.xml_parsing import parse_norm_xml
 from lexme.llm import FakeLlmClient, LlmClient
@@ -228,12 +229,24 @@ def critique_of(*rulings: tuple[str, SubQueryVerdict, str]) -> Critique:
     )
 
 
+def block_ref(block_id: str, norm_id: str = LAU_NORM_ID) -> str:
+    """The norm-qualified reference a citation names a corpus block by."""
+    return str(BlockRef(norm_id=norm_id, block_id=block_id))
+
+
 def synthesis_of(
     *citations: tuple[str, str], explicacion: str = "", accion: tuple[str, ...] = ()
 ) -> Mode1Synthesis:
-    """A synthesis proposal from ``(block_id, text)`` citation tuples."""
+    """A synthesis proposal from ``(block_id, text)`` citation tuples.
+
+    The block id is qualified with the seeded corpus's norm, since a citation
+    names a block by its ``norm:block`` reference.
+    """
     return Mode1Synthesis(
-        fundamento=[ProposedCitation(block_id=block_id, text=text) for block_id, text in citations],
+        fundamento=[
+            ProposedCitation(block_ref=block_ref(block_id), text=text)
+            for block_id, text in citations
+        ],
         explicacion=explicacion,
         accion=list(accion),
     )

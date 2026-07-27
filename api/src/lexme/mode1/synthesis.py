@@ -3,13 +3,15 @@
 One generation produces the whole answer as a Pydantic object, so the three
 layers stay coherent and the citations come back as extractable fields the
 verifier can re-check. The prompt's hard rule is that the model may only cite the
-block ids present in the evidence, and must quote them verbatim; the verifier
-enforces it afterwards, but stating it up front reduces the repairs needed.
+block references present in the evidence, copied as the single opaque token they
+are given as, and must quote them verbatim; the verifier enforces it afterwards,
+but stating it up front reduces the repairs needed.
 """
 
 from collections.abc import Sequence
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.llm import LlmClient, Message
 from lexme.mode1.models import Mode1Synthesis
 from lexme.retrieval import RetrievedBlock
@@ -17,11 +19,14 @@ from lexme.retrieval import RetrievedBlock
 SYNTHESIS_TASK = "mode1_synthesis"
 
 _SYSTEM_PROMPT = (
-    "Eres un asistente que explica la legislación española de arrendamientos "
-    "urbanos (LAU, ámbito estatal) a inquilinos, en lenguaje llano y sin dar "
-    "asesoramiento jurídico. Respondes en tres capas:\n"
-    "- fundamento: una lista de citas. Cada cita indica el 'block_id' de un "
-    "bloque de la evidencia y su 'text' copiado LITERALMENTE, palabra por "
+    "Eres un asistente que explica a inquilinos la legislación española estatal "
+    "sobre alquiler de vivienda, en lenguaje llano y sin dar asesoramiento "
+    "jurídico. La evidencia puede venir de varias normas (la Ley de Arrendamientos "
+    "Urbanos, el Código Civil, la Ley de Enjuiciamiento Civil o la Ley por el "
+    "derecho a la vivienda). Respondes en tres capas:\n"
+    "- fundamento: una lista de citas. Cada cita indica el 'block_ref' de un "
+    "bloque de la evidencia, copiado TAL CUAL (incluye la norma y el bloque, por "
+    "ejemplo 'BOE-A-1994-26003:a9'), y su 'text' copiado LITERALMENTE, palabra por "
     "palabra, del texto de ese bloque. Nunca cites un bloque que no esté en la "
     "evidencia y nunca inventes ni parafrasees el texto citado.\n"
     "- explicacion: prosa llana anclada en esas citas. No afirmes nada que las "
@@ -88,5 +93,6 @@ def _render_prompt(
 
 
 def _render_block(block: RetrievedBlock) -> str:
-    """Render one evidence block with its citable id, title and in-force text."""
-    return f"block_id: {block.block_id}\n{block.title}\n{block.text}"
+    """Render one evidence block with its citable reference, title and in-force text."""
+    ref = BlockRef(norm_id=block.norm_id, block_id=block.block_id)
+    return f"block_ref: {ref}\n{block.norm_label}, {block.title}\n{block.text}"

@@ -15,6 +15,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
+from lexme.blocks import BlockRef
 from lexme.checklist import ChecklistItem
 from lexme.llm import LlmClient, Message
 from lexme.mode1.models import VerifiedCitation
@@ -33,7 +34,6 @@ from lexme.verification import (
     CitationResult,
     CitationVerdict,
     CorpusReader,
-    EvidenceBlock,
     ProposedCitation,
     verify_citations,
 )
@@ -66,7 +66,8 @@ _SYSTEM_PROMPT = (
     "- what_you_can_do: pasos acotados a informarse, negociar o vigilar plazos; nunca "
     "redactes documentos ni prometas resultados. Lista vacía si no procede.\n"
     "- citation: SOLO para 'ilegal', 'peor_que_default' o 'correcto', la norma que "
-    "fundamenta el nivel: 'block_id' de un bloque de la evidencia y 'text' copiado "
+    "fundamenta el nivel: 'block_ref' de un bloque de la evidencia, copiado TAL CUAL, "
+    "y 'text' copiado "
     "LITERALMENTE de ese bloque. Nunca cites un bloque que no esté en la evidencia ni "
     "inventes texto. Para 'negociable', 'fuera_de_ambito' o 'no_concluyente' deja "
     "citation en null: no cites un artículo que no regula la materia."
@@ -150,6 +151,7 @@ def _resolve_anchor_blocks(
                 continue
             blocks[anchor] = RetrievedBlock(
                 norm_id=norm_id,
+                norm_label=resolved.anchor.norm_label,
                 block_id=anchor,
                 title=resolved.anchor.title,
                 text=resolved.text,
@@ -190,14 +192,12 @@ def _render_prompt(
         )
         prompt += f"\n\nDerechos del checklist que toca esta cláusula:\n{item_lines}"
     if evidence:
-        blocks = "\n\n".join(
-            f"block_id: {block.block_id}\n{block.title}\n{block.text}" for block in evidence
-        )
+        blocks = "\n\n".join(_render_block(block) for block in evidence)
         prompt += f"\n\nEvidencia (redacción vigente):\n{blocks}"
     else:
         prompt += (
-            "\n\nNo se ha recuperado ninguna norma de la LAU para esta cláusula. "
-            "Si la LAU no regula la materia, clasifícala en consecuencia."
+            "\n\nNo se ha recuperado ninguna norma para esta cláusula. "
+            "Si la ley no regula la materia, clasifícala en consecuencia."
         )
     return prompt
 
@@ -262,19 +262,25 @@ def _verify(
     """
     if citation is None:
         return None
-    blocks = [EvidenceBlock(norm_id=block.norm_id, block_id=block.block_id) for block in evidence]
+    blocks = [BlockRef(norm_id=block.norm_id, block_id=block.block_id) for block in evidence]
     (result,) = verify_citations([citation], blocks, target_date, corpus)
     if result.verdict is CitationVerdict.DISCARDED:
         return None
     return _to_verified(result)
 
 
+def _render_block(block: RetrievedBlock) -> str:
+    """Render one evidence block with its citable reference, source norm and text."""
+    ref = BlockRef(norm_id=block.norm_id, block_id=block.block_id)
+    return f"block_ref: {ref}\n{block.norm_label}, {block.title}\n{block.text}"
+
+
 def _to_verified(result: CitationResult) -> VerifiedCitation:
     """Map a surviving citation result to the display citation with its anchor."""
     if result.anchor is None:
-        raise ValueError(f"citation {result.block_id} held with no anchor")
+        raise ValueError(f"citation {result.block_ref} held with no anchor")
     return VerifiedCitation(
-        block_id=result.block_id,
+        block_ref=result.block_ref,
         text=result.text,
         verdict=result.verdict,
         anchor=result.anchor,

@@ -107,7 +107,9 @@ export function Mode1Page() {
         <h1 className={styles.title}>Consulta la ley de alquiler, con citas verificables</h1>
         <p className={styles.lede}>
           Pregunta en lenguaje natural. El asistente descompone tu consulta, busca en el texto
-          vigente de la Ley de Arrendamientos Urbanos y verifica cada cita antes de responder.
+          vigente de la legislación estatal sobre alquiler de vivienda —la Ley de Arrendamientos
+          Urbanos, el Código Civil, el desahucio en la Ley de Enjuiciamiento Civil y la Ley por
+          el derecho a la vivienda— y verifica cada cita antes de responder.
         </p>
       </section>
 

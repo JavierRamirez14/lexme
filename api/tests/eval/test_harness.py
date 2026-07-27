@@ -27,6 +27,7 @@ from tests.eval.conftest import (
 )
 
 QUESTION = "¿cuál es el plazo mínimo del arrendamiento?"
+GOLD_A9 = f"{NORM_ID}:a9"
 BLOCK_TEXT = "La duración del arrendamiento será libremente pactada por las partes."
 QUOTE = "La duración del arrendamiento será libremente pactada"
 FABRICATED = "El arrendador podrá desalojar al inquilino sin preaviso."
@@ -51,7 +52,7 @@ def _cases_dir(tmp_path: Path) -> Path:
     directory = tmp_path / "cases"
     directory.mkdir()
     (directory / "plazo.json").write_text(
-        json.dumps({"id": "plazo", "question": QUESTION, "gold_block_ids": ["a9"]}),
+        json.dumps({"id": "plazo", "question": QUESTION, "gold_block_refs": [GOLD_A9]}),
         encoding="utf-8",
     )
     return directory
@@ -95,7 +96,7 @@ def test_a_case_is_answered_and_verified_at_its_own_point_in_time_date(tmp_path:
             {
                 "id": "pit",
                 "question": QUESTION,
-                "gold_block_ids": ["a9"],
+                "gold_block_refs": [GOLD_A9],
                 "target_date": pinned.isoformat(),
             }
         ),
@@ -123,7 +124,7 @@ def test_the_artifact_separates_direct_resumed_and_unanswered_cases(tmp_path: Pa
     directory.mkdir()
     for name in ("a", "b", "c"):
         (directory / f"{name}.json").write_text(
-            json.dumps({"id": name, "question": QUESTION, "gold_block_ids": ["a9"]}),
+            json.dumps({"id": name, "question": QUESTION, "gold_block_refs": [GOLD_A9]}),
             encoding="utf-8",
         )
     answered = answer_response(("a9", QUOTE), evidence=((NORM_ID, "a9"),))
@@ -204,7 +205,7 @@ def test_a_corrupt_displayed_citation_hard_fails_the_run_and_flags_the_case(
     artifact = read_artifact(out)
     assert artifact.passed is False
     assert [failure.case_id for failure in artifact.hard_failures] == ["plazo"]
-    assert artifact.hard_failures[0].block_id == "a9"
+    assert artifact.hard_failures[0].block_ref == GOLD_A9
 
 
 def test_a_corrupt_citation_in_a_resumed_answer_still_hard_fails_the_run(tmp_path: Path) -> None:

@@ -15,6 +15,7 @@ is never omitted, only invoked) is excluded.
 from collections.abc import Sequence
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.checklist import Checklist, ChecklistItem, SilenceTone
 from lexme.mode1.models import VerifiedCitation
 from lexme.mode2.risk import AbsenceFinding, ClauseFinding, CoverageStatus
@@ -89,7 +90,7 @@ def _hydrate_citation(
         return None
     anchor: VerifiedAnchor = resolved.anchor
     return VerifiedCitation(
-        block_id=item.citation.block_id,
+        block_ref=str(BlockRef(norm_id=norm_id, block_id=item.citation.block_id)),
         text=item.citation.text,
         verdict=CitationVerdict.VERIFIED_DIRECT,
         anchor=anchor,

@@ -29,15 +29,45 @@ class VersionInForce:
 class CitationAnchor:
     """Everything needed to cite a block back to its source law."""
 
+    norm_id: str
+    norm_label: str
     eli: str
     consolidated_html_url: str
     block_id: str
     title: str
 
 
-def get_norm_updated_at(conn: psycopg.Connection, norm_id: str) -> datetime | None:
-    """Return the stored ``updated_at`` for a norm, or ``None`` if not stored."""
-    return _scalar(conn, "SELECT updated_at FROM norms WHERE id = %s", (norm_id,))
+@dataclass(frozen=True)
+class IngestedNorm:
+    """A norm as the corpus currently holds it, for the freshness panel and the CLI."""
+
+    norm_id: str
+    label: str
+    title: str
+    consolidated_html_url: str
+    updated_at: datetime
+    blocks: int
+
+
+@dataclass(frozen=True)
+class NormState:
+    """What the corpus already stores about a norm, to decide whether to re-ingest.
+
+    ``updated_at`` is the BOE's own revision stamp and ``selection_digest`` the
+    fingerprint of the manifest selection the stored blocks were built from; a
+    norm is reprocessed when either has moved.
+    """
+
+    updated_at: datetime
+    selection_digest: str
+
+
+def get_norm_state(conn: psycopg.Connection, norm_id: str) -> NormState | None:
+    """Return the norm's stored revision and selection, or ``None`` if not stored."""
+    with conn.cursor(row_factory=class_row(NormState)) as cursor:
+        return cursor.execute(
+            "SELECT updated_at, selection_digest FROM norms WHERE id = %s", (norm_id,)
+        ).fetchone()
 
 
 def replace_norm(
@@ -45,13 +75,18 @@ def replace_norm(
     vertical: str,
     norm: ConsolidatedNorm,
     embeddings_by_block: dict[str, list[list[float]]],
+    *,
+    label: str = "",
+    selection_digest: str = "",
 ) -> None:
     """Upsert a norm and rebuild all of its blocks and versions.
 
     ``embeddings_by_block`` maps each block's ``block_id`` to one embedding per
-    version, aligned to :attr:`Block.versions` order.
+    version, aligned to :attr:`Block.versions` order. ``label`` is the short name
+    the norm is shown under and ``selection_digest`` the manifest fingerprint the
+    stored blocks were built from.
     """
-    _upsert_norm(conn, vertical, norm)
+    _upsert_norm(conn, vertical, norm, label, selection_digest)
     conn.execute("DELETE FROM blocks WHERE norm_id = %s", (norm.metadata.norm_id,))
     for block in norm.blocks:
         block_row_id = conn.execute(
@@ -128,11 +163,12 @@ def get_effective_dates(conn: psycopg.Connection, norm_id: str, block_id: str) -
 def get_citation_anchor(
     conn: psycopg.Connection, norm_id: str, block_id: str
 ) -> CitationAnchor | None:
-    """Return the citation anchor (norm ELI + block id/title), or ``None``."""
+    """Return the citation anchor (norm identity and ELI + block id/title), or ``None``."""
     with conn.cursor(row_factory=class_row(CitationAnchor)) as cursor:
         return cursor.execute(
             """
-            SELECT n.eli, n.consolidated_html_url, b.block_id, b.title
+            SELECT n.id AS norm_id, n.label AS norm_label, n.eli, n.consolidated_html_url,
+                   b.block_id, b.title
             FROM blocks b
             JOIN norms n ON n.id = b.norm_id
             WHERE b.norm_id = %s AND b.block_id = %s
@@ -144,6 +180,27 @@ def get_citation_anchor(
 def get_corpus_last_updated(conn: psycopg.Connection, vertical: str) -> datetime | None:
     """Return the freshest ``updated_at`` across a vertical's norms, or ``None``."""
     return _scalar(conn, "SELECT max(updated_at) FROM norms WHERE vertical = %s", (vertical,))
+
+
+def list_ingested_norms(conn: psycopg.Connection, vertical: str) -> list[IngestedNorm]:
+    """Return the vertical's norms with their block counts, in ingestion-label order.
+
+    The corpus is no longer one law, so its freshness cannot be read as one date:
+    this is what the UI needs to name every norm it answers from.
+    """
+    with conn.cursor(row_factory=class_row(IngestedNorm)) as cursor:
+        return cursor.execute(
+            """
+            SELECT n.id AS norm_id, n.label, n.title, n.consolidated_html_url, n.updated_at,
+                   count(b.id) AS blocks
+            FROM norms n
+            LEFT JOIN blocks b ON b.norm_id = n.id
+            WHERE n.vertical = %s
+            GROUP BY n.id, n.label, n.title, n.consolidated_html_url, n.updated_at
+            ORDER BY n.label
+            """,
+            (vertical,),
+        ).fetchall()
 
 
 def get_corpus_digest(conn: psycopg.Connection, vertical: str) -> str | None:
@@ -184,26 +241,38 @@ def _scalar_str(conn: psycopg.Connection, query: str, params: tuple[object, ...]
     return row[0] if row is not None and row[0] is not None else None
 
 
-def _upsert_norm(conn: psycopg.Connection, vertical: str, norm: ConsolidatedNorm) -> None:
+def _upsert_norm(
+    conn: psycopg.Connection,
+    vertical: str,
+    norm: ConsolidatedNorm,
+    label: str,
+    selection_digest: str,
+) -> None:
     """Insert or update the norm's metadata row."""
     metadata = norm.metadata
     conn.execute(
         """
-        INSERT INTO norms (id, vertical, eli, title, consolidated_html_url, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO norms (
+            id, vertical, label, eli, title, consolidated_html_url, updated_at, selection_digest
+        )
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (id) DO UPDATE SET
             vertical = EXCLUDED.vertical,
+            label = EXCLUDED.label,
             eli = EXCLUDED.eli,
             title = EXCLUDED.title,
             consolidated_html_url = EXCLUDED.consolidated_html_url,
-            updated_at = EXCLUDED.updated_at
+            updated_at = EXCLUDED.updated_at,
+            selection_digest = EXCLUDED.selection_digest
         """,
         (
             metadata.norm_id,
             vertical,
+            label,
             metadata.eli,
             metadata.title,
             metadata.consolidated_html_url,
             metadata.updated_at,
+            selection_digest,
         ),
     )

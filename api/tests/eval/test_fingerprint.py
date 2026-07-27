@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from lexme.eval.cases import ClarificationAnswer, EvalCase
+from lexme.eval.cases import ClarificationAnswer, EvalCase, KeyPoint
 from lexme.eval.fingerprint import (
     ConfigFingerprint,
     build_fingerprint,
@@ -124,11 +124,25 @@ def test_the_prompts_digest_reads_the_real_prompt_sources() -> None:
 
 
 def test_the_dataset_digest_is_order_independent_and_content_sensitive() -> None:
-    a = EvalCase(id="a", question="q1", gold_block_ids=("x",))
+    a = EvalCase(id="a", question="q1", gold_block_refs=("BOE-A-1994-26003:x",))
     b = EvalCase(id="b", question="q2")
 
     assert compute_dataset_digest([a, b]) == compute_dataset_digest([b, a])
     assert compute_dataset_digest([a, b]) != compute_dataset_digest([a])
+
+
+def test_editing_a_key_point_changes_the_dataset_digest() -> None:
+    def case(claim: str) -> EvalCase:
+        return EvalCase(
+            id="a",
+            question="q1",
+            gold_block_refs=("BOE-A-1994-26003:a36",),
+            key_points=(KeyPoint(claim=claim, block_ref="BOE-A-1994-26003:a36"),),
+        )
+
+    assert compute_dataset_digest([case("una mensualidad")]) != compute_dataset_digest(
+        [case("dos mensualidades")]
+    )
 
 
 def test_editing_a_pinned_clarification_answer_changes_the_dataset_digest() -> None:

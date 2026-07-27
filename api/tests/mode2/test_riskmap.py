@@ -242,6 +242,7 @@ def test_a_clause_off_the_checklist_is_grounded_by_hybrid_retrieval() -> None:
         [
             RetrievedBlock(
                 norm_id=CHECKLIST.norm_id,
+                norm_label="LAU",
                 block_id="a25",
                 title="Art 25",
                 text=A25_TEXT,

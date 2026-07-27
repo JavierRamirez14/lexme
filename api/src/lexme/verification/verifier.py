@@ -3,12 +3,15 @@
 No citation reaches the user without being re-verified against the corpus. Each
 citation ends at exactly one :class:`CitationVerdict`; the pipeline is:
 
-    id in this run's evidence?  -- no -->  discarded
+    reference parses as ``norm:block``?  -- no -->  discarded
+    reference in this run's evidence?    -- no -->  discarded
     strict match in the block's point-in-time redaction  -->  verificada_directa
     else snap in that block  -->  reparada_snap (text replaced by the real span)
     else snap in exactly one other evidence block  -->  reparada_anclaje
     else  -->  descartada
 
+References are norm qualified end to end: with several norms in the corpus a bare
+block id would let a citation of one law's article 9 be checked against another's.
 The verifier never calls the model and never invents an anchor; anchors are
 hydrated by code through the :class:`CorpusReader` port.
 """
@@ -18,11 +21,11 @@ from collections import Counter
 from collections.abc import Sequence
 from datetime import date
 
+from lexme.blocks import BlockRef
 from lexme.verification.models import (
     CitationResult,
     CitationVerdict,
     CorpusReader,
-    EvidenceBlock,
     ProposedCitation,
     ResolvedBlock,
 )
@@ -40,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 def verify_citations(
     citations: Sequence[ProposedCitation],
-    evidence: Sequence[EvidenceBlock],
+    evidence: Sequence[BlockRef],
     target_date: date,
     corpus: CorpusReader,
 ) -> list[CitationResult]:
@@ -51,11 +54,9 @@ def verify_citations(
     and logs the per-verdict counts as the run's citation telemetry.
     """
     resolver = _BlockResolver(corpus, target_date)
-    evidence_by_id: dict[str, EvidenceBlock] = {}
-    for block in evidence:
-        evidence_by_id.setdefault(block.block_id, block)
+    allowed = set(evidence)
 
-    results = [_verify_one(citation, evidence, evidence_by_id, resolver) for citation in citations]
+    results = [_verify_one(citation, evidence, allowed, resolver) for citation in citations]
     _log_summary(results)
     return results
 
@@ -68,43 +69,43 @@ def summarize(results: Sequence[CitationResult]) -> dict[str, int]:
 
 def _verify_one(
     citation: ProposedCitation,
-    evidence: Sequence[EvidenceBlock],
-    evidence_by_id: dict[str, EvidenceBlock],
+    evidence: Sequence[BlockRef],
+    allowed: set[BlockRef],
     resolver: "_BlockResolver",
 ) -> CitationResult:
     """Run the full pipeline for one citation and return its single verdict."""
-    cited = evidence_by_id.get(citation.block_id)
-    if cited is None:
-        return _discarded(citation.block_id)
+    cited = BlockRef.parse(citation.block_ref)
+    if cited is None or cited not in allowed:
+        return _discarded(citation.block_ref)
 
     resolved = resolver.resolve(cited)
     if resolved is None:
-        return _discarded(citation.block_id)
+        return _discarded(citation.block_ref)
 
     segments, has_ellipsis = split_into_segments(citation.text)
     if not segments or not segments_meet_minimum(segments, has_ellipsis):
-        return _discarded(citation.block_id)
+        return _discarded(citation.block_ref)
 
     block_text = normalize(resolved.text)
     if contains_segments_in_order(block_text, segments):
         return CitationResult(
             verdict=CitationVerdict.VERIFIED_DIRECT,
-            block_id=citation.block_id,
+            block_ref=str(cited),
             text=_render(segments),
             anchor=resolved.anchor,
         )
 
     snap = snap_citation(segments, block_text)
     if snap is not None:
-        return _repaired(CitationVerdict.REPAIRED_SNAP, citation.block_id, resolved, snap)
+        return _repaired(CitationVerdict.REPAIRED_SNAP, cited, resolved, snap)
 
-    return _reanchor(segments, citation.block_id, evidence, resolver)
+    return _reanchor(segments, cited, evidence, resolver)
 
 
 def _reanchor(
     segments: list[str],
-    cited_block_id: str,
-    evidence: Sequence[EvidenceBlock],
+    cited: BlockRef,
+    evidence: Sequence[BlockRef],
     resolver: "_BlockResolver",
 ) -> CitationResult:
     """Try to snap the citation into exactly one other evidence block.
@@ -112,9 +113,9 @@ def _reanchor(
     A single unambiguous match re-anchors the citation; zero or several matches
     are treated as what they are -- a lack of guarantee -- and discarded.
     """
-    matches: list[tuple[ResolvedBlock, EvidenceBlock, SnapResult]] = []
+    matches: list[tuple[ResolvedBlock, BlockRef, SnapResult]] = []
     for block in evidence:
-        if block.block_id == cited_block_id:
+        if block == cited:
             continue
         resolved = resolver.resolve(block)
         if resolved is None:
@@ -124,30 +125,30 @@ def _reanchor(
             matches.append((resolved, block, snap))
 
     if len(matches) != 1:
-        return _discarded(cited_block_id)
+        return _discarded(str(cited))
     resolved, block, snap = matches[0]
-    return _repaired(CitationVerdict.REPAIRED_ANCHOR, block.block_id, resolved, snap)
+    return _repaired(CitationVerdict.REPAIRED_ANCHOR, block, resolved, snap)
 
 
 def _repaired(
     verdict: CitationVerdict,
-    block_id: str,
+    block: BlockRef,
     resolved: ResolvedBlock,
     snap: SnapResult,
 ) -> CitationResult:
     """Build a repaired result carrying the real corpus text and snap similarity."""
     return CitationResult(
         verdict=verdict,
-        block_id=block_id,
+        block_ref=str(block),
         text=snap.text,
         anchor=resolved.anchor,
         snap_similarity=snap.similarity,
     )
 
 
-def _discarded(block_id: str) -> CitationResult:
+def _discarded(block_ref: str) -> CitationResult:
     """Build a discarded result: no anchor, nothing to show."""
-    return CitationResult(verdict=CitationVerdict.DISCARDED, block_id=block_id, text="")
+    return CitationResult(verdict=CitationVerdict.DISCARDED, block_ref=block_ref, text="")
 
 
 def _render(segments: list[str]) -> str:
@@ -166,13 +167,12 @@ class _BlockResolver:
     def __init__(self, corpus: CorpusReader, target_date: date) -> None:
         self._corpus = corpus
         self._target_date = target_date
-        self._cache: dict[tuple[str, str], ResolvedBlock | None] = {}
+        self._cache: dict[BlockRef, ResolvedBlock | None] = {}
 
-    def resolve(self, block: EvidenceBlock) -> ResolvedBlock | None:
+    def resolve(self, block: BlockRef) -> ResolvedBlock | None:
         """Return the block's point-in-time redaction and anchor, memoized."""
-        key = (block.norm_id, block.block_id)
-        if key not in self._cache:
-            self._cache[key] = self._corpus.resolve_block(
+        if block not in self._cache:
+            self._cache[block] = self._corpus.resolve_block(
                 block.norm_id, block.block_id, self._target_date
             )
-        return self._cache[key]
+        return self._cache[block]
