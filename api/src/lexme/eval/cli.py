@@ -1,11 +1,13 @@
-"""``eval`` command: run the Mode 1 regression harness or compare two runs.
+"""``eval`` command: run the Mode 1 regression harness, compare runs or calibrate the judge.
 
 ``eval run`` drives a case set end-to-end through the real system -- the same
 image the API serves -- stamps the run with its configuration fingerprint, applies
 the citation guardrail and writes a versionable artifact, exiting non-zero if any
 citation broke the literality invariant. ``eval compare`` reads two artifacts and
-reports the per-metric delta. The harness uses a real model; tests inject the
-runner, corpus and fingerprint to exercise it without the network.
+reports the per-metric delta. ``eval calibrate`` draws the judge's own rulings out
+of a run for a human to confirm and records the reviewed labels the agreement is
+derived from. The harness uses a real model; tests inject the runner, corpus and
+fingerprint to exercise it without the network.
 """
 
 import argparse
@@ -22,6 +24,7 @@ import psycopg
 from langgraph.checkpoint.memory import InMemorySaver
 from pgvector.psycopg import register_vector
 
+from lexme.blocks import BlockRef
 from lexme.checklist import checklist_path, load_checklist
 from lexme.config import Settings, get_settings
 from lexme.eval.artifact import RunArtifact, read_artifact
@@ -47,6 +50,15 @@ from lexme.eval.mode2 import (
     load_mode2_cases,
     run_mode2_suite,
 )
+from lexme.eval.review import (
+    ReviewSample,
+    build_sample,
+    calibration_from_review,
+    parse_disagreements,
+    read_sample,
+    render_sheet,
+    with_article_texts,
+)
 from lexme.eval.runner import CaseRunner, Mode1CaseRunner, run_suite
 from lexme.ingestion.embeddings import TeiEmbedder
 from lexme.ingestion.repository import get_corpus_digest
@@ -63,6 +75,11 @@ MODE2 = "modo2"
 DEFAULT_SUITE = MODE1
 DISAMBIGUATION_FILENAME = "disambiguation.json"
 MODE2_CASES_DIRNAME = "refset"
+CALIBRATE_EXPORT = "export"
+CALIBRATE_BUILD = "build"
+DEFAULT_SAMPLE_SIZE = 50
+DEFAULT_SAMPLE_SEED = 0
+REVIEW_SUFFIX = "-judge-review"
 
 
 @dataclass(frozen=True)
@@ -109,6 +126,8 @@ def main(
     args = _parse_args(argv)
     if args.command == "compare":
         return _do_compare(args)
+    if args.command == "calibrate":
+        return _do_calibrate(args, corpus=corpus, now=now)
     return _do_run(
         args, runner=runner, corpus=corpus, fingerprint=fingerprint, today=today, now=now
     )
@@ -217,6 +236,105 @@ def _do_compare(args: argparse.Namespace) -> int:
     comparison = compare(read_artifact(args.base), read_artifact(args.run))
     _report_comparison(comparison)
     return 0
+
+
+def _do_calibrate(
+    args: argparse.Namespace, *, corpus: CorpusReader | None, now: datetime | None
+) -> int:
+    """Draw the judge's rulings for review, or record the labels a review came back with."""
+    if args.calibration_command == CALIBRATE_EXPORT:
+        return _do_calibrate_export(args, corpus=corpus)
+    return _do_calibrate_build(args, now=now)
+
+
+def _do_calibrate_export(args: argparse.Namespace, *, corpus: CorpusReader | None) -> int:
+    """Draw a seeded sample of a run's judge rulings and write it with its review sheet.
+
+    Each ruling is rendered with the article it hangs on, resolved at the case's own
+    point-in-time date so the reviewer reads the redaction the case was judged
+    under. ``corpus`` defaults to the ingested corpus; tests inject it.
+    """
+    settings = get_settings()
+    run_path = _runs_path(args.run, settings)
+    artifact = read_artifact(run_path)
+    cases = load_cases(_cases_path(args, settings, DEFAULT_SUITE))
+    sample = build_sample(artifact, cases, args.size, args.seed, run=run_path.name)
+
+    with ExitStack() as stack:
+        if corpus is None:
+            corpus = PsycopgCorpusReader(_open_connection(stack, settings.database_url))
+        sample = with_article_texts(
+            sample, _resolve_articles(sample, cases, corpus, artifact.created_at.date())
+        )
+
+    sample_path = args.out or _review_path(run_path, settings, ".json")
+    sheet_path = args.sheet or _review_path(run_path, settings, ".md")
+    sample.write(sample_path)
+    sheet_path.parent.mkdir(parents=True, exist_ok=True)
+    sheet_path.write_text(render_sheet(sample), encoding="utf-8")
+    logger.info(
+        "drew %d of %d judge rulings (seed %d) from %s",
+        sample.size,
+        sample.population,
+        sample.seed,
+        args.run.name,
+    )
+    logger.info("review sheet written to %s; sample to %s", sheet_path, sample_path)
+    return 0
+
+
+def _do_calibrate_build(args: argparse.Namespace, *, now: datetime | None) -> int:
+    """Record a reviewed sample as the calibration record the harness publishes.
+
+    ``--stamp`` also writes the agreement onto a run artifact, so the run whose own
+    rulings were reviewed publishes the number rather than waiting for the next one.
+    """
+    settings = get_settings()
+    sample = read_sample(_runs_path(args.sample, settings))
+    disagreed = parse_disagreements(args.disagree)
+    calibration = calibration_from_review(
+        sample, disagreed, args.reviewed_by, now or datetime.now(UTC)
+    )
+    out_path = args.out or _calibration_path(args, settings)
+    calibration.write(out_path)
+    if args.stamp is not None:
+        stamped = _runs_path(args.stamp, settings)
+        artifact = read_artifact(stamped)
+        artifact.model_copy(update={"judge_calibration": calibration}).write(stamped)
+        logger.info("stamped the agreement onto %s", stamped)
+    logger.info(
+        "judge '%s' agrees with the reviewer on %s of %d rulings (%d disagreements) -> %s",
+        calibration.judge_model,
+        f"{calibration.agreement:.2f}" if calibration.agreement is not None else "n/a",
+        calibration.sample_size,
+        len(disagreed),
+        out_path,
+    )
+    return 0
+
+
+def _resolve_articles(
+    sample: ReviewSample,
+    cases: Sequence[EvalCase],
+    corpus: CorpusReader,
+    default_date: date,
+) -> dict[tuple[str, str], str]:
+    """The in-force text of every article a ruling hangs on, keyed by case and reference."""
+    dates = {case.id: case.target_date or default_date for case in cases}
+    texts: dict[tuple[str, str], str] = {}
+    for ruling in sample.rulings:
+        key = (ruling.case_id, ruling.article_ref or "")
+        if not ruling.article_ref or key in texts:
+            continue
+        block = BlockRef.parse(ruling.article_ref)
+        if block is None:
+            continue
+        resolved = corpus.resolve_block(
+            block.norm_id, block.block_id, dates.get(ruling.case_id, default_date)
+        )
+        if resolved is not None:
+            texts[key] = resolved.text
+    return texts
 
 
 def _build_real_harness(
@@ -332,6 +450,18 @@ def _calibration_path(args: argparse.Namespace, settings: Settings) -> Path:
     return Path(settings.verticals_dir) / args.vertical / "eval" / CALIBRATION_FILENAME
 
 
+def _review_path(run_path: Path, settings: Settings, suffix: str) -> Path:
+    """The default destination for a run's review sample, beside the run it came from."""
+    return Path(settings.eval_runs_dir) / f"{run_path.stem}{REVIEW_SUFFIX}{suffix}"
+
+
+def _runs_path(path: Path, settings: Settings) -> Path:
+    """Read an artifact path, taking a bare file name as one of the runs directory."""
+    if path.parent == Path("."):
+        return Path(settings.eval_runs_dir) / path
+    return path
+
+
 def _out_path(
     args: argparse.Namespace, settings: Settings, suite: str, created_at: datetime
 ) -> Path:
@@ -363,7 +493,59 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     comparison.add_argument("--base", type=Path, required=True, help="baseline artifact path")
     comparison.add_argument("--run", type=Path, required=True, help="run artifact path")
 
+    _add_calibrate_parser(sub)
+
     return parser.parse_args(argv)
+
+
+def _add_calibrate_parser(sub: argparse._SubParsersAction) -> None:
+    """Register ``calibrate export`` and ``calibrate build`` and their options."""
+    calibrate = sub.add_parser("calibrate", help="draw and record the judge's human calibration")
+    calibrate_sub = calibrate.add_subparsers(dest="calibration_command", required=True)
+
+    export = calibrate_sub.add_parser(
+        CALIBRATE_EXPORT, help="draw a sample of a run's judge rulings for human review"
+    )
+    export.add_argument("--vertical", required=True, help="the vertical the run belongs to")
+    export.add_argument(
+        "--run",
+        type=Path,
+        required=True,
+        help="run artifact to draw rulings from; a bare name is read from the runs directory",
+    )
+    export.add_argument("--cases", type=Path, help="path to a case file or directory of cases")
+    export.add_argument(
+        "--size",
+        type=int,
+        default=DEFAULT_SAMPLE_SIZE,
+        help=f"rulings to draw (default: {DEFAULT_SAMPLE_SIZE})",
+    )
+    export.add_argument(
+        "--seed",
+        type=int,
+        default=DEFAULT_SAMPLE_SEED,
+        help=f"seed the draw is reproducible from (default: {DEFAULT_SAMPLE_SEED})",
+    )
+    export.add_argument("--out", type=Path, help="sample destination path")
+    export.add_argument("--sheet", type=Path, help="review sheet destination path")
+
+    build = calibrate_sub.add_parser(
+        CALIBRATE_BUILD, help="record a reviewed sample as the vertical's calibration"
+    )
+    build.add_argument("--vertical", required=True, help="the vertical the calibration is for")
+    build.add_argument("--sample", type=Path, required=True, help="the drawn sample reviewed")
+    build.add_argument("--reviewed-by", required=True, help="who reviewed the sample")
+    build.add_argument(
+        "--disagree",
+        required=True,
+        help="comma-separated numbers of the rulings the reviewer disagreed with, or 'none'",
+    )
+    build.add_argument("--out", type=Path, help="calibration record destination path")
+    build.add_argument(
+        "--stamp",
+        type=Path,
+        help="run artifact to publish the agreement on, usually the one reviewed",
+    )
 
 
 def _report_run(artifact: RunArtifact, out_path: Path) -> None:

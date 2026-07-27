@@ -102,6 +102,118 @@ def test_the_judge_skips_a_case_that_did_not_answer() -> None:
     assert llm.calls == []
 
 
+def _judged(verdict: JudgeVerdict) -> JudgeVerdict | None:
+    """Run ``verdict`` back through the judge, as the model had returned it."""
+    llm = FakeLlmClient({JUDGE_TASK: [verdict]})
+    corpus = InMemoryCorpus({(NORM_ID, "a36"): ARTICLE_TEXT})
+    response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
+    return LlmJudge(llm=llm, corpus=corpus).judge(_case(), response, AS_OF)
+
+
+def _ruling_on(block_ref: str) -> JudgeVerdict:
+    """A verdict whose two rulings both name ``block_ref`` as the model wrote it."""
+    return JudgeVerdict(
+        key_points=[KeyPointCoverage(block_ref=block_ref, covered=True, evidence="e")],
+        claims=[ClaimAssessment(claim="c", supported=True, supporting_block_ref=block_ref)],
+        clarity=4,
+    )
+
+
+def test_a_reference_the_judge_wrapped_in_brackets_is_read_as_the_block_it_names() -> None:
+    verdict = _judged(_ruling_on(f"[{REF_A36}]"))
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == REF_A36
+    assert verdict.claims[0].supporting_block_ref == REF_A36
+
+
+def test_a_reference_the_judge_echoed_with_its_claim_is_read_as_the_block_it_names() -> None:
+    verdict = _judged(_ruling_on(f"[{REF_A36}] la fianza es una mensualidad"))
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == REF_A36
+
+
+def test_a_bare_block_id_is_qualified_with_the_norm_the_case_names() -> None:
+    verdict = _judged(_ruling_on("a36"))
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == REF_A36
+    assert verdict.claims[0].supporting_block_ref == REF_A36
+
+
+def test_a_reference_is_read_as_the_longest_block_it_names_not_a_prefix_of_it() -> None:
+    long_ref = f"{NORM_ID}:a90"
+    case = EvalCase(
+        id="prefix",
+        question="q",
+        gold_block_refs=(f"{NORM_ID}:a9", long_ref),
+        key_points=(
+            KeyPoint(claim="nueve", block_ref=f"{NORM_ID}:a9"),
+            KeyPoint(claim="noventa", block_ref=long_ref),
+        ),
+    )
+    llm = FakeLlmClient({JUDGE_TASK: [_ruling_on(f"[{long_ref}]")]})
+    corpus = InMemoryCorpus({(NORM_ID, "a36"): ARTICLE_TEXT})
+    response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
+
+    verdict = LlmJudge(llm=llm, corpus=corpus).judge(case, response, AS_OF)
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == long_ref
+    assert verdict.claims[0].supporting_block_ref == long_ref
+
+
+def test_a_bracketed_bare_block_id_is_qualified_like_a_naked_one() -> None:
+    verdict = _judged(_ruling_on("[a36]"))
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == REF_A36
+
+
+def test_a_bare_block_id_two_norms_share_is_left_unresolved() -> None:
+    other_norm = "BOE-A-2023-12203"
+    case = EvalCase(
+        id="ambiguous",
+        question="q",
+        gold_block_refs=(REF_A36, f"{other_norm}:a36"),
+        key_points=(
+            KeyPoint(claim="uno", block_ref=REF_A36),
+            KeyPoint(claim="otro", block_ref=f"{other_norm}:a36"),
+        ),
+    )
+    llm = FakeLlmClient({JUDGE_TASK: [_ruling_on("a36")]})
+    corpus = InMemoryCorpus({(NORM_ID, "a36"): ARTICLE_TEXT})
+    response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
+
+    verdict = LlmJudge(llm=llm, corpus=corpus).judge(case, response, AS_OF)
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == "a36"
+    assert verdict.claims[0].supporting_block_ref is None
+
+
+def test_a_reference_to_a_block_the_case_never_named_is_not_invented_away() -> None:
+    verdict = _judged(_ruling_on(f"{NORM_ID}:a99"))
+
+    assert verdict is not None
+    assert verdict.key_points[0].block_ref == f"{NORM_ID}:a99"
+    assert verdict.claims[0].supporting_block_ref is None
+
+
+def test_an_unsupported_claim_keeps_no_backing_reference() -> None:
+    verdict = _judged(
+        JudgeVerdict(
+            key_points=[KeyPointCoverage(block_ref=REF_A36, covered=True, evidence="e")],
+            claims=[ClaimAssessment(claim="c", supported=False)],
+            clarity=4,
+        )
+    )
+
+    assert verdict is not None
+    assert verdict.claims[0].supporting_block_ref is None
+
+
 def test_judge_metrics_are_completeness_hallucination_and_clarity() -> None:
     metrics = build_judge_metrics(_verdict())
 

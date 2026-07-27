@@ -68,6 +68,13 @@ re-check both providers' live daily limits, which change often (blueprint asset 
 caveats 1 and 2). Re-allocating a task to another provider is a one-line edit to
 `tasks.json`, no code change.
 
+The id in `tasks.json` is the whole pin the catalog offers: OpenRouter exposes no
+dated variant of a free model, so `openai/gpt-oss-20b:free` (canonical slug
+`openai/gpt-oss-20b`, 131k context) *is* the version, and the run's fingerprint
+records it beside the temperature. Check it against
+`https://openrouter.ai/api/v1/models` — an id that has left that catalog has to be
+replaced before the run, not after it fails.
+
 ## Judge calibration (one-time, human)
 
 The judged numbers are only trustworthy read next to a human-judge agreement.
@@ -78,11 +85,38 @@ judge as "not calibrated" rather than inventing a number.
 
 Workflow:
 
-1. Run the harness once and collect a sample (~50) of the judge's per-item rulings
-   (key-point coverage and per-claim support).
-2. A human reviews each ruling with the article in front of them and records the
-   human label beside the judge label.
-3. Save the reviewed sample as `judge-calibration.json`:
+1. Run the harness. Each run artifact keeps the verdicts the judge returned, not
+   just the averages they produced, so the sample is drawn from the same rulings the
+   published numbers came from.
+2. Draw the sample:
+
+   ```bash
+   make eval-calibrate-export RUN=modo1-<stamp>.json SIZE=50 SEED=0
+   ```
+
+   This writes `eval-runs/modo1-<stamp>-judge-review.json` (the sample, with its
+   population and seed) and `…-judge-review.md` (the sheet the reviewer reads). Each
+   ruling is numbered within the run's whole population and rendered with the article
+   it hangs on, resolved at the case's own point-in-time date.
+3. A human reads every ruling in the sheet with that article in front of them. The
+   review is by exception: only the numbers they disagree with are recorded, and
+   everything else counts as confirmed.
+4. Record the review:
+
+   ```bash
+   make eval-calibrate-build SAMPLE=modo1-<stamp>-judge-review.json \
+     RUN=modo1-<stamp>.json BY="<name>" DISAGREE="3,7,12"   # "none" if all confirmed
+   ```
+
+   The agreement is derived from the labels, never taken on trust, and a number that
+   is not in the sample fails loudly instead of quietly inflating it. `RUN` publishes
+   the agreement on the very run whose rulings were reviewed — the labels can only
+   exist after that run, so stamping it there is what keeps the number attached to
+   the rulings it was measured on.
+5. Every later run reads `judge-calibration.json` and publishes the same agreement
+   next to its judged metrics, until a change to the judge calls for a new pass.
+
+The record it writes:
 
 ```json
 {

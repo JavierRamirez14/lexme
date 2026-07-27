@@ -14,6 +14,7 @@ score; :func:`assert_judge_distinct_from_generator` enforces that at wiring time
 """
 
 import logging
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from typing import Protocol, runtime_checkable
@@ -33,6 +34,8 @@ JUDGE_TASK = "judge"
 
 MIN_CLARITY = 1
 MAX_CLARITY = 5
+
+_REF_WRAPPERS = "[] "
 
 
 class JudgeConfigError(ValueError):
@@ -121,7 +124,10 @@ _SYSTEM_PROMPT = (
     "(supporting_block_ref), o supported=false si ninguno la respalda.\n"
     "- clarity: un entero de 1 a 5 sobre lo clara que es en lenguaje llano.\n"
     "Juzga afirmación a afirmación: una afirmación jurídica sin artículo que la "
-    "respalde es 'supported=false', aunque suene razonable."
+    "respalde es 'supported=false', aunque suene razonable.\n"
+    "Cada referencia a un bloque ('block_ref', 'supporting_block_ref') se escribe "
+    "con el identificador exacto en formato 'norma:bloque', sin corchetes y sin "
+    "acompañarlo del texto del punto clave."
 )
 
 
@@ -156,10 +162,11 @@ class LlmJudge:
             Message("user", _render_prompt(case, response, cited)),
         ]
         try:
-            return self.llm.complete_structured(JUDGE_TASK, messages, JudgeVerdict)
+            verdict = self.llm.complete_structured(JUDGE_TASK, messages, JudgeVerdict)
         except StructuredOutputError as error:
             logger.warning("case '%s' left unjudged: %s", case.id, error)
             return None
+        return _anchor_verdict(verdict, [*case.gold_block_refs, *cited])
 
     def _cited_articles(self, response: AskResponse, target_date: date) -> dict[str, str]:
         """Resolve the full in-force text of each cited block, keyed by its reference."""
@@ -173,6 +180,69 @@ class LlmJudge:
             if resolved is not None:
                 texts[citation.block_ref] = resolved.text
         return texts
+
+
+def _anchor_verdict(verdict: JudgeVerdict, known_refs: Sequence[str]) -> JudgeVerdict:
+    """Resolve every reference the verdict names to one of the blocks it was shown.
+
+    Free-tier judges write the reference back loosely: bracketed, echoed together
+    with the key point's text, or as a bare article number. A ruling whose anchor
+    cannot be read points at nothing, so each one is matched against the closed set
+    of blocks the prompt actually carried. A claim whose backing cannot be resolved
+    keeps none, and a key point keeps whatever the judge wrote, so a judge naming a
+    block the case never mentioned stays visible instead of being tidied away.
+    """
+    key_points = [
+        point.model_copy(
+            update={"block_ref": _resolve_ref(point.block_ref, known_refs) or point.block_ref}
+        )
+        for point in verdict.key_points
+    ]
+    claims = [
+        claim.model_copy(
+            update={"supporting_block_ref": _resolve_ref(claim.supporting_block_ref, known_refs)}
+        )
+        for claim in verdict.claims
+    ]
+    return verdict.model_copy(update={"key_points": key_points, "claims": claims})
+
+
+def _resolve_ref(raw: str | None, known_refs: Sequence[str]) -> str | None:
+    """The known block reference ``raw`` names, or ``None`` when it names none.
+
+    A bare block id resolves only when a single known norm carries it: with several
+    norms in the corpus, guessing which "article 9" was meant is exactly the
+    ambiguity qualified references exist to prevent.
+    """
+    if not raw:
+        return None
+    known = list(dict.fromkeys(known_refs))
+    if raw in known:
+        return raw
+    quoted = _longest_quoted(raw, known)
+    if quoted is not None:
+        return quoted
+    by_block_id: dict[str, set[str]] = {}
+    for ref in known:
+        parsed = BlockRef.parse(ref)
+        if parsed is not None:
+            by_block_id.setdefault(parsed.block_id, set()).add(ref)
+    named = by_block_id.get(raw.strip(_REF_WRAPPERS), set())
+    if len(named) == 1:
+        return named.pop()
+    logger.warning("judge named a block outside the case's references: %r", raw[:80])
+    return None
+
+
+def _longest_quoted(raw: str, known: Sequence[str]) -> str | None:
+    """The one known reference quoted inside ``raw``, or ``None`` if that is ambiguous.
+
+    A reference that is a prefix of another quoted one is discarded: ``:a9`` is
+    inside ``:a90``, and dropping the anchor over that would lose a legible ruling.
+    """
+    quoted = [ref for ref in known if ref in raw]
+    maximal = [ref for ref in quoted if not any(ref != other and ref in other for other in quoted)]
+    return maximal[0] if len(maximal) == 1 else None
 
 
 def build_judge_metrics(verdict: JudgeVerdict) -> JudgeMetrics:

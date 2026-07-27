@@ -87,6 +87,9 @@ class CaseResult(BaseModel):
     ``disambiguation`` says whether the case answered directly, was resumed with
     the reply it pins, or stopped at a pause it brought no reply for; it is ``None``
     only in an artifact written before the harness measured that.
+    ``judge_verdict`` keeps the rulings ``judge`` was derived from, so the sample a
+    human calibrates against comes out of the versioned run rather than a re-judging
+    that would grade different answers.
 
     The two reference lists also read their pre-expansion names, so run artifacts
     written when a block was named by a bare id still load and can be compared
@@ -116,6 +119,7 @@ class CaseResult(BaseModel):
     retrieval: RetrievalRecall | None
     citation_verdicts: dict[str, int]
     judge: JudgeMetrics | None
+    judge_verdict: JudgeVerdict | None = None
     violations: list[GuardrailViolation]
 
 
@@ -195,6 +199,7 @@ def build_case_result(
         retrieval=_retrieval_recall(response, case.gold_block_refs),
         citation_verdicts=dict(response.citation_verdicts),
         judge=build_judge_metrics(verdict) if verdict is not None else None,
+        judge_verdict=verdict,
         violations=violations,
     )
 

@@ -69,7 +69,7 @@ configuration fingerprint, so results are reproducible and comparable across cha
 | --- | --- | --- |
 | **False-tranquility rate** | **0.0 (0 / 2)** | Genuinely 🔴/🟠 clauses the system let pass as reassuring (🟢 or silence), over the problematic clauses it correctly delimited. |
 | **Recall of 🔴/🟠 clauses** | **1.0 (2 / 2)** | Of the correctly delimited problematic clauses, how many it also flagged as problematic. |
-| **Citation literality** | **0 discarded** | Every displayed citation re-verifies character-for-character against the point-in-time corpus. A single unverifiable citation fails the whole run. |
+| **Citation literality** | **0 of 26 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
 
 ### Full results
 
@@ -78,7 +78,7 @@ hiding behind the other.
 
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | 0 discarded | invariant; run fails on any discard |
+| Citation literality (both modes) | 0 failed of 26 shown | invariant; a displayed citation that does not re-verify fails the run. A quote the verifier discards *before* display is that mechanism working, not a failure: this run discarded none |
 | Retrieval recall, first pass (Mode 1) | 0.97 | gold blocks recovered before the agentic loop, over a four-norm corpus |
 | Multi-hop recall (Mode 1) | 0.88 | 7 / 8 gold blocks across the 4 cases that need more than one norm |
 | Outcome match rate (Mode 1) | 0.90 | 19 / 21 cases reached the outcome they were written for |
@@ -100,6 +100,9 @@ Reports: Mode 1 →
 [`modo1-20260727T160707Z.json`](eval-runs/modo1-20260727T160707Z.json) (`d870d388…`),
 Mode 2 →
 [`modo2-20260726T184248Z.json`](eval-runs/modo2-20260726T184248Z.json) (`73c795db…`).
+The Mode 2 fingerprint is one corpus behind: those numbers were measured before the
+corpus grew from the LAU alone to four norms, and they stand until that suite is
+re-run against the current one.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
 regression.

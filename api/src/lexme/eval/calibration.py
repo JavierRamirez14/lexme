@@ -58,6 +58,11 @@ class JudgeCalibration(BaseModel):
     agreement: float | None
     items: list[CalibrationItem]
 
+    def write(self, path: Path) -> None:
+        """Serialize the record to ``path`` as indented JSON, creating parents."""
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(self.model_dump_json(indent=2), encoding="utf-8")
+
 
 def compute_agreement(items: list[CalibrationItem]) -> float | None:
     """Return the fraction of items where judge and human agreed, or ``None`` if empty."""
