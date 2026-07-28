@@ -12,6 +12,7 @@ REFSET_MODO2 = Path(__file__).resolve().parents[4] / "verticales" / "vivienda" /
 VALID = {
     "id": "contract-01",
     "document": "PRIMERA. Una cláusula ilegal de ejemplo con texto suficiente.",
+    "expected_outcome": "analizado",
     "clauses": [
         {
             "clause_id": "c1",
@@ -37,9 +38,26 @@ def test_a_valid_case_loads_its_clauses_and_absences(tmp_path: Path) -> None:
     (case,) = load_mode2_cases(_write(tmp_path, VALID))
 
     assert case.id == "contract-01"
+    assert case.expected_outcome == "analizado"
     assert case.clauses[0].expected_level.value == "ilegal"
     assert case.clauses[0].chk_ids == ("CHK-01",)
     assert case.expected_absences[0].item_id == "CHK-02"
+
+
+def test_a_missing_expected_outcome_is_rejected(tmp_path: Path) -> None:
+    payload = json.loads(json.dumps(VALID))
+    del payload["expected_outcome"]
+
+    with pytest.raises(Mode2CasesError, match="expected_outcome"):
+        load_mode2_cases(_write(tmp_path, payload))
+
+
+def test_an_empty_expected_outcome_is_rejected(tmp_path: Path) -> None:
+    payload = json.loads(json.dumps(VALID))
+    payload["expected_outcome"] = ""
+
+    with pytest.raises(Mode2CasesError, match="expected_outcome"):
+        load_mode2_cases(_write(tmp_path, payload))
 
 
 def test_the_materialized_reference_set_loads(tmp_path: Path) -> None:

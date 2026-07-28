@@ -67,8 +67,9 @@ configuration fingerprint, so results are reproducible and comparable across cha
 
 | Result | Value | What it means |
 | --- | --- | --- |
-| **False-tranquility rate** | **0.0 (0 / 2)** | Genuinely 🔴/🟠 clauses the system let pass as reassuring (🟢 or silence), over the problematic clauses it correctly delimited. |
-| **Recall of 🔴/🟠 clauses** | **1.0 (2 / 2)** | Of the correctly delimited problematic clauses, how many it also flagged as problematic. |
+| **Recall of 🔴/🟠 clauses, end to end** | **0.29 (2 / 7)** | Of every genuinely problematic clause in the reference set — delimited or not — how many the system actually surfaced to a reader. This is the number a tenant experiences; the 1.0 below is a diagnostic, not the headline. |
+| **False-tranquility rate, end to end** | **0.0 (0 / 7)** | Genuinely 🔴/🟠 clauses the system called reassuring (🟢), over every problematic clause that exists. 0 here does not mean nothing was missed — see `not_reported` below. |
+| **Recall of 🔴/🟠 clauses, conditioned on segmentation** | **1.0 (2 / 2)** | Of only the problematic clauses the segmentation layer correctly delimited, how many it also flagged as problematic — isolates a classification failure from a segmentation one. The other 5 problematic clauses were never delimited at all, so they don't reach this number's denominator. |
 | **Citation literality** | **0 of 30 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
 | **Judge–reviewer agreement** | **0.94 (47 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a stronger *model*, not a human — see the caveat under the judge's numbers. |
 
@@ -86,8 +87,12 @@ hiding behind the other.
 | Disambiguation (Mode 1) | 0.52 | 11 / 21 cases the gate stopped; all 11 resumed, 0 left stranded |
 | Judge completeness · unsupported claims (Mode 1) | 0.75 · 0.06 | 13 judged cases, against human-reviewed key points |
 | Judge–reviewer agreement (Mode 1) | 0.94 | 47 / 50 rulings, sampled with seed 20 from the run's 92, reviewed by a model |
-| Recall 🔴/🟠 (Mode 2) | 1.00 | 2 / 2 correctly delimited problematic clauses |
-| False-tranquility rate (Mode 2) | 0.00 | 0 / 2 real 🔴/🟠 passed off as reassuring |
+| Outcome match rate (Mode 2) | 0.67 | 2 / 3 contracts reached the outcome their case declared |
+| Recall 🔴/🟠, end to end (Mode 2) | 0.29 | 2 / 7 problematic clauses in the reference set, delimited or not — the headline |
+| False-tranquility rate, end to end (Mode 2) | 0.00 | 0 / 7 real 🔴/🟠 called reassuring; 5 / 7 were never delimited at all (`not_reported`, below) |
+| Recall 🔴/🟠, conditioned on segmentation (Mode 2) | 1.00 | 2 / 2 correctly delimited problematic clauses — diagnostic only |
+| False-tranquility rate, conditioned on segmentation (Mode 2) | 0.00 | 0 / 2 real 🔴/🟠 passed off as reassuring, over the delimited ones |
+| Not reported (Mode 2) | 5 | problematic clauses the segmentation layer never delimited, so never shown to a reader as anything |
 | Flag precision · abstention (Mode 2) | 0.67 · 0.00 | 2 / 3 flags correct · 0 / 10 clauses abstained |
 | Segmentation IoU ≥ 0.80 (Mode 2) | 0.625 | 10 / 16 clauses delimited |
 | Absence ⚪ recall · precision (Mode 2) | 0.68 · 1.00 | 30 / 44 omitted rights surfaced · 0 false ones |
@@ -101,17 +106,28 @@ of cases actually measured end to end is never left ambiguous.
 Reports: Mode 1 →
 [`modo1-20260728T074601Z.json`](eval-runs/modo1-20260728T074601Z.json) (`d870d388…`),
 Mode 2 →
-[`modo2-20260728T083753Z.json`](eval-runs/modo2-20260728T083753Z.json) (`ee478eef…`).
+[`modo2-20260728T103544Z.json`](eval-runs/modo2-20260728T103544Z.json) (`80e86774…`).
 Both were measured against the same four-norm corpus the repo builds today; every
 number on this page comes from one of those two artifacts.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
-regression.
+regression — this Mode 2 run's fingerprint changed from the prior one because the case
+files now declare the outcome they expect, which the fingerprint folds in.
 
 The reference set is deliberately small and fully human-reviewed (21 Mode 1 cases, of
 which 4 are multi-hop — their gold blocks live in more than one norm — and 3 synthetic
-Mode 2 contracts, one of which the temporal gate correctly rejects as out-of-scope),
-which is why every denominator is shown rather than rounded away.
+Mode 2 contracts, each declaring in its own `expected_outcome` the result it was built
+to reach, checked against it rather than assumed). Every denominator is shown rather
+than rounded away — including the one that used to disappear: `contrato-abusivo-01` is
+an ordinary permanent lease by construction and its clauses are reviewed against that
+reading, but the scope gate wrongly rejects it as an out-of-scope use — most likely
+misreading its own illegal fixed 11-month, no-renewal clause as a seasonal let. Before
+this change that miss broke nothing and appeared in no metric: the case declared no
+expected outcome, so the rejection was invisible, and every one of its 5 problematic
+clauses fell out of both the numerator and the denominator of the headline recall —
+which is how `1.00 (2/2)` and `0.29 (2/7)` can describe the same run. Now it shows up twice: `outcome_match_rate` drops to `0.67 (2/3)`, and it is why 5 of
+the run's 7 problematic reference clauses sit in `not_reported_problematic` instead of
+being recalled.
 
 **The agentic self-critique loop's recall delta is 0.00, and I am publishing it flat.**
 The loop only earns something when the first retrieval pass misses; on this corpus it

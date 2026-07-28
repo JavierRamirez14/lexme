@@ -48,11 +48,13 @@ def case_of(
     absences: tuple[str, ...] = (),
     document: str = "d",
     case_id: str = "case",
+    expected_outcome: str = "analizado",
 ) -> Mode2EvalCase:
     """A reference case from clauses and the item ids it deliberately omits."""
     return Mode2EvalCase(
         id=case_id,
         document=document,
+        expected_outcome=expected_outcome,
         clauses=clauses,
         expected_absences=tuple(AbsenceTruth(item_id=item, right=item) for item in absences),
     )

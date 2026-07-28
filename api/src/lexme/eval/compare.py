@@ -10,6 +10,7 @@ and reading it as a regression is the mistake the fingerprint exists to prevent.
 from pydantic import BaseModel
 
 from lexme.eval.artifact import RunArtifact
+from lexme.eval.mode2.artifact import Mode2RunArtifact
 
 MEAN_RECALL = "mean_recall"
 MEAN_FIRST_PASS_RECALL = "mean_first_pass_recall"
@@ -23,6 +24,15 @@ JUDGE_COMPLETENESS = "judge.completeness"
 JUDGE_UNSUPPORTED_CLAIM_RATE = "judge.unsupported_claim_rate"
 JUDGE_MEAN_CLARITY = "judge.mean_clarity"
 CASES = "cases"
+
+RECALL_PROBLEMATIC = "recall_problematic"
+FALSE_TRANQUILITY_RATE = "false_tranquility_rate"
+RECALL_PROBLEMATIC_E2E = "recall_problematic_e2e"
+FALSE_TRANQUILITY_RATE_E2E = "false_tranquility_rate_e2e"
+PRECISION_PROBLEMATIC = "precision_problematic"
+SEGMENTATION_DELIMITED_RATE = "segmentation_delimited_rate"
+ABSENCE_RECALL = "absence_recall"
+ABSENCE_PRECISION = "absence_precision"
 
 
 class MetricDelta(BaseModel):
@@ -89,6 +99,60 @@ def compare(base: RunArtifact, run: RunArtifact) -> Comparison:
     ]
     deltas.extend(_judge_deltas(base, run))
     deltas.extend(_verdict_deltas(base, run))
+    return Comparison(
+        fingerprint_changed=base.fingerprint.fingerprint != run.fingerprint.fingerprint,
+        base_fingerprint=base.fingerprint.fingerprint,
+        run_fingerprint=run.fingerprint.fingerprint,
+        deltas=deltas,
+    )
+
+
+def compare_mode2(base: Mode2RunArtifact, run: Mode2RunArtifact) -> Comparison:
+    """Compare a Mode 2 ``run`` against ``base``, returning the per-metric deltas.
+
+    Covers both the conditioned-on-segmentation numbers and their end-to-end
+    counterparts, so a schema-change comparison shows the same denominator shift the
+    fingerprint flags. As with Mode 1, the fingerprint comparison frames the rest.
+    """
+    deltas = [
+        _scalar_delta(CASES, base.metrics.cases, run.metrics.cases),
+        _scalar_delta(
+            OUTCOME_MATCH_RATE, base.metrics.outcome_match_rate, run.metrics.outcome_match_rate
+        ),
+        _scalar_delta(
+            RECALL_PROBLEMATIC, base.metrics.recall_problematic, run.metrics.recall_problematic
+        ),
+        _scalar_delta(
+            FALSE_TRANQUILITY_RATE,
+            base.metrics.false_tranquility_rate,
+            run.metrics.false_tranquility_rate,
+        ),
+        _scalar_delta(
+            RECALL_PROBLEMATIC_E2E,
+            base.metrics.recall_problematic_e2e,
+            run.metrics.recall_problematic_e2e,
+        ),
+        _scalar_delta(
+            FALSE_TRANQUILITY_RATE_E2E,
+            base.metrics.false_tranquility_rate_e2e,
+            run.metrics.false_tranquility_rate_e2e,
+        ),
+        _scalar_delta(
+            PRECISION_PROBLEMATIC,
+            base.metrics.precision_problematic,
+            run.metrics.precision_problematic,
+        ),
+        _scalar_delta(ABSTENTION_RATE, base.metrics.abstention_rate, run.metrics.abstention_rate),
+        _scalar_delta(
+            SEGMENTATION_DELIMITED_RATE,
+            base.metrics.segmentation_delimited_rate,
+            run.metrics.segmentation_delimited_rate,
+        ),
+        _scalar_delta(ABSENCE_RECALL, base.metrics.absence_recall, run.metrics.absence_recall),
+        _scalar_delta(
+            ABSENCE_PRECISION, base.metrics.absence_precision, run.metrics.absence_precision
+        ),
+    ]
     return Comparison(
         fingerprint_changed=base.fingerprint.fingerprint != run.fingerprint.fingerprint,
         base_fingerprint=base.fingerprint.fingerprint,

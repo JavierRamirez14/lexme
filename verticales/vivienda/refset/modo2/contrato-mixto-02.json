@@ -1,6 +1,7 @@
 {
   "id": "contrato-mixto-02",
   "document": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA HABITUAL\n\nDURACIÓN\nEl contrato se pacta por un año, prorrogable obligatoriamente por anualidades hasta alcanzar una duración mínima de cinco años a voluntad del arrendatario, conforme a la legislación de arrendamientos urbanos.\n\nACTUALIZACIÓN DE RENTA\nLa renta se actualizará anualmente con un incremento fijo del diez por ciento sobre la renta del año anterior, con independencia de la evolución de cualquier índice oficial.\n\nDESISTIMIENTO\nEn caso de que el arrendatario abandone la vivienda antes de finalizar el contrato, cualquiera que sea el momento, deberá abonar como indemnización la totalidad de las rentas pendientes hasta la fecha de vencimiento.\n\nFIANZA\nEn cumplimiento de la ley, el arrendatario entrega una mensualidad de renta en concepto de fianza legal, que será devuelta al término del contrato una vez comprobado el estado de la vivienda.\n\nSEGURO\nEl arrendatario se obliga a contratar y mantener a su cargo, durante toda la vigencia del contrato, un seguro de hogar que cubra continente y responsabilidad civil.\n\n",
+  "expected_outcome": "analizado",
   "clauses": [
     {
       "clause_id": "contrato-mixto-02-c1",

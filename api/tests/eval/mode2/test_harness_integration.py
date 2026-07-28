@@ -92,6 +92,7 @@ def _case() -> Mode2EvalCase:
     return Mode2EvalCase(
         id="contract-01",
         document=DOCUMENT,
+        expected_outcome="analizado",
         clauses=(
             ClauseTruth(
                 clause_id="c1",

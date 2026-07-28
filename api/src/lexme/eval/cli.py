@@ -12,6 +12,7 @@ fingerprint to exercise it without the network.
 
 import argparse
 import contextlib
+import json
 import logging
 import sys
 from collections.abc import Sequence
@@ -36,7 +37,7 @@ from lexme.eval.calibration import (
     load_calibration,
 )
 from lexme.eval.cases import EvalCase, load_cases, reject_unknown_branches
-from lexme.eval.compare import Comparison, compare
+from lexme.eval.compare import Comparison, compare, compare_mode2
 from lexme.eval.fingerprint import (
     ConfigFingerprint,
     build_fingerprint,
@@ -54,6 +55,7 @@ from lexme.eval.mode2 import (
     Mode2RunArtifact,
     PipelineMode2CaseRunner,
     load_mode2_cases,
+    read_mode2_artifact,
     run_mode2_suite,
 )
 from lexme.eval.review import (
@@ -238,10 +240,35 @@ def _do_run_mode2(
 
 
 def _do_compare(args: argparse.Namespace) -> int:
-    """Compare a run against a baseline artifact and report the deltas."""
-    comparison = compare(read_artifact(args.base), read_artifact(args.run))
+    """Compare a run against a baseline artifact and report the deltas.
+
+    Dispatches on which suite each artifact belongs to -- Mode 2's metrics schema
+    is not Mode 1's, so each side is read with its own model. Comparing a Mode 1
+    artifact against a Mode 2 one is refused rather than silently misread.
+    """
+    base_is_mode2 = _is_mode2_artifact(args.base)
+    run_is_mode2 = _is_mode2_artifact(args.run)
+    if base_is_mode2 != run_is_mode2:
+        raise ValueError(
+            f"cannot compare a Mode 1 artifact against a Mode 2 one: "
+            f"base={args.base} (mode2={base_is_mode2}) run={args.run} (mode2={run_is_mode2})"
+        )
+    if base_is_mode2:
+        comparison = compare_mode2(read_mode2_artifact(args.base), read_mode2_artifact(args.run))
+    else:
+        comparison = compare(read_artifact(args.base), read_artifact(args.run))
     _report_comparison(comparison)
     return 0
+
+
+def _is_mode2_artifact(path: Path) -> bool:
+    """Whether the artifact at ``path`` is a Mode 2 run, read without full validation.
+
+    Peeks at the raw JSON for a field only :class:`Mode2SuiteMetrics` carries, so
+    dispatch does not depend on the ``suite`` name a run happened to be given.
+    """
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return "problematic_total" in raw.get("metrics", {})
 
 
 def _do_calibrate(
@@ -647,15 +674,32 @@ def _report_mode2_run(artifact: Mode2RunArtifact, out_path: Path) -> None:
     """Log the Mode 2 headline numbers, their diagnostics and any hard failures."""
     metrics = artifact.metrics
     logger.info("eval '%s' fingerprint %s", artifact.suite, artifact.fingerprint.fingerprint)
-    logger.info("cases=%d outcomes=%s", metrics.cases, metrics.outcomes)
     logger.info(
-        "recall_problematic=%s (%d/%d) | false_tranquility_rate=%s (%d/%d)",
+        "cases=%d outcomes=%s outcome_match_rate=%s",
+        metrics.cases,
+        metrics.outcomes,
+        metrics.outcome_match_rate,
+    )
+    logger.info(
+        "recall_problematic=%s (%d/%d) | false_tranquility_rate=%s (%d/%d) "
+        "[conditioned on segmentation]",
         metrics.recall_problematic,
         metrics.problematic_detected,
         metrics.problematic_total,
         metrics.false_tranquility_rate,
         metrics.false_tranquility_events,
         metrics.problematic_total,
+    )
+    logger.info(
+        "recall_problematic_e2e=%s (%d/%d) | false_tranquility_rate_e2e=%s (%d/%d) | "
+        "not_reported_problematic=%d [end to end, every reference clause]",
+        metrics.recall_problematic_e2e,
+        metrics.problematic_detected_e2e,
+        metrics.problematic_total_e2e,
+        metrics.false_tranquility_rate_e2e,
+        metrics.false_tranquility_events_e2e,
+        metrics.problematic_total_e2e,
+        metrics.not_reported_problematic,
     )
     logger.info(
         "precision_problematic=%s (%d/%d) | abstention_rate=%s (%d/%d)",

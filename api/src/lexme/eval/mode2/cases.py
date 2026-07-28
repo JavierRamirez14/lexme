@@ -62,10 +62,16 @@ class Mode2EvalCase:
     ``document`` is the assembled contract text the clause spans index into;
     ``clauses`` carry the per-clause level and boundaries; ``expected_absences`` are
     the checklist items no clause covers, the whites the cross-check must surface.
+    ``expected_outcome`` is the analysis outcome the case was written to reach --
+    ``"analizado"`` or the compound ``"<outcome>:<rejection_reason>"`` a gate stop
+    produces -- and is never inferred: a case that does not declare it is rejected
+    at load time, so a contract that is silently rejected can never disappear from
+    the outcome-match denominator the way it used to.
     """
 
     id: str
     document: str
+    expected_outcome: str
     clauses: tuple[ClauseTruth, ...] = ()
     expected_absences: tuple[AbsenceTruth, ...] = ()
 
@@ -113,9 +119,14 @@ def _read_case(file: Path) -> Mode2EvalCase:
     if not isinstance(document, str) or not document.strip():
         raise Mode2CasesError(f"case {file} missing a non-empty 'document'")
 
+    expected_outcome = raw.get("expected_outcome")
+    if not isinstance(expected_outcome, str) or not expected_outcome:
+        raise Mode2CasesError(f"case {file} missing a non-empty 'expected_outcome'")
+
     return Mode2EvalCase(
         id=case_id,
         document=document,
+        expected_outcome=expected_outcome,
         clauses=_read_clauses(raw, file, document),
         expected_absences=_read_absences(raw, file),
     )

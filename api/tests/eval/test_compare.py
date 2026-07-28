@@ -5,9 +5,11 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from lexme.eval.artifact import RunArtifact, build_artifact, read_artifact
-from lexme.eval.compare import compare
+from lexme.eval.compare import compare, compare_mode2
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.metrics import SuiteMetrics
+from lexme.eval.mode2.artifact import Mode2RunArtifact, build_mode2_artifact, read_mode2_artifact
+from lexme.eval.mode2.metrics import Mode2SuiteMetrics
 
 NOW = datetime(2026, 7, 25, tzinfo=UTC)
 
@@ -121,3 +123,105 @@ def test_verdict_counts_are_compared_per_verdict() -> None:
     comparison = compare(base, run)
 
     assert _delta(comparison, "citation_verdicts.verificada_directa").delta == 0
+
+
+def _mode2_metrics(**overrides: object) -> Mode2SuiteMetrics:
+    """A Mode 2 suite metrics object with every field filled, for a test to override."""
+    base = dict(
+        cases=1,
+        outcomes={"analizado": 1},
+        outcome_match_rate=1.0,
+        reference_clauses=2,
+        delimited_clauses=2,
+        segmentation_delimited_rate=1.0,
+        matched_clauses=2,
+        confusion={},
+        problematic_total=1,
+        problematic_detected=1,
+        recall_problematic=1.0,
+        false_tranquility_events=0,
+        false_tranquility_rate=0.0,
+        flagged_problematic=1,
+        flagged_true_positive=1,
+        precision_problematic=1.0,
+        abstention_clauses=0,
+        abstention_rate=0.0,
+        problematic_total_e2e=1,
+        problematic_detected_e2e=1,
+        recall_problematic_e2e=1.0,
+        false_tranquility_events_e2e=0,
+        false_tranquility_rate_e2e=0.0,
+        not_reported_problematic=0,
+        absence_expected=0,
+        absence_detected=0,
+        absence_recall=None,
+        absence_predicted=0,
+        absence_precision=None,
+    )
+    base.update(overrides)
+    return Mode2SuiteMetrics(**base)
+
+
+def _mode2_artifact(fingerprint: str, **overrides: object) -> Mode2RunArtifact:
+    """A Mode 2 metrics-only artifact carrying its headline numbers under a fingerprint."""
+    return build_mode2_artifact(
+        "modo2", NOW, _fingerprint(fingerprint), [], _mode2_metrics(**overrides), []
+    )
+
+
+def test_mode2_identical_fingerprints_make_the_deltas_a_regression_signal() -> None:
+    base = _mode2_artifact("fp", recall_problematic_e2e=0.29)
+    run = _mode2_artifact("fp", recall_problematic_e2e=0.5)
+
+    comparison = compare_mode2(base, run)
+
+    assert comparison.fingerprint_changed is False
+    assert _delta(comparison, "recall_problematic_e2e").delta == 0.5 - 0.29
+
+
+def test_mode2_a_changed_fingerprint_is_flagged() -> None:
+    base = _mode2_artifact("fp-a")
+    run = _mode2_artifact("fp-b")
+
+    comparison = compare_mode2(base, run)
+
+    assert comparison.fingerprint_changed is True
+    assert comparison.base_fingerprint == "fp-a"
+    assert comparison.run_fingerprint == "fp-b"
+
+
+def test_mode2_publishes_both_the_conditioned_and_the_end_to_end_recall() -> None:
+    base = _mode2_artifact("fp", recall_problematic=1.0, recall_problematic_e2e=0.29)
+    run = _mode2_artifact("fp", recall_problematic=1.0, recall_problematic_e2e=0.29)
+
+    comparison = compare_mode2(base, run)
+
+    assert _delta(comparison, "recall_problematic").base == 1.0
+    assert _delta(comparison, "recall_problematic_e2e").base == 0.29
+
+
+def test_a_mode2_artifact_written_before_the_e2e_schema_change_still_reads_back(
+    tmp_path: Path,
+) -> None:
+    artifact = _mode2_artifact("fp")
+    payload = artifact.model_dump(mode="json")
+    del payload["metrics"]["recall_problematic_e2e"]
+    del payload["metrics"]["problematic_total_e2e"]
+    del payload["metrics"]["problematic_detected_e2e"]
+    del payload["metrics"]["false_tranquility_events_e2e"]
+    del payload["metrics"]["false_tranquility_rate_e2e"]
+    del payload["metrics"]["not_reported_problematic"]
+    del payload["metrics"]["outcome_match_rate"]
+    for case in payload["cases"]:
+        del case["outcome_as_expected"]
+    path = tmp_path / "old_modo2.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    older = read_mode2_artifact(path)
+
+    assert older.metrics.recall_problematic_e2e is None
+    assert older.metrics.outcome_match_rate is None
+    delta = _delta(compare_mode2(older, artifact), "recall_problematic_e2e")
+    assert delta.base is None
+    assert delta.run == 1.0
+    assert delta.delta is None

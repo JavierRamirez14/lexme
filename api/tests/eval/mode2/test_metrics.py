@@ -170,6 +170,125 @@ def test_a_rejected_contract_delimits_nothing_and_records_its_reason() -> None:
     assert all(not p.matched for p in result.clause_predictions)
 
 
+def test_a_case_that_reaches_its_declared_outcome_matches() -> None:
+    case = case_of(clause_truth("c1", RED, start=0, end=100), expected_outcome="analizado")
+    analysis = analysis_of(evaluated("c1", RED, start=0, end=100))
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.outcome == "analizado"
+    assert result.outcome_as_expected is True
+
+
+def test_a_rejected_case_not_declared_as_rejected_misses_the_outcome() -> None:
+    case = case_of(clause_truth("c1", RED, start=0, end=100), expected_outcome="analizado")
+    analysis = rejected(RejectionReason.OUT_OF_SCOPE_USE)
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.outcome == "fuera_de_ambito:uso_fuera_de_ambito"
+    assert result.outcome_as_expected is False
+
+
+def test_a_case_declared_as_rejected_that_is_rejected_matches() -> None:
+    case = case_of(
+        clause_truth("c1", RED, start=0, end=100),
+        expected_outcome="fuera_de_ambito:uso_fuera_de_ambito",
+    )
+    analysis = rejected(RejectionReason.OUT_OF_SCOPE_USE)
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.outcome_as_expected is True
+
+
+def test_outcome_match_rate_pools_across_cases() -> None:
+    case_a = case_of(clause_truth("c1", RED, start=0, end=100), case_id="a")
+    analysis_a = analysis_of(evaluated("c1", RED, start=0, end=100))
+    case_b = case_of(
+        clause_truth("c1", RED, start=0, end=100), case_id="b", expected_outcome="analizado"
+    )
+    analysis_b = rejected(RejectionReason.OUT_OF_SCOPE_USE)
+
+    results = [
+        build_mode2_case_result(case_a, analysis_a),
+        build_mode2_case_result(case_b, analysis_b),
+    ]
+    metrics = aggregate_mode2(results)
+
+    assert metrics.outcome_match_rate == 0.5
+
+
+def test_a_problematic_clause_never_delimited_is_not_reported_end_to_end() -> None:
+    spans = _spans(2)
+    case = case_of(
+        clause_truth("c1", RED, start=spans[0][0], end=spans[0][1]),
+        clause_truth("c2", ORANGE, start=spans[1][0], end=spans[1][1]),
+    )
+    # c1 is rejected outright: its analysis carries no risk map, so nothing is delimited.
+    analysis = rejected(RejectionReason.OUT_OF_SCOPE_USE)
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.problematic_total == 0  # the conditioned number sees nothing
+    assert result.recall_problematic is None
+    assert result.problematic_total_e2e == 2
+    assert result.problematic_detected_e2e == 0
+    assert result.recall_problematic_e2e == 0.0
+    assert result.not_reported_problematic == 2
+    assert result.false_tranquility_events_e2e == 0
+
+
+def test_an_end_to_end_detection_counts_toward_recall_not_the_conditioned_denominator() -> None:
+    spans = _spans(2)
+    case = case_of(
+        clause_truth("c1", RED, start=spans[0][0], end=spans[0][1]),
+        clause_truth("c2", ORANGE, start=spans[1][0], end=spans[1][1]),
+    )
+    # Only c1 is delimited and correctly flagged; c2 never surfaces at all.
+    analysis = analysis_of(evaluated("c1", RED, start=spans[0][0], end=spans[0][1]))
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.problematic_total == 1  # conditioned: only c1 was delimited
+    assert result.recall_problematic == 1.0
+    assert result.problematic_total_e2e == 2  # end to end: c2 counts too
+    assert result.problematic_detected_e2e == 1
+    assert result.recall_problematic_e2e == 0.5
+    assert result.not_reported_problematic == 1
+
+
+def test_a_delimited_problematic_clause_called_reassuring_is_false_tranquility_end_to_end() -> (
+    None
+):
+    case = case_of(clause_truth("c1", RED, start=0, end=100))
+    analysis = analysis_of(evaluated("c1", GREEN, start=0, end=100))
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.false_tranquility_events_e2e == 1
+    assert result.false_tranquility_rate_e2e == 1.0
+    assert result.not_reported_problematic == 0
+
+
+def test_the_aggregate_pools_e2e_counts_across_cases() -> None:
+    case_a = case_of(clause_truth("c1", RED, start=0, end=100), case_id="a")
+    analysis_a = rejected(RejectionReason.OUT_OF_SCOPE_USE)
+    case_b = case_of(clause_truth("c1", ORANGE, start=0, end=100), case_id="b")
+    analysis_b = analysis_of(evaluated("c1", ORANGE, start=0, end=100))
+
+    results = [
+        build_mode2_case_result(case_a, analysis_a),
+        build_mode2_case_result(case_b, analysis_b),
+    ]
+    metrics = aggregate_mode2(results)
+
+    assert metrics.problematic_total_e2e == 2
+    assert metrics.problematic_detected_e2e == 1
+    assert metrics.recall_problematic_e2e == 0.5
+    assert metrics.not_reported_problematic == 1
+
+
 def test_the_aggregate_pools_counts_across_cases() -> None:
     case_a = case_of(clause_truth("c1", RED, start=0, end=100), case_id="a")
     analysis_a = analysis_of(evaluated("c1", GREEN, start=0, end=100))

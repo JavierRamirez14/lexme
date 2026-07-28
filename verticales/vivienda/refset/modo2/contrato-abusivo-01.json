@@ -1,6 +1,7 @@
 {
   "id": "contrato-abusivo-01",
   "document": "CONTRATO DE ARRENDAMIENTO DE VIVIENDA\n\nDURACIÓN\nEl presente contrato se pacta por una duración de once meses, sin derecho a prórroga alguna. A su vencimiento el arrendatario deberá abandonar la vivienda sin necesidad de requerimiento previo.\n\nFIANZA\nEl arrendatario entrega en este acto tres mensualidades de renta en concepto de fianza, que quedarán en poder del arrendador hasta la finalización del contrato.\n\nGASTOS DE FORMALIZACIÓN\nSerán de cuenta exclusiva del arrendatario los honorarios de la agencia inmobiliaria y los gastos de gestión y formalización del presente contrato.\n\nCONSERVACIÓN\nTodas las reparaciones que precise la vivienda durante la vigencia del contrato, sean del tipo que sean, incluidas las estructurales y las necesarias para su habitabilidad, correrán a cargo del arrendatario.\n\nPAGO DE LA RENTA\nA la firma, el arrendatario abonará seis mensualidades de renta por adelantado en concepto de garantía de pago, cantidad que no será restituida ni imputable a rentas futuras.\n\nANIMALES\nQueda prohibida la tenencia de animales de compañía de cualquier tipo en la vivienda, salvo autorización expresa y por escrito del arrendador.\n\n",
+  "expected_outcome": "analizado",
   "clauses": [
     {
       "clause_id": "contrato-abusivo-01-c1",

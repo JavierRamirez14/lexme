@@ -185,6 +185,7 @@ def compute_mode2_dataset_digest(cases: "Sequence[Mode2EvalCase]") -> str:
         {
             "id": case.id,
             "document": case.document,
+            "expected_outcome": case.expected_outcome,
             "clauses": [
                 {
                     "clause_id": clause.clause_id,

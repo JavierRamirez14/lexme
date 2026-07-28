@@ -8,8 +8,10 @@ from lexme.eval.fingerprint import (
     ConfigFingerprint,
     build_fingerprint,
     compute_dataset_digest,
+    compute_mode2_dataset_digest,
     compute_prompts_digest,
 )
+from lexme.eval.mode2.cases import Mode2EvalCase
 from lexme.llm import TaskModel, TaskRegistry
 
 
@@ -158,4 +160,13 @@ def test_editing_a_pinned_clarification_answer_changes_the_dataset_digest() -> N
     )
     assert compute_dataset_digest([case("12/06/2025")]) != compute_dataset_digest(
         [EvalCase(id="a", question="q1")]
+    )
+
+
+def test_editing_a_mode2_case_expected_outcome_changes_the_dataset_digest() -> None:
+    def case(expected_outcome: str) -> Mode2EvalCase:
+        return Mode2EvalCase(id="a", document="d", expected_outcome=expected_outcome)
+
+    assert compute_mode2_dataset_digest([case("analizado")]) != compute_mode2_dataset_digest(
+        [case("fuera_de_ambito:uso_fuera_de_ambito")]
     )
