@@ -49,13 +49,38 @@ CURRENT_REDACTION_FROM = date(2019, 3, 6)
 NORM_ID = "BOE-A-1994-26003"
 
 
+SEASONAL_DECLARATION = "El inmueble se arrienda con finalidad de temporada estival"
+
+USE_EVIDENCE_MARKERS = {
+    TenancyUse.SEASONAL: ("temporada", "vacacion", "turistic", "estival"),
+    TenancyUse.NON_DWELLING: ("uso distinto del de vivienda", "local comercial", "oficina"),
+}
+
+
+def seasonal_document(body: str) -> str:
+    """``body`` prefixed with a heading and a span declaring a seasonal let."""
+    return f"CONTRATO DE ARRENDAMIENTO\n{SEASONAL_DECLARATION}.\n{body}"
+
+
+def scope_package(
+    *,
+    excluded_uses: frozenset[TenancyUse] = frozenset(
+        {TenancyUse.SEASONAL, TenancyUse.NON_DWELLING}
+    ),
+    current_redaction_effective_from: date = CURRENT_REDACTION_FROM,
+) -> ScopePackage:
+    """The vivienda scope rules, with the folded markers the real package ships."""
+    return ScopePackage(
+        current_redaction_effective_from=current_redaction_effective_from,
+        excluded_uses=excluded_uses,
+        use_evidence_markers=USE_EVIDENCE_MARKERS,
+    )
+
+
 @pytest.fixture
 def scope() -> ScopePackage:
     """The vivienda scope rules: art 4.2 exclusions and the current-redaction edge."""
-    return ScopePackage(
-        current_redaction_effective_from=CURRENT_REDACTION_FROM,
-        excluded_uses=frozenset({TenancyUse.SEASONAL, TenancyUse.NON_DWELLING}),
-    )
+    return scope_package()
 
 
 class FakeCorpus:
@@ -194,6 +219,7 @@ def triage_of(
     fianza: str = "una mensualidad",
     fecha_firma: str = "",
     uso: TenancyUse = TenancyUse.HABITUAL_DWELLING,
+    uso_evidencia: str = "",
 ) -> TriageResult:
     """A triage result with sensible defaults a test overrides field by field."""
     return TriageResult(
@@ -205,6 +231,7 @@ def triage_of(
         fianza=fianza,
         fecha_firma=fecha_firma,
         uso=uso,
+        uso_evidencia=uso_evidencia,
     )
 
 

@@ -155,6 +155,7 @@ def _runner(fake: FakeLlmClient) -> PipelineMode2CaseRunner:
         scope=ScopePackage(
             current_redaction_effective_from=date(2019, 3, 6),
             excluded_uses=frozenset(),
+            use_evidence_markers={},
         ),
         checklist=CHECKLIST,
         corpus=CORPUS,

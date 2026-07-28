@@ -730,11 +730,12 @@ def _report_mode2_run(artifact: Mode2RunArtifact, out_path: Path) -> None:
 
 
 def _report_mode2_guardrail(artifact: Mode2RunArtifact) -> None:
-    """Log the Mode 2 citation guardrail's verdict and every hard failure it found."""
+    """Log the Mode 2 citation guardrail's verdict, its denominator and any failures."""
     _log_guardrail(
         artifact.passed,
         artifact.hard_failures,
-        "citation guardrail passed: every finding citation re-verified",
+        "citation guardrail passed: all "
+        f"{artifact.metrics.displayed_citations} finding citations re-verified",
     )
 
 

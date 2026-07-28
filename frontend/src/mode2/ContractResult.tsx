@@ -11,8 +11,9 @@ interface ContractResultProps {
  * The good side of the gates: the contract's photo, then its risk map. The
  * executive summary leads, then the ficha as a field grid; the risk map places
  * every clause on the five-level spectrum and surfaces the protections the
- * contract omits. Assumptions the system made -- an assumed use, an assumed
- * signing date -- are stated at the end, never hidden.
+ * contract omits. Between the two sit the assumptions the analysis rests on -- the
+ * use it read the lease under, an assumed signing date -- so a reader meets them
+ * before the verdicts they qualify.
  */
 export function ContractResult({ analysis }: ContractResultProps) {
   const { sheet, summary, risk_map, assumptions } = analysis;
@@ -37,16 +38,16 @@ export function ContractResult({ analysis }: ContractResultProps) {
         </dl>
       </section>
 
-      {risk_map && <RiskMap riskMap={risk_map} />}
-
       {assumptions.length > 0 && (
         <section className={styles.assumptions} aria-labelledby="assumptions-heading">
           <h3 className={styles.assumptionsHeading} id="assumptions-heading">
-            Asunciones que he hecho
+            Bajo qué supuestos he analizado el contrato
           </h3>
           <AssumptionList assumptions={assumptions} />
         </section>
       )}
+
+      {risk_map && <RiskMap riskMap={risk_map} />}
     </article>
   );
 }

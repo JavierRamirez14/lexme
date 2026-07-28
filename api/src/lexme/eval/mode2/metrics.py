@@ -119,13 +119,16 @@ class Mode2CaseResult(BaseModel):
     problematic clause the segmentation layer never delimited is counted in
     ``not_reported_problematic`` rather than folded into either the detected or the
     false-tranquility count, because it was never shown to the user as anything.
-    All ``_e2e`` and ``outcome_*`` fields default so an artifact written before this
-    schema still reads back.
+    ``displayed_citations`` is how many citations this contract put in front of a
+    reader -- the denominator the guardrail's ``violations`` are a count out of.
+    All ``_e2e``, ``outcome_*`` and ``displayed_citations`` fields default so an
+    artifact written before this schema still reads back.
     """
 
     id: str
     outcome: str
     outcome_as_expected: bool | None = None
+    displayed_citations: int = 0
     segmentation: SegmentationLayer
     clause_predictions: list[ClausePrediction]
     confusion: dict[str, dict[str, int]]
@@ -166,14 +169,17 @@ class Mode2SuiteMetrics(BaseModel):
     conditioned pair is what tells a segmentation miss apart from a classification
     one. ``not_reported_problematic`` is the count folded out of both ``_e2e``
     numbers: a problematic clause the segmentation layer never delimited, so it was
-    never shown to the user as reassuring or as anything else. All ``_e2e`` and
-    ``outcome_match_rate`` fields default so an artifact written before this schema
-    still reads back.
+    never shown to the user as reassuring or as anything else. ``displayed_citations``
+    is how many citations the run put in front of a reader, so the guardrail's verdict
+    is published with the denominator it was taken over rather than as a bare pass.
+    All ``_e2e``, ``outcome_match_rate`` and ``displayed_citations`` fields default so
+    an artifact written before this schema still reads back.
     """
 
     cases: int
     outcomes: dict[str, int]
     outcome_match_rate: float | None = None
+    displayed_citations: int = 0
     reference_clauses: int
     delimited_clauses: int
     segmentation_delimited_rate: float | None
@@ -241,6 +247,7 @@ def build_mode2_case_result(
         id=case.id,
         outcome=outcome,
         outcome_as_expected=case.expected_outcome == outcome,
+        displayed_citations=_displayed_citations(analysis),
         segmentation=_segmentation_layer(case, matches, threshold),
         clause_predictions=predictions,
         confusion=_confusion(matched),
@@ -294,6 +301,7 @@ def aggregate_mode2(results: Sequence[Mode2CaseResult]) -> Mode2SuiteMetrics:
         cases=len(results),
         outcomes=_count_outcomes(results),
         outcome_match_rate=_outcome_match_rate(results),
+        displayed_citations=sum(result.displayed_citations for result in results),
         reference_clauses=reference_clauses,
         delimited_clauses=delimited,
         segmentation_delimited_rate=_ratio(delimited, reference_clauses),
@@ -321,6 +329,14 @@ def aggregate_mode2(results: Sequence[Mode2CaseResult]) -> Mode2SuiteMetrics:
         absence_predicted=absence_predicted,
         absence_precision=_ratio(absence_detected, absence_predicted),
     )
+
+
+def _displayed_citations(analysis: ContractAnalysis) -> int:
+    """How many citations the risk map shows: one per cited finding and white."""
+    if analysis.risk_map is None:
+        return 0
+    shown = [*analysis.risk_map.clause_findings, *analysis.risk_map.absence_findings]
+    return sum(1 for finding in shown if finding.citation is not None)
 
 
 def _reference_spans(case: Mode2EvalCase) -> list[LabeledSpan]:

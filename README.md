@@ -67,10 +67,10 @@ configuration fingerprint, so results are reproducible and comparable across cha
 
 | Result | Value | What it means |
 | --- | --- | --- |
-| **Recall of 🔴/🟠 clauses, end to end** | **0.29 (2 / 7)** | Of every genuinely problematic clause in the reference set — delimited or not — how many the system actually surfaced to a reader. This is the number a tenant experiences; the 1.0 below is a diagnostic, not the headline. |
-| **False-tranquility rate, end to end** | **0.0 (0 / 7)** | Genuinely 🔴/🟠 clauses the system called reassuring (🟢), over every problematic clause that exists. 0 here does not mean nothing was missed — see `not_reported` below. |
-| **Recall of 🔴/🟠 clauses, conditioned on segmentation** | **1.0 (2 / 2)** | Of only the problematic clauses the segmentation layer correctly delimited, how many it also flagged as problematic — isolates a classification failure from a segmentation one. The other 5 problematic clauses were never delimited at all, so they don't reach this number's denominator. |
-| **Citation literality** | **0 of 30 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
+| **Recall of 🔴/🟠 clauses, end to end** | **1.0 (7 / 7)** | Of every genuinely problematic clause in the reference set — delimited or not — how many the system actually surfaced to a reader. This is the number a tenant experiences; the conditioned figure below is a diagnostic, not the headline. |
+| **False-tranquility rate, end to end** | **0.0 (0 / 7)** | Genuinely 🔴/🟠 clauses the system called reassuring (🟢), over every problematic clause that exists. With `not_reported` at 0, nothing sits outside this denominator either. |
+| **Recall of 🔴/🟠 clauses, conditioned on segmentation** | **1.0 (7 / 7)** | Of only the problematic clauses the segmentation layer correctly delimited, how many it also flagged as problematic — isolates a classification failure from a segmentation one. It equals the end-to-end figure only because segmentation now delimits every reference clause; the two are kept apart precisely so that stops being an assumption. |
+| **Citation literality** | **0 of 84 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
 | **Judge–reviewer agreement** | **0.94 (47 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a stronger *model*, not a human — see the caveat under the judge's numbers. |
 
 ### Full results
@@ -80,22 +80,22 @@ hiding behind the other.
 
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | 0 failed of 30 shown | invariant; a displayed citation that does not re-verify fails the run. A quote the verifier discards *before* display is that mechanism working, not a failure: this run discarded none |
+| Citation literality (both modes) | 0 failed of 84 shown | invariant; a displayed citation that does not re-verify fails the run. 28 shown in Mode 1, 56 in Mode 2. A quote the verifier discards *before* display is that mechanism working, not a failure: this run discarded none |
 | Retrieval recall, first pass (Mode 1) | 0.92 | gold blocks recovered before the agentic loop, over a four-norm corpus |
 | Multi-hop recall (Mode 1) | 0.75 | 6 / 8 gold blocks across the 4 cases that need more than one norm |
 | Outcome match rate (Mode 1) | 0.90 | 19 / 21 cases reached the outcome they were written for |
 | Disambiguation (Mode 1) | 0.52 | 11 / 21 cases the gate stopped; all 11 resumed, 0 left stranded |
 | Judge completeness · unsupported claims (Mode 1) | 0.75 · 0.06 | 13 judged cases, against human-reviewed key points |
 | Judge–reviewer agreement (Mode 1) | 0.94 | 47 / 50 rulings, sampled with seed 20 from the run's 92, reviewed by a model |
-| Outcome match rate (Mode 2) | 0.67 | 2 / 3 contracts reached the outcome their case declared |
-| Recall 🔴/🟠, end to end (Mode 2) | 0.29 | 2 / 7 problematic clauses in the reference set, delimited or not — the headline |
-| False-tranquility rate, end to end (Mode 2) | 0.00 | 0 / 7 real 🔴/🟠 called reassuring; 5 / 7 were never delimited at all (`not_reported`, below) |
-| Recall 🔴/🟠, conditioned on segmentation (Mode 2) | 1.00 | 2 / 2 correctly delimited problematic clauses — diagnostic only |
-| False-tranquility rate, conditioned on segmentation (Mode 2) | 0.00 | 0 / 2 real 🔴/🟠 passed off as reassuring, over the delimited ones |
-| Not reported (Mode 2) | 5 | problematic clauses the segmentation layer never delimited, so never shown to a reader as anything |
-| Flag precision · abstention (Mode 2) | 0.67 · 0.00 | 2 / 3 flags correct · 0 / 10 clauses abstained |
-| Segmentation IoU ≥ 0.80 (Mode 2) | 0.625 | 10 / 16 clauses delimited |
-| Absence ⚪ recall · precision (Mode 2) | 0.68 · 1.00 | 30 / 44 omitted rights surfaced · 0 false ones |
+| Outcome match rate (Mode 2) | 1.00 | 3 / 3 contracts reached the outcome their case declared |
+| Recall 🔴/🟠, end to end (Mode 2) | 1.00 | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
+| False-tranquility rate, end to end (Mode 2) | 0.00 | 0 / 7 real 🔴/🟠 called reassuring |
+| Recall 🔴/🟠, conditioned on segmentation (Mode 2) | 1.00 | 7 / 7 correctly delimited problematic clauses — diagnostic only |
+| False-tranquility rate, conditioned on segmentation (Mode 2) | 0.00 | 0 / 7 real 🔴/🟠 passed off as reassuring, over the delimited ones |
+| Not reported (Mode 2) | 0 | problematic clauses the segmentation layer never delimited, so never shown to a reader as anything |
+| Flag precision · abstention (Mode 2) | 0.875 · 0.00 | 7 / 8 flags correct · 0 / 16 clauses abstained |
+| Segmentation IoU ≥ 0.80 (Mode 2) | 1.00 | 16 / 16 clauses delimited |
+| Absence ⚪ recall · precision (Mode 2) | 0.98 · 1.00 | 43 / 44 omitted rights surfaced · 0 false ones |
 
 Mode 1 stops to ask one question when a case turns on a fact that changes the applicable
 regime. Each case therefore carries the answers to those branches as reviewed data, and
@@ -106,28 +106,48 @@ of cases actually measured end to end is never left ambiguous.
 Reports: Mode 1 →
 [`modo1-20260728T074601Z.json`](eval-runs/modo1-20260728T074601Z.json) (`d870d388…`),
 Mode 2 →
-[`modo2-20260728T103544Z.json`](eval-runs/modo2-20260728T103544Z.json) (`80e86774…`).
+[`modo2-20260728T134505Z.json`](eval-runs/modo2-20260728T134505Z.json) (`9443e189…`).
 Both were measured against the same four-norm corpus the repo builds today; every
 number on this page comes from one of those two artifacts.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
-regression — this Mode 2 run's fingerprint changed from the prior one because the case
-files now declare the outcome they expect, which the fingerprint folds in.
+regression — this Mode 2 run's fingerprint changed from the prior one because the
+scope gate's prompt and the vertical's scope package both moved.
 
 The reference set is deliberately small and fully human-reviewed (21 Mode 1 cases, of
 which 4 are multi-hop — their gold blocks live in more than one norm — and 3 synthetic
 Mode 2 contracts, each declaring in its own `expected_outcome` the result it was built
 to reach, checked against it rather than assumed). Every denominator is shown rather
-than rounded away — including the one that used to disappear: `contrato-abusivo-01` is
-an ordinary permanent lease by construction and its clauses are reviewed against that
-reading, but the scope gate wrongly rejects it as an out-of-scope use — most likely
-misreading its own illegal fixed 11-month, no-renewal clause as a seasonal let. Before
-this change that miss broke nothing and appeared in no metric: the case declared no
-expected outcome, so the rejection was invisible, and every one of its 5 problematic
-clauses fell out of both the numerator and the denominator of the headline recall —
-which is how `1.00 (2/2)` and `0.29 (2/7)` can describe the same run. Now it shows up twice: `outcome_match_rate` drops to `0.67 (2/3)`, and it is why 5 of
-the run's 7 problematic reference clauses sit in `not_reported_problematic` instead of
-being recalled.
+than rounded away — including the one that used to disappear. `contrato-abusivo-01` is
+an ordinary permanent lease by construction, and the **scope** gate — art. 4.2, not the
+temporal one — used to reject it as an out-of-scope use: the model read the contract's
+own illegal fixed 11-month, no-renewal clause as a seasonal let, and the gate rejected
+on that reading alone. **That rejection was wrong**, and expensively so: the LAU
+distinguishes by the property's destination, not by the term, which is exactly why that
+clause is labelled illegal in the reference set. A tenant was told "I can't analyze
+this" instead of "four of these clauses are illegal", and until the cases declared an
+expected outcome the miss appeared in no metric at all.
+
+The gate now closes only on evidence. The triage classifies the use by the destination
+the document declares and returns the span that declares it; code checks that span is
+literally in the document *and* carries one of the vertical's markers for that use, so
+a term clause — a real span that says nothing about destination — cannot close it.
+Without such a span the reading degrades to `indeterminado`, the contract is analyzed,
+and the assumption is stated to the reader, the same treatment an absent signing date
+gets. The direction is the asymmetry the whole mode is built on: wrongly refusing an
+abusive lease costs a tenant four illegal clauses they never hear about, while wrongly
+analyzing a genuine seasonal let costs some less pertinent findings. A contract that
+*does* declare a local, an office or a season is still refused, and there are tests
+pinning both directions.
+
+That single change moves four numbers at once: `outcome_match_rate` to `1.00 (3/3)`,
+segmentation from `0.625` to `1.00` (the 6 undelimited clauses were all in the rejected
+contract), absence recall from `0.68` to `0.98`, and the problematic denominator from 2
+to 7. What it does not fix is visible in the confusion matrix: 3 clauses that are
+🟠 worse-than-default are called 🔴 illegal, and one 🟢 correct clause is called 🟠 —
+the latter is the whole of the `0.875` flag precision. Erring toward severity is the
+safe direction here, but it is over-severity, not accuracy, and calling it out is
+cheaper than pretending the band is clean.
 
 **The agentic self-critique loop's recall delta is 0.00, and I am publishing it flat.**
 The loop only earns something when the first retrieval pass misses; on this corpus it
@@ -210,7 +230,10 @@ run recovers instead of dying.
 **Code owns the trustworthy decisions.** Abstention, the temporal gate, LAU art. 4.2
 scope, the checklist × contract cross-check, and citation discard are all plain code,
 not model judgement. They're unit-testable, and no prompt can talk the system out of a
-refusal.
+refusal — or into one: the art. 4.2 gate rejects a contract only when the document
+declares an excluded destination in a span code finds literally in the text and matches
+against the vertical's own markers, so "the model said temporada" is not a reason to
+leave a lease unanalyzed.
 
 **A spectrum, never a binary verdict.** Five discrete levels with total coverage, and
 the ⚪ absences anchored to checklist items. Collapsing that into "OK / not OK" would

@@ -1,5 +1,28 @@
 {
   "vertical": "vivienda",
   "current_redaction_effective_from": "2019-03-06",
-  "excluded_uses": ["temporada", "uso_distinto"]
+  "excluded_uses": ["temporada", "uso_distinto"],
+  "use_evidence_markers": {
+    "temporada": [
+      "temporada",
+      "vacacion",
+      "turístic",
+      "estival",
+      "veraneo",
+      "corta estancia"
+    ],
+    "uso_distinto": [
+      "uso distinto del de vivienda",
+      "uso distinto de vivienda",
+      "local comercial",
+      "local de negocio",
+      "destina a oficina",
+      "destinado a oficina",
+      "uso de oficina",
+      "despacho profesional",
+      "actividad comercial",
+      "actividad industrial",
+      "nave industrial"
+    ]
+  }
 }

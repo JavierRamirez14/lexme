@@ -3,7 +3,9 @@
 The flow is linear and honest to the gate: extract the text (a scan with no text
 layer stops here), segment the clauses and anchor each to a literal document span
 (a broken anchor stops here), triage the ficha, and let the two code gates decide
-scope and time. Only the good side of the gates assembles the sheet, the
+scope and time -- the scope gate reads the document text itself, because it closes
+only on a span the document really declares an excluded use in. Only the good side
+of the gates assembles the sheet, the
 deterministic summary and the anchored clauses. The document is held in memory for
 the length of one call and never persisted -- there is nowhere in this module that
 writes it down.
@@ -110,6 +112,8 @@ def analyze_contract(
     triage = triage_document(deps.llm, extracted_text)
     gate = apply_gates(
         use=triage.uso,
+        use_evidence=triage.uso_evidencia,
+        document_text=extracted_text,
         signing_date=parse_target_date(triage.fecha_firma),
         scope=deps.scope,
         today=today,

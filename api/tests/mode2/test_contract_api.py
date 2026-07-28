@@ -16,11 +16,13 @@ from lexme.mode2.mapping import MAPPING_TASK
 from lexme.mode2.segmentation import SEGMENTATION_TASK
 from lexme.mode2.triage import TRIAGE_TASK
 from tests.mode2.conftest import (
+    SEASONAL_DECLARATION,
     FakeExtractor,
     build_blank_pdf,
     build_docx,
     build_text_pdf,
     mapping_of,
+    seasonal_document,
     segmentation_of,
     triage_of,
 )
@@ -37,6 +39,7 @@ CLAUSES = (
     ("Duración", "El plazo del arrendamiento será de cinco años."),
     ("Renta", "La renta mensual se fija en 800 euros pagaderos por adelantado."),
 )
+SEASONAL_DOCUMENT = seasonal_document(DOCUMENT)
 
 
 def _post(base_url: str) -> httpx.Response:
@@ -68,13 +71,20 @@ def test_a_readable_lease_is_analyzed_with_anchored_clauses(
     assert clauses[0]["text"] == "El plazo del arrendamiento será de cinco años."
 
 
-def test_a_seasonal_lease_returns_an_out_of_scope_stop(
+def test_a_lease_the_document_declares_seasonal_returns_an_out_of_scope_stop(
     contract_server: tuple[str, FakeLlmClient, FakeExtractor],
 ) -> None:
     base_url, fake_llm, extractor = contract_server
-    extractor.text = DOCUMENT
+    extractor.text = SEASONAL_DOCUMENT
     fake_llm.queue(SEGMENTATION_TASK, segmentation_of(*CLAUSES))
-    fake_llm.queue(TRIAGE_TASK, triage_of(uso=TenancyUse.SEASONAL, fecha_firma="2023-01-01"))
+    fake_llm.queue(
+        TRIAGE_TASK,
+        triage_of(
+            uso=TenancyUse.SEASONAL,
+            uso_evidencia=SEASONAL_DECLARATION,
+            fecha_firma="2023-01-01",
+        ),
+    )
 
     response = _post(base_url)
 
@@ -83,6 +93,23 @@ def test_a_seasonal_lease_returns_an_out_of_scope_stop(
     assert body["clauses"] == []
     assert body["rejection"]["reason"] == "uso_fuera_de_ambito"
     assert body["rejection"]["message"]
+
+
+def test_a_seasonal_reading_with_no_span_behind_it_is_analyzed_with_the_use_assumption(
+    contract_server: tuple[str, FakeLlmClient, FakeExtractor],
+) -> None:
+    base_url, fake_llm, extractor = contract_server
+    extractor.text = DOCUMENT
+    fake_llm.queue(SEGMENTATION_TASK, segmentation_of(*CLAUSES))
+    fake_llm.queue(TRIAGE_TASK, triage_of(uso=TenancyUse.SEASONAL, fecha_firma="2023-01-01"))
+    fake_llm.queue(MAPPING_TASK, INFORMATIVE_TWO)
+
+    response = _post(base_url)
+
+    body = response.json()
+    assert body["outcome"] == "analizado"
+    assert body["rejection"] is None
+    assert any("no declara" in assumption for assumption in body["assumptions"])
 
 
 def test_a_prior_redaction_lease_returns_an_out_of_scope_stop(

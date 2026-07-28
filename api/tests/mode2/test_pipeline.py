@@ -9,11 +9,14 @@ from lexme.mode2.pipeline import analyze_contract
 from lexme.mode2.segmentation import SEGMENTATION_TASK
 from lexme.mode2.triage import TRIAGE_TASK
 from tests.mode2.conftest import (
+    SEASONAL_DECLARATION,
     FakeCorpus,
     FakeExtractor,
     FakeRetriever,
     checklist_of,
     mapping_of,
+    scope_package,
+    seasonal_document,
     segmentation_of,
     triage_of,
 )
@@ -32,13 +35,11 @@ CLAUSES = (
     ("Renta", "La renta mensual se fija en 800 euros pagaderos por adelantado."),
     ("Fianza", "El arrendatario entrega una mensualidad en concepto de fianza."),
 )
+SEASONAL_DOCUMENT = seasonal_document(DOCUMENT)
 
 
 def _scope() -> ScopePackage:
-    return ScopePackage(
-        current_redaction_effective_from=date(2019, 3, 6),
-        excluded_uses=frozenset({TenancyUse.SEASONAL, TenancyUse.NON_DWELLING}),
-    )
+    return scope_package()
 
 
 def _deps(fake: FakeLlmClient, *, text: str = DOCUMENT) -> Mode2Deps:
@@ -100,16 +101,36 @@ def test_a_clause_that_does_not_anchor_makes_the_document_not_analyzable() -> No
     assert analysis.rejection.reason is RejectionReason.BROKEN_ANCHOR
 
 
-def test_a_seasonal_lease_is_out_of_scope() -> None:
+def test_a_lease_the_document_declares_seasonal_is_out_of_scope() -> None:
     fake = FakeLlmClient()
     fake.queue(SEGMENTATION_TASK, segmentation_of(*CLAUSES))
-    fake.queue(TRIAGE_TASK, triage_of(uso=TenancyUse.SEASONAL, fecha_firma="2023-01-01"))
+    fake.queue(
+        TRIAGE_TASK,
+        triage_of(
+            uso=TenancyUse.SEASONAL,
+            uso_evidencia=SEASONAL_DECLARATION,
+            fecha_firma="2023-01-01",
+        ),
+    )
 
-    analysis = _analyze(fake, _deps(fake))
+    analysis = _analyze(fake, _deps(fake, text=SEASONAL_DOCUMENT))
 
     assert analysis.outcome is Mode2Outcome.OUT_OF_SCOPE
     assert analysis.rejection.reason is RejectionReason.OUT_OF_SCOPE_USE
     assert analysis.clauses == []
+
+
+def test_a_seasonal_reading_with_no_span_behind_it_is_analyzed_and_stated() -> None:
+    fake = FakeLlmClient()
+    fake.queue(SEGMENTATION_TASK, segmentation_of(*CLAUSES))
+    fake.queue(TRIAGE_TASK, triage_of(uso=TenancyUse.SEASONAL, fecha_firma="2023-01-01"))
+    fake.queue(MAPPING_TASK, INFORMATIVE_THREE)
+
+    analysis = _analyze(fake, _deps(fake))
+
+    assert analysis.outcome is Mode2Outcome.ANALYZED
+    assert analysis.risk_map is not None
+    assert any("no declara" in assumption for assumption in analysis.assumptions)
 
 
 def test_a_lease_under_a_prior_redaction_is_out_of_scope() -> None:

@@ -158,6 +158,28 @@ def test_absence_recall_and_precision_score_the_omitted_rights() -> None:
     assert result.absences.precision == 0.5
 
 
+def test_the_displayed_citations_count_covers_findings_and_whites() -> None:
+    case = case_of(clause_truth("c1", RED), absences=("CHK-02",))
+    analysis = analysis_of(
+        evaluated("c1", RED, citation=("a9", "cinco años")),
+        evaluated("c2", GREEN),
+        absences=(absence("CHK-02", citation=("a36", "una mensualidad")),),
+    )
+
+    result = build_mode2_case_result(case, analysis)
+
+    assert result.displayed_citations == 2
+    assert aggregate_mode2([result, result]).displayed_citations == 4
+
+
+def test_a_rejected_contract_shows_no_citations() -> None:
+    case = case_of(clause_truth("c1", RED, start=0, end=100))
+
+    result = build_mode2_case_result(case, rejected(RejectionReason.OUT_OF_SCOPE_USE))
+
+    assert result.displayed_citations == 0
+
+
 def test_a_rejected_contract_delimits_nothing_and_records_its_reason() -> None:
     case = case_of(clause_truth("c1", RED, start=0, end=100))
     analysis = rejected(RejectionReason.OUT_OF_SCOPE_USE)
