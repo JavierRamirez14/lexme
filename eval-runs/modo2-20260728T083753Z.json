@@ -1,0 +1,650 @@
+{
+  "suite": "modo2",
+  "created_at": "2026-07-28T08:37:53.361140Z",
+  "fingerprint": {
+    "models": {
+      "mode1_router": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_planning": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_selfcritique": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_synthesis": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_triage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_segmentation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_mapping": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_classification": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "judge": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b:free",
+        "temperature": 0.0
+      },
+      "refset_query_generation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.7
+      }
+    },
+    "vertical": "vivienda",
+    "prompts_hash": "4ab72235ae1e759b",
+    "vertical_config_hash": "d7e7ccf814ce3682",
+    "corpus_hash": "f4d74aa608157a00c83142c427582e7d",
+    "dataset_hash": "0ca298c1e0433278",
+    "fingerprint": "ee478eef78cdf45d"
+  },
+  "metrics": {
+    "cases": 3,
+    "outcomes": {
+      "fuera_de_ambito:uso_fuera_de_ambito": 1,
+      "analizado": 2
+    },
+    "reference_clauses": 16,
+    "delimited_clauses": 10,
+    "segmentation_delimited_rate": 0.625,
+    "matched_clauses": 10,
+    "confusion": {
+      "ilegal": {
+        "ilegal": 0,
+        "peor_que_default": 0,
+        "negociable": 0,
+        "correcto": 0,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      },
+      "peor_que_default": {
+        "ilegal": 2,
+        "peor_que_default": 0,
+        "negociable": 0,
+        "correcto": 0,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      },
+      "negociable": {
+        "ilegal": 0,
+        "peor_que_default": 0,
+        "negociable": 2,
+        "correcto": 0,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      },
+      "correcto": {
+        "ilegal": 0,
+        "peor_que_default": 1,
+        "negociable": 0,
+        "correcto": 5,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      }
+    },
+    "problematic_total": 2,
+    "problematic_detected": 2,
+    "recall_problematic": 1.0,
+    "false_tranquility_events": 0,
+    "false_tranquility_rate": 0.0,
+    "flagged_problematic": 3,
+    "flagged_true_positive": 2,
+    "precision_problematic": 0.6666666666666666,
+    "abstention_clauses": 0,
+    "abstention_rate": 0.0,
+    "absence_expected": 44,
+    "absence_detected": 30,
+    "absence_recall": 0.6818181818181818,
+    "absence_predicted": 30,
+    "absence_precision": 1.0
+  },
+  "cases": [
+    {
+      "id": "contrato-abusivo-01",
+      "outcome": "fuera_de_ambito:uso_fuera_de_ambito",
+      "segmentation": {
+        "threshold": 0.8,
+        "reference_clauses": 6,
+        "delimited": 0,
+        "delimited_rate": 0.0,
+        "matches": [
+          {
+            "reference_id": "contrato-abusivo-01-c1",
+            "predicted_id": null,
+            "iou": 0.0,
+            "matched": false
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c2",
+            "predicted_id": null,
+            "iou": 0.0,
+            "matched": false
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c3",
+            "predicted_id": null,
+            "iou": 0.0,
+            "matched": false
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c4",
+            "predicted_id": null,
+            "iou": 0.0,
+            "matched": false
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c5",
+            "predicted_id": null,
+            "iou": 0.0,
+            "matched": false
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c6",
+            "predicted_id": null,
+            "iou": 0.0,
+            "matched": false
+          }
+        ]
+      },
+      "clause_predictions": [
+        {
+          "clause_id": "contrato-abusivo-01-c1",
+          "expected_level": "ilegal",
+          "predicted_class": null,
+          "iou": 0.0,
+          "matched": false
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c2",
+          "expected_level": "ilegal",
+          "predicted_class": null,
+          "iou": 0.0,
+          "matched": false
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c3",
+          "expected_level": "ilegal",
+          "predicted_class": null,
+          "iou": 0.0,
+          "matched": false
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c4",
+          "expected_level": "ilegal",
+          "predicted_class": null,
+          "iou": 0.0,
+          "matched": false
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c5",
+          "expected_level": "peor_que_default",
+          "predicted_class": null,
+          "iou": 0.0,
+          "matched": false
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c6",
+          "expected_level": "negociable",
+          "predicted_class": null,
+          "iou": 0.0,
+          "matched": false
+        }
+      ],
+      "confusion": {
+        "ilegal": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "peor_que_default": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "negociable": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "correcto": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        }
+      },
+      "matched_clauses": 0,
+      "problematic_total": 0,
+      "problematic_detected": 0,
+      "recall_problematic": null,
+      "false_tranquility_events": 0,
+      "false_tranquility_rate": null,
+      "flagged_problematic": 0,
+      "flagged_true_positive": 0,
+      "precision_problematic": null,
+      "abstention_clauses": 0,
+      "abstention_rate": null,
+      "absences": {
+        "expected": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-08",
+          "CHK-10",
+          "CHK-12",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "detected": [],
+        "missed": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-08",
+          "CHK-10",
+          "CHK-12",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "spurious": [],
+        "recall": 0.0,
+        "precision": null
+      },
+      "violations": []
+    },
+    {
+      "id": "contrato-limpio-03",
+      "outcome": "analizado",
+      "segmentation": {
+        "threshold": 0.8,
+        "reference_clauses": 5,
+        "delimited": 5,
+        "delimited_rate": 1.0,
+        "matches": [
+          {
+            "reference_id": "contrato-limpio-03-c1",
+            "predicted_id": "c1",
+            "iou": 0.9904306220095693,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c2",
+            "predicted_id": "c2",
+            "iou": 0.9792746113989638,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c3",
+            "predicted_id": "c3",
+            "iou": 0.9668508287292817,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c4",
+            "predicted_id": "c4",
+            "iou": 0.9520958083832335,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c5",
+            "predicted_id": "c5",
+            "iou": 0.9386503067484663,
+            "matched": true
+          }
+        ]
+      },
+      "clause_predictions": [
+        {
+          "clause_id": "contrato-limpio-03-c1",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9904306220095693,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c2",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9792746113989638,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c3",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9668508287292817,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c4",
+          "expected_level": "correcto",
+          "predicted_class": "peor_que_default",
+          "iou": 0.9520958083832335,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c5",
+          "expected_level": "negociable",
+          "predicted_class": "negociable",
+          "iou": 0.9386503067484663,
+          "matched": true
+        }
+      ],
+      "confusion": {
+        "ilegal": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "peor_que_default": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "negociable": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 1,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "correcto": {
+          "ilegal": 0,
+          "peor_que_default": 1,
+          "negociable": 0,
+          "correcto": 3,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        }
+      },
+      "matched_clauses": 5,
+      "problematic_total": 0,
+      "problematic_detected": 0,
+      "recall_problematic": null,
+      "false_tranquility_events": 0,
+      "false_tranquility_rate": null,
+      "flagged_problematic": 1,
+      "flagged_true_positive": 0,
+      "precision_problematic": 0.0,
+      "abstention_clauses": 0,
+      "abstention_rate": 0.0,
+      "absences": {
+        "expected": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-19"
+        ],
+        "detected": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-19"
+        ],
+        "missed": [],
+        "spurious": [],
+        "recall": 1.0,
+        "precision": 1.0
+      },
+      "violations": []
+    },
+    {
+      "id": "contrato-mixto-02",
+      "outcome": "analizado",
+      "segmentation": {
+        "threshold": 0.8,
+        "reference_clauses": 5,
+        "delimited": 5,
+        "delimited_rate": 1.0,
+        "matches": [
+          {
+            "reference_id": "contrato-mixto-02-c1",
+            "predicted_id": "c1",
+            "iou": 0.9904306220095693,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c2",
+            "predicted_id": "c2",
+            "iou": 0.9771428571428571,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c3",
+            "predicted_id": "c3",
+            "iou": 0.9726027397260274,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c4",
+            "predicted_id": "c4",
+            "iou": 0.958974358974359,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c5",
+            "predicted_id": "c5",
+            "iou": 0.9408284023668639,
+            "matched": true
+          }
+        ]
+      },
+      "clause_predictions": [
+        {
+          "clause_id": "contrato-mixto-02-c1",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9904306220095693,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c2",
+          "expected_level": "peor_que_default",
+          "predicted_class": "ilegal",
+          "iou": 0.9771428571428571,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c3",
+          "expected_level": "peor_que_default",
+          "predicted_class": "ilegal",
+          "iou": 0.9726027397260274,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c4",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.958974358974359,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c5",
+          "expected_level": "negociable",
+          "predicted_class": "negociable",
+          "iou": 0.9408284023668639,
+          "matched": true
+        }
+      ],
+      "confusion": {
+        "ilegal": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "peor_que_default": {
+          "ilegal": 2,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "negociable": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 1,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "correcto": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 2,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        }
+      },
+      "matched_clauses": 5,
+      "problematic_total": 2,
+      "problematic_detected": 2,
+      "recall_problematic": 1.0,
+      "false_tranquility_events": 0,
+      "false_tranquility_rate": 0.0,
+      "flagged_problematic": 2,
+      "flagged_true_positive": 2,
+      "precision_problematic": 1.0,
+      "abstention_clauses": 0,
+      "abstention_rate": 0.0,
+      "absences": {
+        "expected": [
+          "CHK-02",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "detected": [
+          "CHK-02",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "missed": [],
+        "spurious": [],
+        "recall": 1.0,
+        "precision": 1.0
+      },
+      "violations": []
+    }
+  ],
+  "hard_failures": [],
+  "passed": true
+}

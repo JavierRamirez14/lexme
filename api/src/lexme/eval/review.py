@@ -1,7 +1,7 @@
-"""The calibration sample: the judge's own rulings, laid out for a human to confirm.
+"""The calibration sample: the judge's own rulings, laid out for a reviewer to confirm.
 
 Calibration needs the rulings themselves, not the run's averages, so the sample is
-drawn from the verdicts a versioned run recorded -- the human grades the same
+drawn from the verdicts a versioned run recorded -- the reviewer grades the same
 answers the published numbers were computed from, never a re-judging of different
 ones. The draw is a seeded random sample of the whole population of rulings, and
 both the seed and the population travel with the sample, so the reviewed set can be
@@ -29,7 +29,7 @@ from lexme.eval.calibration import (
     JudgeCalibration,
     build_calibration,
 )
-from lexme.eval.cases import EvalCase
+from lexme.eval.cases import EvalCase, KeyPoint
 from lexme.eval.judge import JUDGE_TASK, JudgeVerdict
 from lexme.eval.metrics import CaseResult
 
@@ -64,7 +64,7 @@ class ReviewRuling(BaseModel):
 
 
 class ReviewSample(BaseModel):
-    """A drawn sample of rulings awaiting the human labels, with its provenance.
+    """A drawn sample of rulings awaiting the reviewer's labels, with its provenance.
 
     ``population`` is how many rulings the run held in total and ``seed`` the draw
     that produced this subset, so the sample is reproducible; ``size`` is what the
@@ -177,13 +177,15 @@ def calibration_from_review(
     sample: ReviewSample,
     disagreed: Collection[int],
     reviewed_by: str,
+    reviewer_kind: str,
     reviewed_at: datetime,
 ) -> JudgeCalibration:
     """Turn a reviewed sample into the calibration record its agreement is derived from.
 
     Every ruling in the sample counts as confirmed unless its number is in
-    ``disagreed``, in which case the human label is the opposite of the judge's.
-    Raises :class:`ReviewError` when a number is not in the sample, so a typo cannot
+    ``disagreed``, in which case the reviewer's label is the opposite of the judge's.
+    ``reviewer_kind`` declares what the resulting agreement is evidence of. Raises
+    :class:`ReviewError` when a number is not in the sample, so a typo cannot
     silently inflate the agreement.
     """
     numbers = {ruling.number for ruling in sample.rulings}
@@ -196,11 +198,11 @@ def calibration_from_review(
             kind=ruling.kind,
             ref=ruling.ref,
             judge_label=ruling.judge_label,
-            human_label=ruling.judge_label != (ruling.number in disagreed),
+            reviewer_label=ruling.judge_label != (ruling.number in disagreed),
         )
         for ruling in sample.rulings
     ]
-    return build_calibration(sample.judge_model, reviewed_by, reviewed_at, items)
+    return build_calibration(sample.judge_model, reviewed_by, reviewer_kind, reviewed_at, items)
 
 
 def render_sheet(sample: ReviewSample) -> str:
@@ -264,19 +266,20 @@ def _render_article(ruling: ReviewRuling) -> list[str]:
 def _case_rulings(
     case: CaseResult,
     verdict: JudgeVerdict,
-    key_points: Mapping[tuple[str, str], str],
+    key_points: Mapping[str, Sequence[KeyPoint]],
     offset: int,
 ) -> list[ReviewRuling]:
     """One case's rulings, numbered on from ``offset``: coverages then claims."""
+    written = _aligned_key_points(key_points.get(case.id, ()), verdict)
     rulings = [
         ReviewRuling(
             number=offset + index + 1,
             case_id=case.id,
             kind=KIND_KEY_POINT,
-            ref=point.block_ref,
+            ref=_key_point_ref(point.block_ref, index, written),
             judge_label=point.covered,
             question=case.question,
-            reference=key_points.get((case.id, point.block_ref), ""),
+            reference=written[index].claim if written else "",
             quoted=point.evidence,
             article_ref=point.block_ref,
         )
@@ -298,9 +301,32 @@ def _case_rulings(
     return rulings
 
 
-def _key_point_claims(cases: Sequence[EvalCase]) -> dict[tuple[str, str], str]:
-    """The written key-point claims, keyed by case and gold block reference."""
-    return {(case.id, point.block_ref): point.claim for case in cases for point in case.key_points}
+def _key_point_claims(cases: Sequence[EvalCase]) -> dict[str, Sequence[KeyPoint]]:
+    """The written key points of each case, in the order the judge was shown them."""
+    return {case.id: case.key_points for case in cases}
+
+
+def _aligned_key_points(written: Sequence[KeyPoint], verdict: JudgeVerdict) -> Sequence[KeyPoint]:
+    """The case's key points when the verdict rules on them one for one, else nothing.
+
+    Several key points of a case routinely share one gold block, so a block
+    reference does not identify which of them a ruling is about; their order does,
+    since the judge is shown them in order and answers in the same one. A verdict
+    that rules on a different number of points cannot be aligned that way, and the
+    rulings then carry no reference text rather than a wrong one.
+    """
+    return written if len(written) == len(verdict.key_points) else ()
+
+
+def _key_point_ref(block_ref: str, index: int, written: Sequence[KeyPoint]) -> str:
+    """The identity of a key-point ruling: its block, plus its position when needed.
+
+    Two rulings of the same case on the same block would otherwise be the same item
+    in the calibration record, and one reviewed label would silently stand for both.
+    """
+    if not written:
+        return block_ref
+    return f"{block_ref}#{index + 1}"
 
 
 def _judge_model(artifact: RunArtifact) -> str:

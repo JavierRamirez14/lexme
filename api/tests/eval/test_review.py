@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 import pytest
 
 from lexme.eval.artifact import RunArtifact, build_artifact
-from lexme.eval.calibration import KIND_CLAIM, KIND_KEY_POINT
+from lexme.eval.calibration import KIND_CLAIM, KIND_KEY_POINT, REVIEWER_HUMAN
 from lexme.eval.cases import EvalCase, KeyPoint
 from lexme.eval.fingerprint import ConfigFingerprint, TaskFingerprint
 from lexme.eval.judge import JUDGE_TASK, ClaimAssessment, JudgeVerdict, KeyPointCoverage
@@ -104,11 +104,70 @@ def test_a_key_point_ruling_carries_the_reference_claim_and_the_judges_quote() -
 
     ruling = collect_rulings(artifact, [_case()])[0]
 
-    assert ruling.ref == REF
+    assert ruling.ref == f"{REF}#1"
     assert ruling.reference == KEY_POINT_CLAIM
     assert ruling.quoted == QUOTE
     assert ruling.judge_label is True
     assert ruling.article_ref == REF
+
+
+def _two_point_case() -> EvalCase:
+    """A case whose two key points hang off the same gold block."""
+    return EvalCase(
+        id="fianza",
+        question="¿cuánta fianza me pueden pedir?",
+        gold_block_refs=(REF,),
+        key_points=(
+            KeyPoint(claim="la fianza es de una mensualidad", block_ref=REF),
+            KeyPoint(claim="la garantía adicional no excede dos mensualidades", block_ref=REF),
+        ),
+    )
+
+
+def _two_point_verdict() -> JudgeVerdict:
+    """A verdict ruling on both key points of :func:`_two_point_case`, in order."""
+    return JudgeVerdict(
+        key_points=[
+            KeyPointCoverage(block_ref=REF, covered=True, evidence="una mensualidad"),
+            KeyPointCoverage(block_ref=REF, covered=False),
+        ],
+        claims=[],
+        clarity=4,
+    )
+
+
+def test_key_points_sharing_a_block_each_carry_their_own_reference() -> None:
+    artifact = _artifact((_two_point_case(), _two_point_verdict()))
+
+    rulings = collect_rulings(artifact, [_two_point_case()])
+
+    assert [ruling.reference for ruling in rulings] == [
+        "la fianza es de una mensualidad",
+        "la garantía adicional no excede dos mensualidades",
+    ]
+
+
+def test_key_points_sharing_a_block_are_told_apart_in_the_calibration_record() -> None:
+    artifact = _artifact((_two_point_case(), _two_point_verdict()))
+
+    refs = [ruling.ref for ruling in collect_rulings(artifact, [_two_point_case()])]
+
+    assert len(set(refs)) == 2
+    assert all(REF in ref for ref in refs)
+
+
+def test_a_verdict_that_rules_on_a_different_number_of_points_is_not_aligned_by_position() -> None:
+    verdict = JudgeVerdict(
+        key_points=[KeyPointCoverage(block_ref=REF, covered=True, evidence="e")],
+        claims=[],
+        clarity=4,
+    )
+    artifact = _artifact((_two_point_case(), verdict))
+
+    ruling = collect_rulings(artifact, [_two_point_case()])[0]
+
+    assert ruling.reference == ""
+    assert ruling.ref == REF
 
 
 def test_a_claim_ruling_is_identified_by_the_claim_and_names_its_backing_article() -> None:
@@ -230,7 +289,7 @@ def test_a_reviewed_sample_agrees_except_where_the_human_disagreed() -> None:
     artifact, cases = _judged_cases(5)
     sample = build_sample(artifact, cases, size=10, seed=20)
 
-    calibration = calibration_from_review(sample, (2, 4), "Reviewer", REVIEWED_AT)
+    calibration = calibration_from_review(sample, (2, 4), "Reviewer", REVIEWER_HUMAN, REVIEWED_AT)
 
     assert calibration.sample_size == 10
     assert calibration.agreement == 0.8
@@ -242,11 +301,11 @@ def test_a_disagreed_ruling_records_the_opposite_human_label() -> None:
     artifact, cases = _judged_cases(1)
     sample = build_sample(artifact, cases, size=2, seed=20)
 
-    calibration = calibration_from_review(sample, (1,), "Reviewer", REVIEWED_AT)
+    calibration = calibration_from_review(sample, (1,), "Reviewer", REVIEWER_HUMAN, REVIEWED_AT)
 
     assert calibration.items[0].judge_label is True
-    assert calibration.items[0].human_label is False
-    assert calibration.items[1].human_label is True
+    assert calibration.items[0].reviewer_label is False
+    assert calibration.items[1].reviewer_label is True
 
 
 def test_a_disagreement_outside_the_sample_is_rejected() -> None:
@@ -254,7 +313,7 @@ def test_a_disagreement_outside_the_sample_is_rejected() -> None:
     sample = build_sample(artifact, cases, size=2, seed=20)
 
     with pytest.raises(ReviewError, match="99"):
-        calibration_from_review(sample, (99,), "Reviewer", REVIEWED_AT)
+        calibration_from_review(sample, (99,), "Reviewer", REVIEWER_HUMAN, REVIEWED_AT)
 
 
 def test_disagreements_are_read_as_a_comma_separated_list() -> None:

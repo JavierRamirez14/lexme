@@ -69,7 +69,8 @@ configuration fingerprint, so results are reproducible and comparable across cha
 | --- | --- | --- |
 | **False-tranquility rate** | **0.0 (0 / 2)** | Genuinely 🔴/🟠 clauses the system let pass as reassuring (🟢 or silence), over the problematic clauses it correctly delimited. |
 | **Recall of 🔴/🟠 clauses** | **1.0 (2 / 2)** | Of the correctly delimited problematic clauses, how many it also flagged as problematic. |
-| **Citation literality** | **0 of 26 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
+| **Citation literality** | **0 of 30 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
+| **Judge–reviewer agreement** | **0.94 (47 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a stronger *model*, not a human — see the caveat under the judge's numbers. |
 
 ### Full results
 
@@ -78,15 +79,16 @@ hiding behind the other.
 
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | 0 failed of 26 shown | invariant; a displayed citation that does not re-verify fails the run. A quote the verifier discards *before* display is that mechanism working, not a failure: this run discarded none |
-| Retrieval recall, first pass (Mode 1) | 0.97 | gold blocks recovered before the agentic loop, over a four-norm corpus |
-| Multi-hop recall (Mode 1) | 0.88 | 7 / 8 gold blocks across the 4 cases that need more than one norm |
+| Citation literality (both modes) | 0 failed of 30 shown | invariant; a displayed citation that does not re-verify fails the run. A quote the verifier discards *before* display is that mechanism working, not a failure: this run discarded none |
+| Retrieval recall, first pass (Mode 1) | 0.92 | gold blocks recovered before the agentic loop, over a four-norm corpus |
+| Multi-hop recall (Mode 1) | 0.75 | 6 / 8 gold blocks across the 4 cases that need more than one norm |
 | Outcome match rate (Mode 1) | 0.90 | 19 / 21 cases reached the outcome they were written for |
 | Disambiguation (Mode 1) | 0.52 | 11 / 21 cases the gate stopped; all 11 resumed, 0 left stranded |
-| Judge completeness · unsupported claims (Mode 1) | 0.75 · 0.00 | 13 judged cases, against human-reviewed key points |
+| Judge completeness · unsupported claims (Mode 1) | 0.75 · 0.06 | 13 judged cases, against human-reviewed key points |
+| Judge–reviewer agreement (Mode 1) | 0.94 | 47 / 50 rulings, sampled with seed 20 from the run's 92, reviewed by a model |
 | Recall 🔴/🟠 (Mode 2) | 1.00 | 2 / 2 correctly delimited problematic clauses |
 | False-tranquility rate (Mode 2) | 0.00 | 0 / 2 real 🔴/🟠 passed off as reassuring |
-| Flag precision · abstention (Mode 2) | 0.50 · 0.00 | 2 / 4 flags correct · 0 / 10 clauses abstained |
+| Flag precision · abstention (Mode 2) | 0.67 · 0.00 | 2 / 3 flags correct · 0 / 10 clauses abstained |
 | Segmentation IoU ≥ 0.80 (Mode 2) | 0.625 | 10 / 16 clauses delimited |
 | Absence ⚪ recall · precision (Mode 2) | 0.68 · 1.00 | 30 / 44 omitted rights surfaced · 0 false ones |
 
@@ -97,12 +99,11 @@ that answer, and how many stopped at a pause with nothing to answer it — so th
 of cases actually measured end to end is never left ambiguous.
 
 Reports: Mode 1 →
-[`modo1-20260727T160707Z.json`](eval-runs/modo1-20260727T160707Z.json) (`d870d388…`),
+[`modo1-20260728T074601Z.json`](eval-runs/modo1-20260728T074601Z.json) (`d870d388…`),
 Mode 2 →
-[`modo2-20260726T184248Z.json`](eval-runs/modo2-20260726T184248Z.json) (`73c795db…`).
-The Mode 2 fingerprint is one corpus behind: those numbers were measured before the
-corpus grew from the LAU alone to four norms, and they stand until that suite is
-re-run against the current one.
+[`modo2-20260728T083753Z.json`](eval-runs/modo2-20260728T083753Z.json) (`ee478eef…`).
+Both were measured against the same four-norm corpus the repo builds today; every
+number on this page comes from one of those two artifacts.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
 regression.
@@ -114,19 +115,38 @@ which is why every denominator is shown rather than rounded away.
 
 **The agentic self-critique loop's recall delta is 0.00, and I am publishing it flat.**
 The loop only earns something when the first retrieval pass misses; on this corpus it
-does not miss — first-pass recall is 0.97, and quadrupling the corpus to four norms did
+barely does — first-pass recall is 0.92, and quadrupling the corpus to four norms did
 not change that. So the honest reading is not "the loop works", it is "retrieval
 saturates before the loop gets a turn", and the number that would move it is a harder
-reference set, not more law. The corpus expansion did buy one thing the single-norm set
-could not show: the one multi-hop case that misses (`mh-01`, the tensioned-zone
-extension) retrieves the LAU article but not the definition it depends on in the Ley por
-el derecho a la vivienda, and the gate **abstains** rather than answering half-grounded.
-A recall gap surfacing as an abstention instead of a confident half-answer is the
-behaviour the whole design is for.
+reference set, not more law. The corpus expansion did buy what the single-norm set
+could not show: two of the four multi-hop cases recover one of their two gold blocks,
+and the two misses fail differently. `mh-01` (tensioned-zone extension) retrieves the
+LAU article but not the definition it depends on in the Ley por el derecho a la
+vivienda, and the gate **abstains** rather than answering half-grounded — a recall gap
+surfacing as an abstention instead of a confident half-answer is the behaviour the whole
+design is for. `mh-02` (stopping an eviction by paying) retrieves the procedural article
+in the LEC but not LAU art. 27, so it answers correctly about *how* to stop the eviction
+and never mentions *why* the landlord could terminate; nothing it says is wrong, and the
+judge's completeness is what catches the half-answer. Those are the two shapes a
+retrieval gap can take, and only one of them is safe.
 
-The judge's numbers carry no human-agreement figure yet: the calibration pass is
-one-time and manual, and until it exists the run publishes them as "not calibrated"
-rather than inventing a number.
+**The judge's agreement figure was produced by a model reviewer, and that is a weaker
+claim than the one I set out to make.** Calibration is the one-time pass that gives the
+judge's numbers a unit: a sample of its own rulings is re-read against the article, and
+the fraction the reviewer confirms is published beside every judged metric. The run
+artifact records who did that reading in a `reviewer_kind` field the loader will not
+accept as missing, because who reviewed decides what the number means. Here it is
+`model`: a stronger model re-read 50 of the run's 92 rulings (sampled with seed 20) and
+disagreed with 3. Two language models share blind spots a human would not, so **0.94 is
+an upper bound on what a human pass would find, not a substitute for one** — the human
+pass is still open, and running it replaces this record with `reviewer_kind: human`.
+
+What the three disagreements say is more useful than the score. All three are the judge
+being *too harsh*: twice it marked a reference key point uncovered while its own claim
+list showed the answer stating it, and once it flagged a claim as unsupported that the
+cited article plainly backs. So on this sample the judge does not rubber-stamp — the
+failure mode to watch is the opposite one, and completeness 0.75 is more likely an
+understatement than an inflation.
 
 ## Architecture
 
@@ -184,7 +204,8 @@ reintroduce exactly the false calm the product exists to prevent.
 guardrail as a hard invariant, and for Mode 2 the recall of problematic clauses plus
 the false-tranquility rate, with abstention always beside precision. The LLM-judge is
 a different model family from the generator, version-pinned, temperature 0, and
-calibrated once against human judgement.
+calibrated against an independent reviewer whose *kind* — human or model — the record
+has to declare, because that is what decides how much the agreement is worth.
 
 **The eval harness is not the test suite.** The unit/integration suite (fake LLM,
 deterministic, in CI) protects contracts and code logic; the `eval` harness (real

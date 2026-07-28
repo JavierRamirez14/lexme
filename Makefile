@@ -87,10 +87,10 @@ eval-calibrate-export: ## Draw the judge rulings of a run for human review: make
 
 # Runs on the host, not in the container: it writes the vertical's calibration record,
 # and the api service mounts ./verticales read-only. It needs no database or model.
-eval-calibrate-build: ## Record a reviewed sample and publish it on its run: make eval-calibrate-build SAMPLE=<file> RUN=<file> BY="<name>" DISAGREE="3,7"
+eval-calibrate-build: ## Record a reviewed sample and publish it on its run: make eval-calibrate-build SAMPLE=<file> RUN=<file> BY="<name>" KIND=human DISAGREE="3,7"
 	cd api && uv run eval calibrate build --vertical $(or $(V),vivienda) \
 		--sample ../eval-runs/$(SAMPLE) --stamp ../eval-runs/$(RUN) \
-		--reviewed-by "$(BY)" --disagree "$(DISAGREE)" \
+		--reviewed-by "$(BY)" --reviewer-kind $(or $(KIND),human) --disagree "$(DISAGREE)" \
 		--out ../verticales/$(or $(V),vivienda)/eval/judge-calibration.json
 
 refset-validate-bank: ## Check the clause bank still covers the checklist [V=vivienda]

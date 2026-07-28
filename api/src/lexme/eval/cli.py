@@ -5,8 +5,8 @@ image the API serves -- stamps the run with its configuration fingerprint, appli
 the citation guardrail and writes a versionable artifact, exiting non-zero if any
 citation broke the literality invariant. ``eval compare`` reads two artifacts and
 reports the per-metric delta. ``eval calibrate`` draws the judge's own rulings out
-of a run for a human to confirm and records the reviewed labels the agreement is
-derived from. The harness uses a real model; tests inject the runner, corpus and
+of a run for a reviewer to confirm and records the labels the agreement is derived
+from. The harness uses a real model; tests inject the runner, corpus and
 fingerprint to exercise it without the network.
 """
 
@@ -28,7 +28,13 @@ from lexme.blocks import BlockRef
 from lexme.checklist import checklist_path, load_checklist
 from lexme.config import Settings, get_settings
 from lexme.eval.artifact import RunArtifact, read_artifact
-from lexme.eval.calibration import CALIBRATION_FILENAME, JudgeCalibration, load_calibration
+from lexme.eval.calibration import (
+    CALIBRATION_FILENAME,
+    REVIEWER_HUMAN,
+    REVIEWER_KINDS,
+    JudgeCalibration,
+    load_calibration,
+)
 from lexme.eval.cases import EvalCase, load_cases, reject_unknown_branches
 from lexme.eval.compare import Comparison, compare
 from lexme.eval.fingerprint import (
@@ -293,7 +299,7 @@ def _do_calibrate_build(args: argparse.Namespace, *, now: datetime | None) -> in
     sample = read_sample(_runs_path(args.sample, settings))
     disagreed = parse_disagreements(args.disagree)
     calibration = calibration_from_review(
-        sample, disagreed, args.reviewed_by, now or datetime.now(UTC)
+        sample, disagreed, args.reviewed_by, args.reviewer_kind, now or datetime.now(UTC)
     )
     out_path = args.out or _calibration_path(args, settings)
     calibration.write(out_path)
@@ -303,8 +309,9 @@ def _do_calibrate_build(args: argparse.Namespace, *, now: datetime | None) -> in
         artifact.model_copy(update={"judge_calibration": calibration}).write(stamped)
         logger.info("stamped the agreement onto %s", stamped)
     logger.info(
-        "judge '%s' agrees with the reviewer on %s of %d rulings (%d disagreements) -> %s",
+        "judge '%s' agrees with the %s reviewer on %s of %d rulings (%d disagreements) -> %s",
         calibration.judge_model,
+        calibration.reviewer_kind,
         f"{calibration.agreement:.2f}" if calibration.agreement is not None else "n/a",
         calibration.sample_size,
         len(disagreed),
@@ -500,11 +507,11 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
 
 def _add_calibrate_parser(sub: argparse._SubParsersAction) -> None:
     """Register ``calibrate export`` and ``calibrate build`` and their options."""
-    calibrate = sub.add_parser("calibrate", help="draw and record the judge's human calibration")
+    calibrate = sub.add_parser("calibrate", help="draw and record the judge's calibration")
     calibrate_sub = calibrate.add_subparsers(dest="calibration_command", required=True)
 
     export = calibrate_sub.add_parser(
-        CALIBRATE_EXPORT, help="draw a sample of a run's judge rulings for human review"
+        CALIBRATE_EXPORT, help="draw a sample of a run's judge rulings for review"
     )
     export.add_argument("--vertical", required=True, help="the vertical the run belongs to")
     export.add_argument(
@@ -535,6 +542,13 @@ def _add_calibrate_parser(sub: argparse._SubParsersAction) -> None:
     build.add_argument("--vertical", required=True, help="the vertical the calibration is for")
     build.add_argument("--sample", type=Path, required=True, help="the drawn sample reviewed")
     build.add_argument("--reviewed-by", required=True, help="who reviewed the sample")
+    build.add_argument(
+        "--reviewer-kind",
+        required=True,
+        choices=REVIEWER_KINDS,
+        help="what the reviewer was; the agreement can only be read as strong evidence "
+        "about the judge when it is 'human'",
+    )
     build.add_argument(
         "--disagree",
         required=True,
@@ -581,17 +595,20 @@ def _report_run(artifact: RunArtifact, out_path: Path) -> None:
 
 
 def _report_judge(judge: JudgeAggregate | None, calibration: JudgeCalibration | None) -> None:
-    """Log the judged end-to-end numbers next to the human-judge agreement they carry."""
+    """Log the judged end-to-end numbers next to the reviewer agreement they carry."""
     if judge is None:
         logger.info("judge: no answered case carried reference key points; not judged")
         return
     if calibration is None or calibration.agreement is None:
         agreement = "not calibrated"
     else:
-        agreement = f"{calibration.agreement:.2f} over {calibration.sample_size} reviewed"
+        qualifier = "" if calibration.reviewer_kind == REVIEWER_HUMAN else " (model reviewer)"
+        agreement = (
+            f"{calibration.agreement:.2f} over {calibration.sample_size} reviewed{qualifier}"
+        )
     logger.info(
         "judge (%d cases): completeness=%s unsupported_claim_rate=%s mean_clarity=%s; "
-        "human agreement %s",
+        "reviewer agreement %s",
         judge.judged_cases,
         judge.mean_completeness,
         judge.unsupported_claim_rate,

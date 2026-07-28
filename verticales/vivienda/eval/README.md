@@ -75,13 +75,24 @@ records it beside the temperature. Check it against
 `https://openrouter.ai/api/v1/models` — an id that has left that catalog has to be
 replaced before the run, not after it fails.
 
-## Judge calibration (one-time, human)
+## Judge calibration (one-time)
 
-The judged numbers are only trustworthy read next to a human-judge agreement.
+The judged numbers are only trustworthy read next to a reviewer agreement.
 Calibration is a one-time pass, versioned as `judge-calibration.json` in this
 directory; when present the harness recomputes the agreement from its reviewed
 items and publishes it on the run artifact, and when absent the run reports the
 judge as "not calibrated" rather than inventing a number.
+
+**Who reviewed decides what the number means**, so the record declares it in
+`reviewer_kind` and the harness refuses to load a record that does not:
+
+- `human` — the intended pass. A human with the article in front of them is
+  independent of the models being measured, so the agreement is evidence about the
+  judge.
+- `model` — a stronger model reviewing the judge's rulings. Cheap and repeatable,
+  and it does catch the judge rubber-stamping, but two language models share blind
+  spots, so the agreement is an upper bound on what a human pass would find, not a
+  substitute for one. Publish it labelled as such, never as human agreement.
 
 Workflow:
 
@@ -98,14 +109,14 @@ Workflow:
    population and seed) and `…-judge-review.md` (the sheet the reviewer reads). Each
    ruling is numbered within the run's whole population and rendered with the article
    it hangs on, resolved at the case's own point-in-time date.
-3. A human reads every ruling in the sheet with that article in front of them. The
-   review is by exception: only the numbers they disagree with are recorded, and
+3. The reviewer reads every ruling in the sheet with that article in front of them.
+   The review is by exception: only the numbers they disagree with are recorded, and
    everything else counts as confirmed.
 4. Record the review:
 
    ```bash
    make eval-calibrate-build SAMPLE=modo1-<stamp>-judge-review.json \
-     RUN=modo1-<stamp>.json BY="<name>" DISAGREE="3,7,12"   # "none" if all confirmed
+     RUN=modo1-<stamp>.json BY="<name>" KIND=human DISAGREE="3,7,12"  # "none" if all confirmed
    ```
 
    The agreement is derived from the labels, never taken on trust, and a number that
@@ -122,16 +133,18 @@ The record it writes:
 {
   "judge_model": "openai/gpt-oss-20b:free",
   "reviewed_by": "<name>",
+  "reviewer_kind": "human",
   "reviewed_at": "2026-07-25T00:00:00+00:00",
   "items": [
-    { "case_id": "gen-fianza", "kind": "key_point", "ref": "BOE-A-1994-26003:a36", "judge_label": true, "human_label": true },
-    { "case_id": "gen-fianza", "kind": "claim", "ref": "…", "judge_label": false, "human_label": false }
+    { "case_id": "gen-fianza", "kind": "key_point", "ref": "BOE-A-1994-26003:a36", "judge_label": true, "reviewer_label": true },
+    { "case_id": "gen-fianza", "kind": "claim", "ref": "…", "judge_label": false, "reviewer_label": false }
   ]
 }
 ```
 
 - `kind` — `key_point` or `claim`.
 - `ref` — the key point's `block_ref`, or the claim text.
+- `reviewer_kind` — `human` or `model`; a record without it does not load.
 - The agreement is derived from `items` at load time, never trusted from the file.
 
 Disagreements are inspected → the judge prompt is adjusted → the pass is repeated.
