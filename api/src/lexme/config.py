@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     database_url: str
     verticals_dir: str = "/verticales"
     eval_runs_dir: str = "/eval-runs"
+    eval_repetitions: int = 1
     tei_url: str = "http://tei:80"
     frontend_origin: str = "http://localhost:5173"
     gemini_api_key: str = ""

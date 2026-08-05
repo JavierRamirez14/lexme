@@ -7,9 +7,10 @@ from pathlib import Path
 from lexme.eval.artifact import RunArtifact, build_artifact, read_artifact
 from lexme.eval.compare import compare, compare_mode2
 from lexme.eval.fingerprint import ConfigFingerprint
-from lexme.eval.metrics import SuiteMetrics
+from lexme.eval.metrics import SuiteMetrics, scalar_metrics
 from lexme.eval.mode2.artifact import Mode2RunArtifact, build_mode2_artifact, read_mode2_artifact
-from lexme.eval.mode2.metrics import Mode2SuiteMetrics
+from lexme.eval.mode2.metrics import Mode2SuiteMetrics, scalar_metrics_mode2
+from lexme.eval.repetition import Movement, summarize_repetitions
 
 NOW = datetime(2026, 7, 25, tzinfo=UTC)
 
@@ -125,6 +126,81 @@ def test_verdict_counts_are_compared_per_verdict() -> None:
     assert _delta(comparison, "citation_verdicts.verificada_directa").delta == 0
 
 
+def _banded(fingerprint: str, recalls: list[float]) -> RunArtifact:
+    """An artifact whose repetitions observed ``recalls``, the first one its metrics."""
+    artifact = _artifact(fingerprint, mean_recall=recalls[0], agentic_delta=1.0)
+    return artifact.model_copy(
+        update={
+            "repetitions": summarize_repetitions(
+                [
+                    scalar_metrics(
+                        _artifact(fingerprint, mean_recall=recall, agentic_delta=1.0).metrics
+                    )
+                    for recall in recalls
+                ]
+            )
+        }
+    )
+
+
+def test_a_drop_inside_the_two_measured_bands_is_named_variance() -> None:
+    base = _banded("fp", [0.92, 0.87, 0.90])
+    run = _banded("fp", [0.87, 0.85, 0.92])
+
+    comparison = compare(base, run)
+
+    assert comparison.noise_measured is True
+    assert _delta(comparison, "mean_recall").movement is Movement.VARIANCE
+
+
+def test_a_drop_outside_both_bands_is_named_a_regression() -> None:
+    base = _banded("fp", [0.92, 0.90, 0.91])
+    run = _banded("fp", [0.60, 0.62, 0.61])
+
+    assert _delta(compare(base, run), "mean_recall").movement is Movement.REGRESSION
+
+
+def test_a_banded_run_publishes_the_median_and_the_range_it_moved_in() -> None:
+    base = _banded("fp", [0.92, 0.90, 0.91])
+    run = _banded("fp", [0.60, 0.62, 0.61])
+
+    delta = _delta(compare(base, run), "mean_recall")
+
+    assert delta.base == 0.91
+    assert delta.run == 0.61
+    assert (delta.run_span.low, delta.run_span.high) == (0.60, 0.62)
+
+
+def test_a_metric_with_no_better_direction_is_never_called_a_regression() -> None:
+    base = _artifact("fp", mean_recall=0.9, agentic_delta=1.0, disambiguation_rate=0.6)
+    run = _artifact("fp", mean_recall=0.9, agentic_delta=1.0, disambiguation_rate=0.2)
+
+    assert _delta(compare(base, run), "disambiguation_rate").movement is Movement.SHIFT
+
+
+def test_comparing_a_run_that_measured_no_noise_says_so(tmp_path: Path) -> None:
+    base = _banded("fp", [0.92, 0.90, 0.91])
+    run = _artifact("fp", mean_recall=0.87, agentic_delta=1.0)
+
+    comparison = compare(base, run)
+
+    assert comparison.noise_measured is False
+    assert _delta(comparison, "mean_recall").run_span is None
+
+
+def test_an_artifact_written_before_the_bands_still_compares(tmp_path: Path) -> None:
+    artifact = _artifact("fp", mean_recall=0.8, agentic_delta=1.0)
+    payload = artifact.model_dump(mode="json")
+    del payload["repetitions"]
+    path = tmp_path / "old.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    older = read_artifact(path)
+
+    assert older.repetitions is None
+    assert _delta(compare(older, artifact), "mean_recall").delta == 0.0
+
+
 def _mode2_metrics(**overrides: object) -> Mode2SuiteMetrics:
     """A Mode 2 suite metrics object with every field filled, for a test to override."""
     base = dict(
@@ -198,6 +274,39 @@ def test_mode2_publishes_both_the_conditioned_and_the_end_to_end_recall() -> Non
 
     assert _delta(comparison, "recall_problematic").base == 1.0
     assert _delta(comparison, "recall_problematic_e2e").base == 0.29
+
+
+def _banded_mode2(fingerprint: str, false_tranquility: list[float]) -> Mode2RunArtifact:
+    """A Mode 2 artifact whose repetitions observed those false-tranquility rates."""
+    artifact = _mode2_artifact(fingerprint, false_tranquility_rate_e2e=false_tranquility[0])
+    return artifact.model_copy(
+        update={
+            "repetitions": summarize_repetitions(
+                [
+                    scalar_metrics_mode2(_mode2_metrics(false_tranquility_rate_e2e=rate))
+                    for rate in false_tranquility
+                ]
+            )
+        }
+    )
+
+
+def test_mode2_a_rise_in_false_tranquility_beyond_the_bands_is_a_regression() -> None:
+    base = _banded_mode2("fp", [0.00, 0.00, 0.05])
+    run = _banded_mode2("fp", [0.40, 0.35, 0.38])
+
+    assert _delta(compare_mode2(base, run), "false_tranquility_rate_e2e").movement is (
+        Movement.REGRESSION
+    )
+
+
+def test_mode2_a_rise_inside_the_bands_is_named_variance() -> None:
+    base = _banded_mode2("fp", [0.00, 0.10, 0.05])
+    run = _banded_mode2("fp", [0.10, 0.15, 0.05])
+
+    assert _delta(compare_mode2(base, run), "false_tranquility_rate_e2e").movement is (
+        Movement.VARIANCE
+    )
 
 
 def test_a_mode2_artifact_written_before_the_e2e_schema_change_still_reads_back(

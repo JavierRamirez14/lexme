@@ -98,6 +98,21 @@ def test_comparing_two_mode2_artifacts_reports_the_mode2_metrics(
     assert any("recall_problematic_e2e" in record.message for record in caplog.records)
 
 
+def test_comparing_two_unrepeated_runs_warns_that_no_noise_band_was_measured(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    base = tmp_path / "base.json"
+    run = tmp_path / "run.json"
+    _write_mode1_artifact(base)
+    _write_mode1_artifact(run)
+
+    with caplog.at_level("WARNING"):
+        exit_code = main(["compare", "--base", str(base), "--run", str(run)])
+
+    assert exit_code == 0
+    assert any("single repetition" in record.message for record in caplog.records)
+
+
 def test_comparing_a_mode1_and_a_mode2_artifact_is_refused(tmp_path: Path) -> None:
     base = tmp_path / "base.json"
     run = tmp_path / "run.json"

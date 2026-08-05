@@ -25,6 +25,7 @@ from lexme.eval.mode2.segmentation import (
     SpanMatch,
     match_spans,
 )
+from lexme.eval.repetition import MetricDirection
 from lexme.mode2.models import ContractAnalysis
 from lexme.mode2.risk import ClauseFinding, CoverageStatus, RiskLevel
 
@@ -206,6 +207,55 @@ class Mode2SuiteMetrics(BaseModel):
     absence_recall: float | None
     absence_predicted: int
     absence_precision: float | None
+
+
+CASES = "cases"
+OUTCOME_MATCH_RATE = "outcome_match_rate"
+RECALL_PROBLEMATIC = "recall_problematic"
+FALSE_TRANQUILITY_RATE = "false_tranquility_rate"
+RECALL_PROBLEMATIC_E2E = "recall_problematic_e2e"
+FALSE_TRANQUILITY_RATE_E2E = "false_tranquility_rate_e2e"
+PRECISION_PROBLEMATIC = "precision_problematic"
+ABSTENTION_RATE = "abstention_rate"
+SEGMENTATION_DELIMITED_RATE = "segmentation_delimited_rate"
+ABSENCE_RECALL = "absence_recall"
+ABSENCE_PRECISION = "absence_precision"
+
+MODE2_METRIC_DIRECTIONS: dict[str, MetricDirection] = {
+    CASES: MetricDirection.NEUTRAL,
+    OUTCOME_MATCH_RATE: MetricDirection.HIGHER_IS_BETTER,
+    RECALL_PROBLEMATIC: MetricDirection.HIGHER_IS_BETTER,
+    FALSE_TRANQUILITY_RATE: MetricDirection.LOWER_IS_BETTER,
+    RECALL_PROBLEMATIC_E2E: MetricDirection.HIGHER_IS_BETTER,
+    FALSE_TRANQUILITY_RATE_E2E: MetricDirection.LOWER_IS_BETTER,
+    PRECISION_PROBLEMATIC: MetricDirection.HIGHER_IS_BETTER,
+    ABSTENTION_RATE: MetricDirection.NEUTRAL,
+    SEGMENTATION_DELIMITED_RATE: MetricDirection.HIGHER_IS_BETTER,
+    ABSENCE_RECALL: MetricDirection.HIGHER_IS_BETTER,
+    ABSENCE_PRECISION: MetricDirection.HIGHER_IS_BETTER,
+}
+
+
+def scalar_metrics_mode2(metrics: Mode2SuiteMetrics) -> dict[str, float | None]:
+    """Project a Mode 2 run's aggregate onto the flat scalars a band or a delta reads.
+
+    Carries both the conditioned-on-segmentation pair and its end-to-end
+    counterpart, so a band is measured over the number a tenant experiences and not
+    only over the diagnostic.
+    """
+    return {
+        CASES: float(metrics.cases),
+        OUTCOME_MATCH_RATE: metrics.outcome_match_rate,
+        RECALL_PROBLEMATIC: metrics.recall_problematic,
+        FALSE_TRANQUILITY_RATE: metrics.false_tranquility_rate,
+        RECALL_PROBLEMATIC_E2E: metrics.recall_problematic_e2e,
+        FALSE_TRANQUILITY_RATE_E2E: metrics.false_tranquility_rate_e2e,
+        PRECISION_PROBLEMATIC: metrics.precision_problematic,
+        ABSTENTION_RATE: metrics.abstention_rate,
+        SEGMENTATION_DELIMITED_RATE: metrics.segmentation_delimited_rate,
+        ABSENCE_RECALL: metrics.absence_recall,
+        ABSENCE_PRECISION: metrics.absence_precision,
+    }
 
 
 def predicted_class(finding: ClauseFinding) -> str:

@@ -3,10 +3,12 @@
 ``eval run`` drives a case set end-to-end through the real system -- the same
 image the API serves -- stamps the run with its configuration fingerprint, applies
 the citation guardrail and writes a versionable artifact, exiting non-zero if any
-citation broke the literality invariant. ``eval compare`` reads two artifacts and
-reports the per-metric delta. ``eval calibrate`` draws the judge's own rulings out
-of a run for a reviewer to confirm and records the labels the agreement is derived
-from. The harness uses a real model; tests inject the runner, corpus and
+citation broke the literality invariant. ``--repeat`` runs the suite more than once
+under that one fingerprint, so each metric is published as the band it moved in.
+``eval compare`` reads two artifacts and reports the per-metric delta together with
+what it amounts to against those bands. ``eval calibrate`` draws the judge's own
+rulings out of a run for a reviewer to confirm and records the labels the agreement
+is derived from. The harness uses a real model; tests inject the runner, corpus and
 fingerprint to exercise it without the network.
 """
 
@@ -58,6 +60,7 @@ from lexme.eval.mode2 import (
     read_mode2_artifact,
     run_mode2_suite,
 )
+from lexme.eval.repetition import RepetitionSummary, Span
 from lexme.eval.review import (
     ReviewSample,
     build_sample,
@@ -193,6 +196,7 @@ def _do_run_mode1(
             created_at,
             judge,
             calibration,
+            _repetitions(args, settings),
         )
 
     out_path = _out_path(args, settings, suite, created_at)
@@ -231,6 +235,7 @@ def _do_run_mode2(
             target_date,
             harness.fingerprint,
             created_at,
+            _repetitions(args, settings),
         )
 
     out_path = _out_path(args, settings, suite, created_at)
@@ -465,6 +470,18 @@ def _open_connection(stack: ExitStack, database_url: str) -> psycopg.Connection:
     return connection
 
 
+def _repetitions(args: argparse.Namespace, settings: Settings) -> int:
+    """How many times to run the suite: ``--repeat``, else the configured default.
+
+    The default is configuration rather than a constant because each repetition
+    multiplies the run's model calls, and what a provider's quota affords is a
+    property of the deployment, not of the harness.
+    """
+    if args.repeat is not None:
+        return args.repeat
+    return settings.eval_repetitions
+
+
 def _cases_path(args: argparse.Namespace, settings: Settings, suite: str) -> Path:
     """The case set to run: the ``--cases`` path, or the vertical's suite directory."""
     if args.cases is not None:
@@ -522,6 +539,14 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     run.add_argument("--suite", default=None, help="the artifact label (default: the mode name)")
     run.add_argument("--cases", type=Path, help="path to a case file or directory of cases")
     run.add_argument("--out", type=Path, help="artifact destination path")
+    run.add_argument(
+        "--repeat",
+        type=int,
+        default=None,
+        help="times to run the suite under the same fingerprint, so each metric is "
+        "published as a band rather than a single value; every repetition costs a "
+        "full set of model calls (default: EVAL_REPETITIONS)",
+    )
 
     comparison = sub.add_parser("compare", help="compare a run against a baseline artifact")
     comparison.add_argument("--base", type=Path, required=True, help="baseline artifact path")
@@ -617,8 +642,31 @@ def _report_run(artifact: RunArtifact, out_path: Path) -> None:
         metrics.disambiguation,
     )
     _report_judge(metrics.judge, artifact.judge_calibration)
+    _report_repetitions(artifact.repetitions)
     logger.info("artifact written to %s", out_path)
     _report_guardrail(artifact)
+
+
+def _report_repetitions(repetitions: RepetitionSummary | None) -> None:
+    """Log each metric as the median and range its repetitions observed.
+
+    A single repetition is reported as such: it measured no band, and the metrics
+    above are one draw rather than a number a later run can be compared against.
+    """
+    if repetitions is None:
+        return
+    if not repetitions.measures_noise:
+        logger.info(
+            "one repetition: the numbers above are a single draw, no noise band was measured"
+        )
+        return
+    logger.info(
+        "%d repetitions under the same fingerprint; median [min, max]", repetitions.repetitions
+    )
+    for band in repetitions.bands:
+        logger.info(
+            "%s: %s [%s, %s] over %s", band.metric, band.median, band.low, band.high, band.values
+        )
 
 
 def _report_judge(judge: JudgeAggregate | None, calibration: JudgeCalibration | None) -> None:
@@ -725,6 +773,7 @@ def _report_mode2_run(artifact: Mode2RunArtifact, out_path: Path) -> None:
         metrics.absence_precision,
     )
     logger.info("confusion (gold -> predicted): %s", metrics.confusion)
+    _report_repetitions(artifact.repetitions)
     logger.info("artifact written to %s", out_path)
     _report_mode2_guardrail(artifact)
 
@@ -740,7 +789,7 @@ def _report_mode2_guardrail(artifact: Mode2RunArtifact) -> None:
 
 
 def _report_comparison(comparison: Comparison) -> None:
-    """Log whether the fingerprint changed and each metric's delta."""
+    """Log whether the fingerprint changed and each metric's delta and movement."""
     if comparison.fingerprint_changed:
         logger.warning(
             "fingerprint changed (%s -> %s): deltas are an experiment, not a regression",
@@ -752,8 +801,29 @@ def _report_comparison(comparison: Comparison) -> None:
             "fingerprint unchanged (%s): deltas are a regression signal",
             comparison.run_fingerprint,
         )
+    if not comparison.noise_measured:
+        logger.warning(
+            "at least one side ran a single repetition: no noise band was measured, so a "
+            "move outside an exact tie is reported as a result whether or not it is one"
+        )
     for delta in comparison.deltas:
-        logger.info("%s: base=%s run=%s delta=%s", delta.metric, delta.base, delta.run, delta.delta)
+        logger.info(
+            "%s: base=%s%s run=%s%s delta=%s [%s]",
+            delta.metric,
+            delta.base,
+            _span_label(delta.base_span),
+            delta.run,
+            _span_label(delta.run_span),
+            delta.delta,
+            delta.movement.value if delta.movement is not None else "not measured",
+        )
+
+
+def _span_label(span: Span | None) -> str:
+    """The observed range as a suffix to the value, empty when none was measured."""
+    if span is None:
+        return ""
+    return f" [{span.low}, {span.high}]"
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from lexme.eval.cases import EvalCase
 from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.judge import JudgeMetrics, JudgeVerdict, build_judge_metrics
+from lexme.eval.repetition import MetricDirection
 from lexme.mode1 import AskResponse, Outcome, RankedBlockRef, SubQueryReport
 from lexme.verification import CitationVerdict
 
@@ -169,6 +170,63 @@ class SuiteMetrics(BaseModel):
     mean_agentic_delta: float
     judge: JudgeAggregate | None
     citation_verdicts: dict[str, int]
+
+
+CASES = "cases"
+MEAN_RECALL = "mean_recall"
+MEAN_FIRST_PASS_RECALL = "mean_first_pass_recall"
+MEAN_RECALL_DELTA = "mean_recall_delta"
+OUTCOME_MATCH_RATE = "outcome_match_rate"
+ABSTENTION_RATE = "abstention_rate"
+DISAMBIGUATION_RATE = "disambiguation_rate"
+EXPECTED_ABSTENTION_RECALL = "expected_abstention_recall"
+MEAN_AGENTIC_DELTA = "mean_agentic_delta"
+JUDGE_COMPLETENESS = "judge.completeness"
+JUDGE_UNSUPPORTED_CLAIM_RATE = "judge.unsupported_claim_rate"
+JUDGE_MEAN_CLARITY = "judge.mean_clarity"
+CITATION_VERDICT_PREFIX = "citation_verdicts."
+
+METRIC_DIRECTIONS: dict[str, MetricDirection] = {
+    CASES: MetricDirection.NEUTRAL,
+    MEAN_RECALL: MetricDirection.HIGHER_IS_BETTER,
+    MEAN_FIRST_PASS_RECALL: MetricDirection.HIGHER_IS_BETTER,
+    MEAN_RECALL_DELTA: MetricDirection.NEUTRAL,
+    OUTCOME_MATCH_RATE: MetricDirection.HIGHER_IS_BETTER,
+    ABSTENTION_RATE: MetricDirection.NEUTRAL,
+    DISAMBIGUATION_RATE: MetricDirection.NEUTRAL,
+    EXPECTED_ABSTENTION_RECALL: MetricDirection.HIGHER_IS_BETTER,
+    MEAN_AGENTIC_DELTA: MetricDirection.NEUTRAL,
+    JUDGE_COMPLETENESS: MetricDirection.HIGHER_IS_BETTER,
+    JUDGE_UNSUPPORTED_CLAIM_RATE: MetricDirection.LOWER_IS_BETTER,
+    JUDGE_MEAN_CLARITY: MetricDirection.HIGHER_IS_BETTER,
+}
+
+
+def scalar_metrics(metrics: SuiteMetrics) -> dict[str, float | None]:
+    """Project a run's aggregate onto the flat scalars a band or a delta reads.
+
+    One projection serves both, so the metrics a repetition bands are exactly the
+    metrics a comparison classifies. Rates the run never measured stay ``None``
+    rather than becoming a zero the mean would be wrong to average.
+    """
+    judge = metrics.judge
+    values: dict[str, float | None] = {
+        CASES: float(metrics.cases),
+        MEAN_RECALL: metrics.mean_recall,
+        MEAN_FIRST_PASS_RECALL: metrics.mean_first_pass_recall,
+        MEAN_RECALL_DELTA: metrics.mean_recall_delta,
+        OUTCOME_MATCH_RATE: metrics.outcome_match_rate,
+        ABSTENTION_RATE: metrics.abstention_rate,
+        DISAMBIGUATION_RATE: metrics.disambiguation_rate,
+        EXPECTED_ABSTENTION_RECALL: metrics.expected_abstention_recall,
+        MEAN_AGENTIC_DELTA: metrics.mean_agentic_delta,
+        JUDGE_COMPLETENESS: judge.mean_completeness if judge else None,
+        JUDGE_UNSUPPORTED_CLAIM_RATE: judge.unsupported_claim_rate if judge else None,
+        JUDGE_MEAN_CLARITY: judge.mean_clarity if judge else None,
+    }
+    for verdict, count in metrics.citation_verdicts.items():
+        values[f"{CITATION_VERDICT_PREFIX}{verdict}"] = float(count)
+    return values
 
 
 def build_case_result(

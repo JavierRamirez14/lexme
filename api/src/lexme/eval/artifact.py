@@ -5,7 +5,9 @@ quality metrics, its per-case results and the guardrail's hard failures. Without
 the fingerprint a run's numbers are not comparable or reproducible; with it, the
 run history becomes a time series a regression can be read off. ``passed`` is the
 guardrail's verdict alone: a run with any hard failure has not passed, whatever
-its metrics say.
+its metrics say. A run that repeated the suite also carries the band each metric
+moved in, which is what makes a later delta readable as a regression rather than
+as noise.
 """
 
 import json
@@ -18,6 +20,7 @@ from lexme.eval.calibration import JudgeCalibration
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.metrics import CaseResult, SuiteMetrics
+from lexme.eval.repetition import RepetitionSummary
 
 
 class RunArtifact(BaseModel):
@@ -27,6 +30,10 @@ class RunArtifact(BaseModel):
     the metrics; the metrics are the soft numbers, the guardrail is the invariant.
     ``judge_calibration`` is the human-judge agreement the judged metrics are read
     with, ``None`` when the judge has not been calibrated for this vertical.
+    ``repetitions`` holds the band each metric moved in across the run's repetitions
+    and is the number to publish; ``metrics`` and ``cases`` are the first
+    repetition alone, kept as the per-case detail a band cannot show. It is ``None``
+    only in an artifact written before the harness repeated anything.
     """
 
     suite: str
@@ -37,6 +44,7 @@ class RunArtifact(BaseModel):
     hard_failures: list[GuardrailViolation]
     passed: bool
     judge_calibration: JudgeCalibration | None = None
+    repetitions: RepetitionSummary | None = None
 
     def write(self, path: Path) -> None:
         """Serialize the artifact to ``path`` as indented JSON, creating parents."""
@@ -52,6 +60,7 @@ def build_artifact(
     metrics: SuiteMetrics,
     hard_failures: list[GuardrailViolation],
     judge_calibration: JudgeCalibration | None = None,
+    repetitions: RepetitionSummary | None = None,
 ) -> RunArtifact:
     """Assemble a :class:`RunArtifact`, deriving ``passed`` from the guardrail alone."""
     return RunArtifact(
@@ -63,6 +72,7 @@ def build_artifact(
         hard_failures=hard_failures,
         passed=not hard_failures,
         judge_calibration=judge_calibration,
+        repetitions=repetitions,
     )
 
 

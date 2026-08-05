@@ -20,7 +20,13 @@ from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.mode2.artifact import Mode2RunArtifact, build_mode2_artifact
 from lexme.eval.mode2.cases import Mode2EvalCase
 from lexme.eval.mode2.guardrail import check_mode2_citations
-from lexme.eval.mode2.metrics import aggregate_mode2, build_mode2_case_result
+from lexme.eval.mode2.metrics import (
+    Mode2CaseResult,
+    aggregate_mode2,
+    build_mode2_case_result,
+    scalar_metrics_mode2,
+)
+from lexme.eval.repetition import summarize_repetitions
 from lexme.llm import LlmClient
 from lexme.mode2 import (
     ClauseRetriever,
@@ -102,20 +108,46 @@ def run_mode2_suite(
     default_date: date,
     fingerprint: ConfigFingerprint,
     created_at: datetime,
+    repetitions: int = 1,
 ) -> Mode2RunArtifact:
-    """Run every contract, apply the guardrail and metrics, and build the artifact.
+    """Run every contract ``repetitions`` times and build the artifact.
 
     Each case is analyzed at ``default_date``; the guardrail re-verifies the risk
-    map's citations against ``corpus`` under ``norm_id`` at the same date. The
-    returned artifact's ``passed`` is false if any displayed citation broke the
-    literality invariant.
+    map's citations against ``corpus`` under ``norm_id`` at the same date. Every
+    repetition analyzes the same contracts under the same fingerprint, so the
+    artifact's bands measure the pipeline's own variance; its ``metrics`` and
+    ``cases`` are the first repetition's. ``passed`` is false if any repetition's
+    displayed citation broke the literality invariant.
+    Raises :class:`ValueError` when asked for fewer than one repetition.
     """
-    results = []
+    if repetitions < 1:
+        raise ValueError(f"a run needs at least one repetition, got {repetitions}")
+    passes = [_run_mode2_pass(cases, runner, corpus, default_date) for _ in range(repetitions)]
+    per_repetition = [aggregate_mode2(results) for results, _ in passes]
+    hard_failures = [failure for _, failures in passes for failure in failures]
+    return build_mode2_artifact(
+        suite,
+        created_at,
+        fingerprint,
+        passes[0][0],
+        per_repetition[0],
+        hard_failures,
+        summarize_repetitions([scalar_metrics_mode2(metrics) for metrics in per_repetition]),
+    )
+
+
+def _run_mode2_pass(
+    cases: Sequence[Mode2EvalCase],
+    runner: Mode2CaseRunner,
+    corpus: CorpusReader,
+    default_date: date,
+) -> tuple[list[Mode2CaseResult], list[GuardrailViolation]]:
+    """Drive every contract once, returning its results and the guardrail's failures."""
+    results: list[Mode2CaseResult] = []
     hard_failures: list[GuardrailViolation] = []
     for case in cases:
         analysis = runner.run(case.document, default_date)
         violations = check_mode2_citations(case.id, analysis, corpus, default_date)
         hard_failures.extend(violations)
         results.append(build_mode2_case_result(case, analysis, violations))
-    metrics = aggregate_mode2(results)
-    return build_mode2_artifact(suite, created_at, fingerprint, results, metrics, hard_failures)
+    return results, hard_failures

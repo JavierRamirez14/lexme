@@ -48,6 +48,7 @@ from lexme.eval.judge import (
     build_judge_metrics,
 )
 from lexme.eval.metrics import (
+    METRIC_DIRECTIONS,
     CaseResult,
     Disambiguation,
     JudgeAggregate,
@@ -57,10 +58,21 @@ from lexme.eval.metrics import (
     SuiteMetrics,
     aggregate,
     build_case_result,
+    scalar_metrics,
+)
+from lexme.eval.repetition import (
+    MetricBand,
+    MetricDirection,
+    Movement,
+    RepetitionSummary,
+    Span,
+    classify_movement,
+    summarize_repetitions,
 )
 from lexme.eval.runner import CaseRun, CaseRunner, Mode1CaseRunner, run_suite
 
 __all__ = [
+    "METRIC_DIRECTIONS",
     "CalibrationError",
     "CalibrationItem",
     "CaseResult",
@@ -84,10 +96,15 @@ __all__ = [
     "KeyPointCoverage",
     "LayerRecall",
     "LlmJudge",
+    "MetricBand",
     "MetricDelta",
+    "MetricDirection",
     "Mode1CaseRunner",
+    "Movement",
+    "RepetitionSummary",
     "RetrievalRecall",
     "RunArtifact",
+    "Span",
     "SubQueryRecall",
     "SuiteMetrics",
     "TaskFingerprint",
@@ -100,6 +117,7 @@ __all__ = [
     "build_fingerprint",
     "build_judge_metrics",
     "check_case_citations",
+    "classify_movement",
     "compare",
     "compute_agreement",
     "compute_dataset_digest",
@@ -109,4 +127,6 @@ __all__ = [
     "read_artifact",
     "reject_unknown_branches",
     "run_suite",
+    "scalar_metrics",
+    "summarize_repetitions",
 ]

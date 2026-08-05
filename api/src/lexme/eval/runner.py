@@ -6,6 +6,11 @@ response, measures the quality metrics and folds everything into one artifact. T
 runner is a seam so the harness itself is tested with the real system behind a
 fake LLM, and never needs a live model of its own.
 
+The suite can be run more than once under the same fingerprint. Two runs of the
+same configuration do not return the same numbers, so the harness measures that
+spread itself and publishes each metric as the band it moved in rather than as a
+single value a later run could not honestly be compared against.
+
 A case may stop mid-run on the disambiguation gate. The harness answers it only
 with the reply the case brings written down: it hands the runner the case's pinned
 answers, the runner resumes the paused thread with the one matching the branch
@@ -28,7 +33,14 @@ from lexme.eval.cases import ClarificationAnswer, EvalCase, answer_for_branch
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation, check_case_citations
 from lexme.eval.judge import Judge
-from lexme.eval.metrics import Disambiguation, aggregate, build_case_result
+from lexme.eval.metrics import (
+    CaseResult,
+    Disambiguation,
+    aggregate,
+    build_case_result,
+    scalar_metrics,
+)
+from lexme.eval.repetition import summarize_repetitions
 from lexme.mode1 import AskResponse, Mode1Deps, Mode1Run, Outcome
 from lexme.verification import CorpusReader
 
@@ -125,8 +137,9 @@ def run_suite(
     created_at: datetime,
     judge: Judge | None = None,
     calibration: JudgeCalibration | None = None,
+    repetitions: int = 1,
 ) -> RunArtifact:
-    """Run every case, apply the guardrail and metrics, and build the run artifact.
+    """Run every case ``repetitions`` times and build the run artifact.
 
     Each case is answered at its own ``target_date`` when it pins one, else at
     ``default_date``; the guardrail re-verifies that case's citations at the same
@@ -135,10 +148,41 @@ def run_suite(
     and the guardrail and the judge then see that resumed answer rather than the
     pause. When a ``judge`` is given, every answered case carrying key points is
     graded against them, and ``calibration`` is the human-judge agreement those
-    scores are published with. The returned artifact's ``passed`` is false if any
-    case's citation broke the literality invariant.
+    scores are published with.
+
+    Every repetition runs the same cases under the same fingerprint, so what moves
+    between them is the model's own variance and nothing else; the artifact carries
+    each metric's band across them, and its ``metrics`` and ``cases`` are the first
+    repetition's. ``passed`` is false if any repetition's citation broke the
+    literality invariant, and the hard failures of all of them are kept.
+    Raises :class:`ValueError` when asked for fewer than one repetition.
     """
-    results = []
+    if repetitions < 1:
+        raise ValueError(f"a run needs at least one repetition, got {repetitions}")
+    passes = [_run_pass(cases, runner, corpus, default_date, judge) for _ in range(repetitions)]
+    per_repetition = [aggregate(results) for results, _ in passes]
+    hard_failures = [failure for _, failures in passes for failure in failures]
+    return build_artifact(
+        suite,
+        created_at,
+        fingerprint,
+        passes[0][0],
+        per_repetition[0],
+        hard_failures,
+        calibration,
+        summarize_repetitions([scalar_metrics(metrics) for metrics in per_repetition]),
+    )
+
+
+def _run_pass(
+    cases: Sequence[EvalCase],
+    runner: CaseRunner,
+    corpus: CorpusReader,
+    default_date: date,
+    judge: Judge | None,
+) -> tuple[list[CaseResult], list[GuardrailViolation]]:
+    """Drive every case once, returning its results and the guardrail's failures."""
+    results: list[CaseResult] = []
     hard_failures: list[GuardrailViolation] = []
     for case in cases:
         case_date = case.target_date or default_date
@@ -150,7 +194,4 @@ def run_suite(
         results.append(
             build_case_result(case, response, violations, verdict, case_run.disambiguation)
         )
-    metrics = aggregate(results)
-    return build_artifact(
-        suite, created_at, fingerprint, results, metrics, hard_failures, calibration
-    )
+    return results, hard_failures

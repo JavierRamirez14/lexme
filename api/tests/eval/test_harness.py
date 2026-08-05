@@ -193,6 +193,90 @@ def test_the_runner_receives_the_answer_the_case_pins(tmp_path: Path) -> None:
     assert runner.pinned_answers == [(ClarificationAnswer("fecha_firma", "12/06/2025"),)]
 
 
+def _repeat(
+    tmp_path: Path, runner: StubRunner, corpus: InMemoryCorpus, times: int
+) -> tuple[int, Path]:
+    """Invoke ``eval run --repeat`` with injected seams and return its code and artifact."""
+    out = tmp_path / "run.json"
+    code = main(
+        [
+            "run",
+            "--vertical",
+            "vivienda",
+            "--cases",
+            str(_cases_dir(tmp_path)),
+            "--out",
+            str(out),
+            "--repeat",
+            str(times),
+        ],
+        runner=runner,
+        corpus=corpus,
+        fingerprint=_fingerprint(),
+        today=AS_OF,
+        now=NOW,
+    )
+    return code, out
+
+
+def test_repeating_the_suite_bands_each_metric_over_the_repetitions(tmp_path: Path) -> None:
+    recalled = answer_response(evidence=((NORM_ID, "a9"),))
+    missed = answer_response(evidence=())
+    runner = StubRunner(recalled, missed, recalled)
+
+    code, out = _repeat(tmp_path, runner, InMemoryCorpus({(NORM_ID, "a9"): BLOCK_TEXT}), times=3)
+
+    assert code == 0
+    repetitions = read_artifact(out).repetitions
+    assert repetitions is not None
+    assert repetitions.repetitions == 3
+    band = repetitions.band("mean_recall")
+    assert band is not None
+    assert band.values == [1.0, 0.0, 1.0]
+    assert (band.median, band.low, band.high) == (1.0, 0.0, 1.0)
+
+
+def test_a_repeated_run_keeps_the_first_repetition_as_its_per_case_detail(
+    tmp_path: Path,
+) -> None:
+    recalled = answer_response(evidence=((NORM_ID, "a9"),))
+    runner = StubRunner(recalled, answer_response(evidence=()))
+
+    code, out = _repeat(tmp_path, runner, InMemoryCorpus({(NORM_ID, "a9"): BLOCK_TEXT}), times=2)
+
+    assert code == 0
+    artifact = read_artifact(out)
+    assert [case.recall for case in artifact.cases] == [1.0]
+    assert artifact.metrics.mean_recall == 1.0
+
+
+def test_a_single_repetition_still_runs_and_records_that_it_measured_no_noise(
+    tmp_path: Path,
+) -> None:
+    runner = StubRunner(answer_response(("a9", QUOTE), evidence=((NORM_ID, "a9"),)))
+
+    code, out = _run(tmp_path, runner, InMemoryCorpus({(NORM_ID, "a9"): BLOCK_TEXT}))
+
+    assert code == 0
+    repetitions = read_artifact(out).repetitions
+    assert repetitions is not None
+    assert repetitions.repetitions == 1
+    assert repetitions.measures_noise is False
+
+
+def test_a_corrupt_citation_in_a_later_repetition_still_hard_fails_the_run(
+    tmp_path: Path,
+) -> None:
+    clean = answer_response(("a9", QUOTE), evidence=((NORM_ID, "a9"),))
+    corrupt = answer_response(("a9", FABRICATED), evidence=((NORM_ID, "a9"),))
+    runner = StubRunner(clean, corrupt)
+
+    code, out = _repeat(tmp_path, runner, InMemoryCorpus({(NORM_ID, "a9"): BLOCK_TEXT}), times=2)
+
+    assert code == 1
+    assert read_artifact(out).passed is False
+
+
 def test_a_corrupt_displayed_citation_hard_fails_the_run_and_flags_the_case(
     tmp_path: Path,
 ) -> None:

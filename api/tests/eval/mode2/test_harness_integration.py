@@ -189,6 +189,37 @@ def test_the_harness_runs_a_contract_end_to_end_and_emits_a_passing_artifact(
     assert read_mode2_artifact(out) == artifact
 
 
+def test_repeating_the_contract_suite_bands_the_headline_over_the_repetitions() -> None:
+    cases = (_case(),)
+    fake = _programmed_llm()
+    fake.queue(
+        SEGMENTATION_TASK,
+        segmentation_of(("Actualización", RENT_CLAUSE), ("Mascotas", TERM_CLAUSE)),
+    )
+    fake.queue(TRIAGE_TASK, triage_of(fecha_firma="2023-01-01"))
+    fake.queue(MAPPING_TASK, mapping_of(("c1", True, ["CHK-RENTA"]), ("c2", True, [])))
+    # The second repetition reassures on the same worse-than-default clause.
+    fake.queue(
+        CLASSIFICATION_TASK,
+        classification_of(
+            ProposedClauseLevel.CORRECTO, citation=("a18", "solo podrá actualizar la renta")
+        ),
+    )
+    fake.queue(
+        CLASSIFICATION_TASK, classification_of(ProposedClauseLevel.NEGOCIABLE, citation=None)
+    )
+
+    artifact = run_mode2_suite(
+        "modo2", cases, _runner(fake), CORPUS, NORM_ID, TODAY, _fingerprint(cases), NOW, 2
+    )
+
+    assert artifact.repetitions is not None
+    band = artifact.repetitions.band("recall_problematic_e2e")
+    assert band is not None
+    assert band.values == [1.0, 0.0]
+    assert (band.low, band.high) == (0.0, 1.0)
+
+
 def test_a_worse_than_default_clause_called_correct_is_caught_as_false_tranquility(
     tmp_path: Path,
 ) -> None:

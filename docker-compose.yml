@@ -33,6 +33,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       EVAL_RUNS_DIR: /eval-runs
+      EVAL_REPETITIONS: ${EVAL_REPETITIONS:-1}
     volumes:
       - ./verticales:/verticales:ro
       - ./eval-runs:/eval-runs

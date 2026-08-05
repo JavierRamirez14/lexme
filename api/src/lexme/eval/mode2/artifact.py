@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.mode2.metrics import Mode2CaseResult, Mode2SuiteMetrics
+from lexme.eval.repetition import RepetitionSummary
 
 
 class Mode2RunArtifact(BaseModel):
@@ -23,6 +24,10 @@ class Mode2RunArtifact(BaseModel):
 
     ``passed`` is ``False`` whenever ``hard_failures`` is non-empty, independent of
     the metrics; the metrics are the soft numbers, the guardrail is the invariant.
+    ``repetitions`` holds the band each metric moved in across the run's repetitions
+    and is the number to publish; ``metrics`` and ``cases`` are the first repetition
+    alone. It is ``None`` only in an artifact written before the harness repeated
+    anything.
     """
 
     suite: str
@@ -32,6 +37,7 @@ class Mode2RunArtifact(BaseModel):
     cases: list[Mode2CaseResult]
     hard_failures: list[GuardrailViolation]
     passed: bool
+    repetitions: RepetitionSummary | None = None
 
     def write(self, path: Path) -> None:
         """Serialize the artifact to ``path`` as indented JSON, creating parents."""
@@ -46,6 +52,7 @@ def build_mode2_artifact(
     results: list[Mode2CaseResult],
     metrics: Mode2SuiteMetrics,
     hard_failures: list[GuardrailViolation],
+    repetitions: RepetitionSummary | None = None,
 ) -> Mode2RunArtifact:
     """Assemble a :class:`Mode2RunArtifact`, deriving ``passed`` from the guardrail alone."""
     return Mode2RunArtifact(
@@ -56,6 +63,7 @@ def build_mode2_artifact(
         cases=results,
         hard_failures=hard_failures,
         passed=not hard_failures,
+        repetitions=repetitions,
     )
 
 

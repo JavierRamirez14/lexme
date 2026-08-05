@@ -22,6 +22,7 @@ from lexme.eval.mode2.cases import (
 )
 from lexme.eval.mode2.guardrail import check_mode2_citations
 from lexme.eval.mode2.metrics import (
+    MODE2_METRIC_DIRECTIONS,
     AbsenceRecall,
     ClausePrediction,
     Mode2CaseResult,
@@ -30,6 +31,7 @@ from lexme.eval.mode2.metrics import (
     aggregate_mode2,
     build_mode2_case_result,
     predicted_class,
+    scalar_metrics_mode2,
 )
 from lexme.eval.mode2.runner import (
     Mode2CaseRunner,
@@ -46,6 +48,7 @@ from lexme.eval.mode2.segmentation import (
 
 __all__ = [
     "DEFAULT_IOU_THRESHOLD",
+    "MODE2_METRIC_DIRECTIONS",
     "AbsenceRecall",
     "AbsenceTruth",
     "ClausePrediction",
@@ -70,4 +73,5 @@ __all__ = [
     "predicted_class",
     "read_mode2_artifact",
     "run_mode2_suite",
+    "scalar_metrics_mode2",
 ]
