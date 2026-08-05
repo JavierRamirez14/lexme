@@ -40,6 +40,16 @@ _BASE_PROMPT = (
     "no asumes nada relevante."
 )
 
+_CAUSE_PROMPT = (
+    "Cuando la pregunta busque evitar, parar o deshacer una consecuencia jurídica "
+    "(un desahucio, una resolución de contrato, una subida de renta, un desalojo), "
+    "el plan debe cubrir las DOS caras y no solo la que el usuario menciona: la "
+    "norma que habilita esa consecuencia —la CAUSA, por qué la otra parte podía "
+    "hacerlo— y la que da el REMEDIO o el procedimiento para enfrentarla. Suelen "
+    "vivir en normas distintas, y una respuesta que solo explica el remedio deja "
+    "sin contestar por qué procedía la consecuencia."
+)
+
 _DATE_PROMPT = (
     "En 'target_date_reference' escribe la fecha a la que hay que situar la "
     "respuesta EN FORMATO AAAA-MM-DD, si la pregunta se ancla en el pasado "
@@ -109,7 +119,7 @@ def _plan(llm: LlmClient, question: str, branches: tuple[CriticalBranch, ...], t
 
 def _system_prompt(branches: tuple[CriticalBranch, ...], today: date) -> str:
     """Compose the planning prompt with the run's clock and the vertical's branches."""
-    sections = [_BASE_PROMPT, _DATE_PROMPT.format(today=today.isoformat())]
+    sections = [_BASE_PROMPT, _CAUSE_PROMPT, _DATE_PROMPT.format(today=today.isoformat())]
     if branches:
         listing = "\n".join(f"- {branch.id}: {branch.question}" for branch in branches)
         sections.append(_BRANCHES_PROMPT.format(branches=listing))
