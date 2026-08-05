@@ -83,6 +83,37 @@ def test_raises_on_a_response_without_choices() -> None:
         adapter.complete(request)
 
 
+def test_falls_back_to_reasoning_when_the_choice_carries_no_content() -> None:
+    """A reasoning model that spends its budget thinking still yields its text.
+
+    Free-tier reasoning models answer with ``content: null`` and the whole reply in
+    ``reasoning``. That is the model failing to produce the asked-for JSON, not the
+    provider failing, so the text must reach the structured-output layer and be
+    rejected there -- which leaves one case unjudged instead of ending the run.
+    """
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        message = {"role": "assistant", "content": None, "reasoning": "pensando"}
+        return httpx.Response(200, json={"choices": [{"message": message}]})
+
+    with OpenRouterAdapter("k", transport=_transport(handler)) as adapter:
+        text = adapter.complete(ProviderRequest("m", 0.0, [Message("user", "hi")]))
+
+    assert text == "pensando"
+
+
+def test_raises_when_the_choice_has_neither_content_nor_reasoning() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"choices": [{"message": {"role": "assistant"}}]})
+
+    request = ProviderRequest("m", 0.0, [Message("user", "hi")])
+    with (
+        OpenRouterAdapter("k", transport=_transport(handler)) as adapter,
+        pytest.raises(ProviderResponseError),
+    ):
+        adapter.complete(request)
+
+
 def test_empty_api_key_is_rejected_at_construction() -> None:
     with pytest.raises(ValueError, match="api_key"):
         OpenRouterAdapter("")

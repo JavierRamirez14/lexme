@@ -51,10 +51,19 @@ class OpenRouterAdapter(HttpProviderAdapter):
         return body
 
     def _extract_text(self, payload: dict) -> str:
+        """The reply's text, falling back to ``reasoning`` when ``content`` is empty.
+
+        A free-tier reasoning model can spend its whole completion budget thinking
+        and return ``content: null`` with the reply in ``reasoning``. Treating that
+        as a provider failure would end a suite mid-run over one bad reply, so the
+        reasoning text is returned instead and left for the structured-output layer
+        to reject as the malformed model output it is.
+        """
         choices = payload.get("choices")
         if not choices:
             raise ProviderResponseError(f"OpenRouter response has no choices: {payload}")
-        content = choices[0].get("message", {}).get("content")
+        message = choices[0].get("message", {})
+        content = message.get("content") or message.get("reasoning")
         if not content:
             raise ProviderResponseError(f"OpenRouter choice has no content: {payload}")
         return content
