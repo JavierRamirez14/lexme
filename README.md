@@ -78,15 +78,19 @@ configuration fingerprint, so results are reproducible and comparable across cha
 Precision is always reported next to its abstention rate, so you can't inflate one by
 hiding behind the other.
 
+Mode 1 figures are the **median of 3 repetitions** under one fingerprint, with the observed
+range in brackets. A bare number over 21 cases was not comparable: see the note below.
+
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | 0 failed of 82 shown | invariant; a displayed citation that does not re-verify fails the run. 26 shown in Mode 1, 56 in Mode 2. A quote the verifier discards *before* display is that mechanism working, not a failure: this run discarded none |
-| Retrieval recall by layer (Mode 1) | 0.94 · 0.86 · 0.97 · 0.94 | dense · lexical · fused · evidence, over 36 gold blocks. The gap that matters is the last two: what the candidate pool holds versus what survives the cut into synthesis |
-| Retrieval recall, first pass (Mode 1) | 0.94 | gold blocks recovered before the agentic loop, over a four-norm corpus |
-| Multi-hop recall (Mode 1) | 0.88 | 7 / 8 gold blocks across the 4 cases that need more than one norm |
-| Outcome match rate (Mode 1) | 0.90 | 19 / 21 cases reached the outcome they were written for |
-| Disambiguation (Mode 1) | 0.48 | 10 / 21 cases the gate stopped; all 10 resumed, 0 left stranded |
-| Judge completeness · unsupported claims (Mode 1) | 0.70 · 0.05 | 13 judged cases, against human-reviewed key points |
+| Citation literality (both modes) | 0 failed, every repetition | invariant; a displayed citation that does not re-verify fails the run. Mode 1 showed 30 citations [27–31], Mode 2 showed 56. A quote the verifier discards *before* display is that mechanism working, not a failure: Mode 1 discarded 1 [0–1] |
+| Retrieval recall by layer (Mode 1) | 0.94 · 0.83 · 0.97 · 0.94 | dense · lexical · fused · evidence, over 36 gold blocks. The gap that matters is the last two: what the candidate pool holds versus what survives the cut into synthesis. **Single draw, not banded** — the layer recalls sat outside the banded projection when this run was written; they are inside it now, so the next run bands them |
+| Retrieval recall, first pass (Mode 1) | 1.00 [0.94–1.00] | gold blocks recovered before the agentic loop, over a four-norm corpus |
+| Retrieval recall, final (Mode 1) | 0.95 [0.89–0.95] | over the evidence accumulated across passes. It reads *below* first-pass because the two average over different case sets — a case with no recorded first pass is scored in one and not the other — not because the loop loses ground |
+| Multi-hop recall (Mode 1) | 6 / 8 | gold blocks across the 4 cases that need more than one norm. First repetition only, not banded |
+| Outcome match rate (Mode 1) | 0.95 [0.86–0.95] | cases that reached the outcome they were written for |
+| Disambiguation (Mode 1) | 0.33 [0.24–0.38] | fraction of cases the gate stopped; all resumed, 0 left stranded |
+| Judge completeness · unsupported claims (Mode 1) | 0.74 [0.74–0.80] · 0.03 [0.00–0.06] | 11 judged cases, against human-reviewed key points |
 | Judge–reviewer agreement (Mode 1) | 0.94 | 47 / 50 rulings, sampled with seed 20, reviewed by a model — calibrated on the July baseline and carried forward, not re-drawn on this run |
 | Outcome match rate (Mode 2) | 1.00 | 3 / 3 contracts reached the outcome their case declared |
 | Recall 🔴/🟠, end to end (Mode 2) | 1.00 | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
@@ -111,19 +115,26 @@ columns, and it is why they are published side by side rather than collapsed int
 "retrieval recall". Note that the fused layer is the *union of the dense and lexical
 candidates*, not a ranked shortlist, so the two can only be equal if nothing is ever cut.
 
-Each Mode 1 run here is a **single draw**. There are two of them under an identical
-fingerprint, and putting them side by side is the whole argument for reporting this way:
-evidence recall, fused recall and mean recall come out *identical* across the pair, while
-`mh-02` alone swings from `0.50` to `1.00` and completeness moves `0.74 → 0.70`. The
-aggregate is steadier than the cases it is made of, so a stable headline number is not
-evidence that nothing moved. Until repetitions put a real band on this, differences
-smaller than that spread are not differences.
+**Why the brackets.** Two runs of this suite under an identical fingerprint — same models,
+same prompts, same corpus, same cases — disagree. Across the three repetitions here,
+`outcome_match_rate` spans `0.86–0.95` and `unsupported_claim_rate` spans `0.00–0.06`;
+a fourth draw at the same fingerprint put completeness at `0.70`, below the `0.74–0.80`
+the three measured. A single number over 21 cases could not tell a real regression from
+a re-roll, so the run now reports the median and the range it was drawn from, and a
+comparison only calls something a regression when it lands outside the band.
+
+The case-level spread is wider than the aggregate suggests, which is the part worth
+internalising: mean recall moved `0.89 → 0.95` across repetitions while `mh-02` alone
+swung the full `0.50 → 1.00`. A steady headline number is not evidence that nothing moved
+underneath it.
 
 Reports: Mode 1 →
-[`modo1-20260805T171438Z.json`](eval-runs/modo1-20260805T171438Z.json) (`d1029d9c…`), with
-[`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) the second draw at
-the same fingerprint; Mode 2 →
-[`modo2-20260728T134505Z.json`](eval-runs/modo2-20260728T134505Z.json) (`9443e189…`).
+[`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) (`d1029d9c…`, 3
+repetitions — every banded figure above comes from it), with
+[`modo1-20260805T171438Z.json`](eval-runs/modo1-20260805T171438Z.json) a fourth draw at the
+same fingerprint; Mode 2 →
+[`modo2-20260728T134505Z.json`](eval-runs/modo2-20260728T134505Z.json) (`9443e189…`, a
+single repetition — Mode 2 has not been re-run with repetitions yet).
 Both were measured against the same four-norm corpus the repo builds today; every
 number on this page comes from one of those two artifacts.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
@@ -175,11 +186,11 @@ cheaper than pretending the band is clean.
 
 **The agentic self-critique loop's recall delta is 0.00, and I am publishing it flat.**
 The loop only earns something when the first retrieval pass misses; on this corpus it
-barely does — first-pass recall is 0.94, and quadrupling the corpus to four norms did
+barely does — first-pass recall medians 1.00, and quadrupling the corpus to four norms did
 not change that. So the honest reading is not "the loop works", it is "retrieval
 saturates before the loop gets a turn", and the number that would move it is a harder
 reference set, not more law. The corpus expansion did buy what the single-norm set
-could not show: in this run three of the four multi-hop cases recover both gold blocks,
+could not show: in the first repetition two of the four multi-hop cases recover both gold blocks,
 and the way the fourth fails is the useful part. `mh-01` (tensioned-zone extension) retrieves the
 LAU article but not the definition it depends on in the Ley por el derecho a la
 vivienda, and the gate **abstains** rather than answering half-grounded — a recall gap
@@ -198,11 +209,14 @@ cause. Wording a sub-query for the cause puts art. 27 at fused rank 1.
 
 That fix is real and it is not sufficient, in two separate ways.
 
-First, it is not reliable. Two runs under an **identical fingerprint** — same code, same
-prompts — put `mh-02` at recall `0.50` and `1.00`. The planner is nominally at
-temperature 0 and is not deterministic in practice: one run decomposed the question into
-three sub-queries and none surfaced art. 27 into the cut, the other into two and one did.
-Asking for the cause raises the odds that the plan covers it; it does not guarantee it.
+First, it is not reliable. Across four draws under an **identical fingerprint** — same
+code, same prompts — `mh-02` lands at `1.00` three times and `0.50` once. The planner is
+nominally at temperature 0 and is not deterministic in practice: the failing draw
+decomposed the question into three sub-queries and none surfaced art. 27 into the cut,
+while another used two and one did. Asking for the cause raises the odds that the plan
+covers it; it does not guarantee it. (Only the first repetition stores per-case detail, so
+the three successes are read off the first-pass recall band reaching `1.00`, which no
+draw could reach with `mh-02` short.)
 
 Second, even in the run that retrieves it, the answer still does not mention the cause.
 The block reaches evidence and synthesis declines to use it. So the case that once
@@ -228,7 +242,7 @@ What the three disagreements say is more useful than the score. All three are th
 being *too harsh*: twice it marked a reference key point uncovered while its own claim
 list showed the answer stating it, and once it flagged a claim as unsupported that the
 cited article plainly backs. So on this sample the judge does not rubber-stamp — the
-failure mode to watch is the opposite one, and completeness 0.70 is more likely an
+failure mode to watch is the opposite one, and completeness 0.74 is more likely an
 understatement than an inflation.
 
 ## Architecture

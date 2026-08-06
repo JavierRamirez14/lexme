@@ -2,7 +2,15 @@
 
 from lexme.eval.cases import EvalCase, KeyPoint
 from lexme.eval.judge import ClaimAssessment, JudgeVerdict, KeyPointCoverage
-from lexme.eval.metrics import aggregate, build_case_result
+from lexme.eval.metrics import (
+    LAYER_RECALL_PREFIX,
+    METRIC_DIRECTIONS,
+    RETRIEVAL_LAYERS,
+    aggregate,
+    build_case_result,
+    scalar_metrics,
+)
+from lexme.eval.repetition import MetricDirection
 from lexme.mode1 import Outcome
 from tests.eval.conftest import NORM_ID, answer_response
 
@@ -121,6 +129,40 @@ def test_the_judge_aggregate_pools_unsupported_claims_across_cases() -> None:
     assert metrics.judge.mean_completeness == 1.0
     assert metrics.judge.unsupported_claim_rate == 0.5
     assert metrics.judge.mean_clarity == 5.0
+
+
+def test_every_retrieval_layer_reaches_the_scalars_a_band_is_measured_over() -> None:
+    """The layered recall must be bandable, or the gap it exists to show is unfalsifiable.
+
+    Issue 24 turns on the distance between the fused and evidence layers, and a run
+    is only allowed to claim that distance moved if repetitions put a band around
+    it. A layer missing from this projection is a number published with no way to
+    tell a real change from a re-roll.
+    """
+    case = EvalCase(id="c", question="q", gold_block_refs=(REF_A9, REF_A36))
+    response = answer_response(("a9", "quote"), evidence=((NORM_ID, "a9"),))
+
+    values = scalar_metrics(aggregate([build_case_result(case, response, [])]))
+
+    for layer in RETRIEVAL_LAYERS:
+        assert f"{LAYER_RECALL_PREFIX}{layer}" in values
+
+
+def test_layer_recall_is_scored_as_higher_is_better() -> None:
+    for layer in RETRIEVAL_LAYERS:
+        assert (
+            METRIC_DIRECTIONS[f"{LAYER_RECALL_PREFIX}{layer}"] == MetricDirection.HIGHER_IS_BETTER
+        )
+
+
+def test_a_layer_no_case_measured_is_absent_rather_than_zero() -> None:
+    """A layer with no observations must not average in as a zero it never scored."""
+    case = EvalCase(id="c", question="q")
+    response = answer_response(("a9", "quote"), evidence=((NORM_ID, "a9"),))
+
+    values = scalar_metrics(aggregate([build_case_result(case, response, [])]))
+
+    assert values[f"{LAYER_RECALL_PREFIX}fused"] is None
 
 
 def test_the_judge_aggregate_is_none_when_no_case_was_judged() -> None:

@@ -185,6 +185,7 @@ JUDGE_COMPLETENESS = "judge.completeness"
 JUDGE_UNSUPPORTED_CLAIM_RATE = "judge.unsupported_claim_rate"
 JUDGE_MEAN_CLARITY = "judge.mean_clarity"
 CITATION_VERDICT_PREFIX = "citation_verdicts."
+LAYER_RECALL_PREFIX = "retrieval_layer_recall."
 
 METRIC_DIRECTIONS: dict[str, MetricDirection] = {
     CASES: MetricDirection.NEUTRAL,
@@ -199,6 +200,10 @@ METRIC_DIRECTIONS: dict[str, MetricDirection] = {
     JUDGE_COMPLETENESS: MetricDirection.HIGHER_IS_BETTER,
     JUDGE_UNSUPPORTED_CLAIM_RATE: MetricDirection.LOWER_IS_BETTER,
     JUDGE_MEAN_CLARITY: MetricDirection.HIGHER_IS_BETTER,
+    **{
+        f"{LAYER_RECALL_PREFIX}{layer}": MetricDirection.HIGHER_IS_BETTER
+        for layer in RETRIEVAL_LAYERS
+    },
 }
 
 
@@ -206,8 +211,10 @@ def scalar_metrics(metrics: SuiteMetrics) -> dict[str, float | None]:
     """Project a run's aggregate onto the flat scalars a band or a delta reads.
 
     One projection serves both, so the metrics a repetition bands are exactly the
-    metrics a comparison classifies. Rates the run never measured stay ``None``
-    rather than becoming a zero the mean would be wrong to average.
+    metrics a comparison classifies -- the per-layer recalls included, since the
+    fused-to-evidence gap is a claim that needs a band to be falsifiable. Rates the
+    run never measured stay ``None`` rather than becoming a zero the mean would be
+    wrong to average.
     """
     judge = metrics.judge
     values: dict[str, float | None] = {
@@ -226,6 +233,8 @@ def scalar_metrics(metrics: SuiteMetrics) -> dict[str, float | None]:
     }
     for verdict, count in metrics.citation_verdicts.items():
         values[f"{CITATION_VERDICT_PREFIX}{verdict}"] = float(count)
+    for layer in RETRIEVAL_LAYERS:
+        values[f"{LAYER_RECALL_PREFIX}{layer}"] = metrics.retrieval_layer_recall.get(layer)
     return values
 
 
