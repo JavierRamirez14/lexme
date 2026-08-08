@@ -5,8 +5,9 @@ from pathlib import Path
 import pytest
 
 from lexme.config import Settings
-from lexme.llm.factory import build_llm_client
+from lexme.llm.factory import build_client, build_llm_client
 from lexme.llm.protocol import LlmClient
+from lexme.llm.registry import load_task_registry
 
 
 def _settings(**overrides: str) -> Settings:
@@ -40,3 +41,11 @@ def test_only_referenced_providers_need_a_key(tmp_path: Path) -> None:
 def test_missing_key_for_a_referenced_provider_fails_loudly(tasks_file: Path) -> None:
     with pytest.raises(ValueError, match="api_key"):
         build_llm_client(_settings(openrouter_api_key=""), tasks_path=tasks_file)
+
+
+def test_a_registry_without_the_paid_task_needs_no_key_for_its_provider(tasks_file: Path) -> None:
+    registry = load_task_registry(tasks_file).without("judge")
+
+    client = build_client(registry, _settings(openrouter_api_key=""))
+
+    assert isinstance(client, LlmClient)

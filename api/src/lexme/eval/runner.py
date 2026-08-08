@@ -28,11 +28,11 @@ from uuid import uuid4
 from langgraph.checkpoint.base import BaseCheckpointSaver
 
 from lexme.eval.artifact import RunArtifact, build_artifact
-from lexme.eval.calibration import JudgeCalibration
+from lexme.eval.calibration import JudgeCalibration, calibration_for_judge
 from lexme.eval.cases import ClarificationAnswer, EvalCase, answer_for_branch
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.guardrail import GuardrailViolation, check_case_citations
-from lexme.eval.judge import Judge
+from lexme.eval.judge import JUDGE_TASK, Judge
 from lexme.eval.metrics import (
     CaseResult,
     Disambiguation,
@@ -147,8 +147,10 @@ def run_suite(
     case that stops on the disambiguation gate is resumed with the reply it pins,
     and the guardrail and the judge then see that resumed answer rather than the
     pause. When a ``judge`` is given, every answered case carrying key points is
-    graded against them, and ``calibration`` is the human-judge agreement those
-    scores are published with.
+    graded against them, and ``calibration`` is the reviewer agreement those scores
+    are published with -- but only when it graded the judge model this run's
+    fingerprint pins. A record for any other judge is dropped, so swapping the judge
+    leaves the run honestly uncalibrated instead of quoting the old grader's number.
 
     Every repetition runs the same cases under the same fingerprint, so what moves
     between them is the model's own variance and nothing else; the artifact carries
@@ -169,9 +171,15 @@ def run_suite(
         passes[0][0],
         per_repetition[0],
         hard_failures,
-        calibration,
+        calibration_for_judge(calibration, _judge_model(fingerprint)),
         summarize_repetitions([scalar_metrics(metrics) for metrics in per_repetition]),
     )
+
+
+def _judge_model(fingerprint: ConfigFingerprint) -> str | None:
+    """The judge model the run pinned, or ``None`` when it pinned none."""
+    pinned = fingerprint.models.get(JUDGE_TASK)
+    return pinned.model if pinned is not None else None
 
 
 def _run_pass(

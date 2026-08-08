@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from lexme.llm.registry import LlmConfigError, load_task_registry
+from lexme.llm.registry import LlmConfigError, TaskModel, TaskRegistry, load_task_registry
 
 
 def _write(tmp_path: Path, body: str) -> Path:
@@ -73,3 +73,26 @@ def test_empty_tasks_object_raises_config_error(tmp_path: Path) -> None:
     path = _write(tmp_path, '{"tasks": {}}')
     with pytest.raises(LlmConfigError, match="non-empty 'tasks'"):
         load_task_registry(path)
+
+
+def test_dropping_a_task_leaves_the_rest_and_its_provider_unreferenced() -> None:
+    registry = TaskRegistry(
+        _by_task={
+            "gen": TaskModel(task="gen", provider="gemini", model="g", temperature=0.0),
+            "judge": TaskModel(task="judge", provider="openrouter", model="d", temperature=0.0),
+        }
+    )
+
+    without_judge = registry.without("judge")
+
+    assert without_judge.tasks() == ("gen",)
+    assert without_judge.providers() == frozenset({"gemini"})
+    assert registry.tasks() == ("gen", "judge")
+
+
+def test_dropping_a_task_the_registry_never_had_changes_nothing() -> None:
+    registry = TaskRegistry(
+        _by_task={"gen": TaskModel(task="gen", provider="gemini", model="g", temperature=0.0)}
+    )
+
+    assert registry.without("judge").tasks() == ("gen",)

@@ -6,10 +6,12 @@ the citation guardrail and writes a versionable artifact, exiting non-zero if an
 citation broke the literality invariant. ``--repeat`` runs the suite more than once
 under that one fingerprint, so each metric is published as the band it moved in.
 ``eval compare`` reads two artifacts and reports the per-metric delta together with
-what it amounts to against those bands. ``eval calibrate`` draws the judge's own
-rulings out of a run for a reviewer to confirm and records the labels the agreement
-is derived from. The harness uses a real model; tests inject the runner, corpus and
-fingerprint to exercise it without the network.
+what it amounts to against those bands. ``--no-judge`` drops the one task on a paid
+provider, so a checkout without that credit still measures every other metric.
+``eval calibrate`` draws the judge's own rulings out of a run for a reviewer to
+confirm and records the labels the agreement is derived from. The harness uses a
+real model; tests inject the runner, corpus and fingerprint to exercise it without
+the network.
 """
 
 import argparse
@@ -49,7 +51,7 @@ from lexme.eval.fingerprint import (
     compute_prompts_digest,
 )
 from lexme.eval.guardrail import GuardrailViolation
-from lexme.eval.judge import Judge, LlmJudge, assert_judge_distinct_from_generator
+from lexme.eval.judge import JUDGE_TASK, Judge, LlmJudge, assert_judge_distinct_from_generator
 from lexme.eval.metrics import JudgeAggregate
 from lexme.eval.mode2 import (
     DEFAULT_IOU_THRESHOLD,
@@ -73,7 +75,7 @@ from lexme.eval.review import (
 from lexme.eval.runner import CaseRunner, Mode1CaseRunner, run_suite
 from lexme.ingestion.embeddings import TeiEmbedder
 from lexme.ingestion.repository import get_corpus_digest
-from lexme.llm import build_llm_client, load_task_registry
+from lexme.llm import build_client, load_task_registry
 from lexme.mode1 import Mode1Deps, PsycopgVersionHistory, load_branches
 from lexme.mode2 import HybridClauseRetriever
 from lexme.mode2.scope import SCOPE_FILENAME, load_scope
@@ -100,7 +102,7 @@ class _Harness:
     runner: CaseRunner
     corpus: CorpusReader
     fingerprint: ConfigFingerprint
-    judge: Judge
+    judge: Judge | None
 
 
 @dataclass(frozen=True)
@@ -181,7 +183,9 @@ def _do_run_mode1(
     with ExitStack() as stack:
         judge: Judge | None = None
         if runner is None:
-            harness = _build_real_harness(stack, settings, args.vertical, cases)
+            harness = _build_real_harness(
+                stack, settings, args.vertical, cases, judged=not args.no_judge
+            )
             runner, corpus, fingerprint = harness.runner, harness.corpus, harness.fingerprint
             judge = harness.judge
         if corpus is None or fingerprint is None:
@@ -381,6 +385,7 @@ def _build_real_harness(
     settings: Settings,
     vertical: str,
     cases: Sequence[EvalCase],
+    judged: bool = True,
 ) -> _Harness:
     """Wire the real Mode 1 system, corpus, judge and fingerprint for a live eval run.
 
@@ -388,14 +393,24 @@ def _build_real_harness(
     branch package here, the one place both are known, so a case that names a
     branch the vertical does not declare fails the run instead of silently going
     unmeasured behind a pause nothing answers.
+
+    An unjudged run drops the judge task from the registry rather than building it
+    and ignoring it. The judge is the one task on a paid provider, so dropping it
+    leaves that provider unreferenced and the run needs no key for it -- and the
+    fingerprint, which pins whatever the registry holds, stops claiming a judge the
+    run never consulted.
     """
     connection = _open_connection(stack, settings.database_url)
     embedder = stack.enter_context(contextlib.closing(TeiEmbedder(settings.tei_url)))
     corpus = PsycopgCorpusReader(connection)
     vertical_dir = Path(settings.verticals_dir) / vertical
     registry = load_task_registry()
-    assert_judge_distinct_from_generator(registry)
-    llm = build_llm_client(settings)
+    if judged:
+        assert_judge_distinct_from_generator(registry)
+    else:
+        registry = registry.without(JUDGE_TASK)
+        logger.info("--no-judge: running unjudged, no completeness or claim numbers")
+    llm = build_client(registry, settings)
     branches = load_branches(vertical_dir / DISAMBIGUATION_FILENAME)
     reject_unknown_branches(cases, [branch.id for branch in branches])
     deps = Mode1Deps(
@@ -423,7 +438,7 @@ def _build_real_harness(
         runner=runner,
         corpus=corpus,
         fingerprint=fingerprint,
-        judge=LlmJudge(llm=llm, corpus=corpus),
+        judge=LlmJudge(llm=llm, corpus=corpus) if judged else None,
     )
 
 
@@ -441,7 +456,7 @@ def _build_mode2_harness(
     checklist = load_checklist(checklist_path(settings.verticals_dir, vertical))
     scope = load_scope(vertical_dir / SCOPE_FILENAME)
     registry = load_task_registry()
-    llm = build_llm_client(settings)
+    llm = build_client(registry, settings)
     runner = PipelineMode2CaseRunner(
         llm=llm,
         scope=scope,
@@ -539,6 +554,13 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     run.add_argument("--suite", default=None, help="the artifact label (default: the mode name)")
     run.add_argument("--cases", type=Path, help="path to a case file or directory of cases")
     run.add_argument("--out", type=Path, help="artifact destination path")
+    run.add_argument(
+        "--no-judge",
+        action="store_true",
+        help="run the suite without the LLM judge, so every non-judged metric is still "
+        "measured; the judge is the one task on a paid provider, and this is how a "
+        "checkout without that credit runs the harness",
+    )
     run.add_argument(
         "--repeat",
         type=int,

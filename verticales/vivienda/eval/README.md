@@ -59,21 +59,54 @@ configuration fingerprint.
 
 Following the blueprint's volume split, the generator (which concentrates the
 hundreds of calls a full run makes) sits on Gemini's generous free tier, and the
-judge (~1 structured call per answered case, ~70 per run) sits on an OpenRouter
-free open model of another family. The shipped judge is
-`openai/gpt-oss-20b:free`. A `:free` id is not a stable contract:
-OpenRouter retires them, and a retired id fails the run with a 404 rather than
-degrading quietly, so confirm the pin is still in the catalog before a real run and
-re-check both providers' live daily limits, which change often (blueprint asset 04,
-caveats 1 and 2). Re-allocating a task to another provider is a one-line edit to
-`tasks.json`, no code change.
+judge (~1 structured call per answered case) sits on an OpenRouter model of another
+family. The shipped judge is `deepseek/deepseek-v3.2` — paid, at roughly cents per
+run. Re-allocating a task to another provider is a one-line edit to `tasks.json`,
+no code change.
 
-The id in `tasks.json` is the whole pin the catalog offers: OpenRouter exposes no
-dated variant of a free model, so `openai/gpt-oss-20b:free` (canonical slug
-`openai/gpt-oss-20b`, 131k context) *is* the version, and the run's fingerprint
-records it beside the temperature. Check it against
-`https://openrouter.ai/api/v1/models` — an id that has left that catalog has to be
-replaced before the run, not after it fails.
+Check the pin against `https://openrouter.ai/api/v1/models` before a real run: an
+id that has left the catalog fails the run with a 404 rather than degrading
+quietly, and has to be replaced before the run, not after it fails.
+
+### Why this judge and not a free one
+
+The judge used to be `openai/gpt-oss-20b:free`. It was the weakest link in the
+whole Mode 1 quality measurement — a 20B model on a free tier deciding whether an
+answer covers the points a human marked as essential — so the pin was chosen again
+from scratch, and this is what the candidates were measured on. Each was given the
+harness's own judge prompt over real Mode 1 answers.
+
+| Candidate | Stable at temp. 0 | Planted-fault probe | Latency | Price /M in·out |
+| --- | --- | --- | --- | --- |
+| `openai/gpt-oss-20b:free` (incumbent) | yes | found the omission, **missed the uncited claims** | 64.5 s | free |
+| `nvidia/nemotron-3-ultra-550b-a55b:free` | — | — | 210 s | free |
+| `nvidia/nemotron-3-super-120b-a12b:free` | — | hung >20 min on the free queue | — | free |
+| `qwen/qwen3-235b-a22b-2507` | **no** | **read a removed key point as covered**; 1 unparseable reply | 12.7 s | $0.09 · $0.55 |
+| `moonshotai/kimi-k2-0905` | no | read a removed key point as covered | 16.1 s | $0.60 · $2.50 |
+| **`deepseek/deepseek-v3.2`** | **yes** | **found the omission and all the uncited claims** | **6.7 s** | $0.26 · $0.38 |
+
+Two probes did the discriminating, because agreeing on easy rulings did not:
+every candidate graded the unmodified answers the same way.
+
+- *Planted omission and planted claims.* A real answer with one key point's
+  sentence deleted and an invented deadline appended. The correct reading is that
+  key point uncovered and the invention unsupported. Qwen and Kimi both marked the
+  deleted key point **covered** — inflating completeness, the failure direction that
+  matters most, since it makes the metric read better than the system is.
+- *A complete, paraphrased answer.* All three key points covered in the tenant's
+  own words, including one resting on the Código Civil the answer never cited.
+  `gpt-oss-20b` called every claim supported; DeepSeek flagged the three the cited
+  article does not back, including both Código Civil assertions. That is the
+  unsupported-claim rate doing its job rather than reading zero by default.
+
+The free tier is also not a service a repeated measurement can be built on: with
+issue 23 multiplying repetitions, the incumbent's 64.5 s per ruling is ~40 minutes
+of judging per three-repetition run, and one free candidate never returned at all.
+DeepSeek at 6.7 s is around four minutes and a few cents.
+
+DeepSeek is also a third family, distinct from both the Gemini generator it grades
+and the Claude reviewer that calibrates it — so neither the self-preference bias
+nor the shared-blind-spot problem is made worse by the swap.
 
 ## Judge calibration (one-time)
 
@@ -127,11 +160,17 @@ Workflow:
 5. Every later run reads `judge-calibration.json` and publishes the same agreement
    next to its judged metrics, until a change to the judge calls for a new pass.
 
+Changing the judge model invalidates the record by construction — it grades a
+grader that is no longer running — so the harness will not carry it forward: a run
+whose pinned judge is not the record's `judge_model` logs the mismatch and
+publishes no agreement at all, which is what "not calibrated yet" honestly looks
+like. Redo the pass on the first run under the new judge.
+
 The record it writes:
 
 ```json
 {
-  "judge_model": "openai/gpt-oss-20b:free",
+  "judge_model": "deepseek/deepseek-v3.2",
   "reviewed_by": "<name>",
   "reviewer_kind": "human",
   "reviewed_at": "2026-07-25T00:00:00+00:00",

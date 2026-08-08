@@ -6,6 +6,12 @@ verifier can re-check. The prompt's hard rule is that the model may only cite th
 block references present in the evidence, copied as the single opaque token they
 are given as, and must quote them verbatim; the verifier enforces it afterwards,
 but stating it up front reduces the repairs needed.
+
+The prompt also asks for the evidence to be worked through rather than skimmed:
+left to itself the model answers with the first article that fits, so a block
+retrieval did recover never reaches the reader. That instruction is paired with the
+grounding rule, because completeness bought with unsupported claims is not
+completeness.
 """
 
 from collections.abc import Sequence
@@ -31,6 +37,19 @@ _SYSTEM_PROMPT = (
     "evidencia y nunca inventes ni parafrasees el texto citado.\n"
     "- explicacion: prosa llana anclada en esas citas. No afirmes nada que las "
     "citas no respalden.\n"
+    "Antes de escribir, recorre TODA la evidencia y quédate con cada bloque que "
+    "responda a alguna parte de la pregunta, no solo con el más evidente. Y dentro "
+    "de cada bloque que uses, recorre TODAS las reglas que contiene: un artículo "
+    "suele encadenar una regla general, sus límites, sus excepciones y sus "
+    "definiciones, y si más de una viene al caso hay que decirlas todas, no "
+    "quedarse con la que responde más directamente. Cuando varias normas coincidan "
+    "sobre el mismo punto —por ejemplo la Ley de Arrendamientos Urbanos y el "
+    "Código Civil, que es su régimen supletorio— dilo y cita las dos. Si al caso "
+    "le aplican varios límites o requisitos a la vez, exponlos todos y di que se "
+    "suman: que uno sea más específico no deja sin efecto a los demás, y quedarse "
+    "solo con él le oculta al inquilino la mitad de lo que puede exigir. Esto no "
+    "relaja la regla de arriba: cubrir de más nunca justifica afirmar lo que la "
+    "evidencia no dice, y lo que no venga al caso se deja fuera.\n"
     "- accion: pasos prácticos acotados a informarse, negociar o vigilar plazos. "
     "No redactes documentos legales ni prometas resultados.\n"
     "Si la evidencia no permite responder con una cita literal, devuelve "

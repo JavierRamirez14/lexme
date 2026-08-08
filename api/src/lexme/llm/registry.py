@@ -57,6 +57,16 @@ class TaskRegistry:
         """Return the configured task names in file order."""
         return tuple(self._by_task)
 
+    def without(self, task: str) -> "TaskRegistry":
+        """Return a copy of this registry with ``task`` dropped, absent or not.
+
+        Dropping the only task of a provider drops the provider too, so a run that
+        does not use it needs no key for it.
+        """
+        return TaskRegistry(
+            _by_task={name: model for name, model in self._by_task.items() if name != task}
+        )
+
 
 def load_task_registry(path: Path = DEFAULT_TASKS_PATH) -> TaskRegistry:
     """Read and validate ``tasks.json`` into a :class:`TaskRegistry`.

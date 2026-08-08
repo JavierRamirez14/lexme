@@ -13,6 +13,7 @@ from lexme.eval.calibration import (
     CalibrationError,
     CalibrationItem,
     build_calibration,
+    calibration_for_judge,
     compute_agreement,
     load_calibration,
 )
@@ -179,3 +180,23 @@ def test_the_artifact_publishes_the_calibration_and_round_trips(tmp_path: Path) 
     assert restored.judge_calibration is not None
     assert restored.judge_calibration.agreement == 1.0
     assert restored == artifact
+
+
+def test_a_calibration_of_the_running_judge_is_the_one_published() -> None:
+    calibration = build_calibration(
+        "qwen/qwen3-235b-a22b-2507", "reviewer", REVIEWER_MODEL, REVIEWED_AT, [_item(True, True)]
+    )
+
+    assert calibration_for_judge(calibration, "qwen/qwen3-235b-a22b-2507") is calibration
+
+
+def test_a_calibration_of_a_judge_that_is_no_longer_running_is_not_published() -> None:
+    calibration = build_calibration(
+        "openai/gpt-oss-20b:free", "reviewer", REVIEWER_MODEL, REVIEWED_AT, [_item(True, True)]
+    )
+
+    assert calibration_for_judge(calibration, "qwen/qwen3-235b-a22b-2507") is None
+
+
+def test_no_calibration_stays_no_calibration() -> None:
+    assert calibration_for_judge(None, "qwen/qwen3-235b-a22b-2507") is None

@@ -10,12 +10,20 @@ import json
 from datetime import UTC, date, datetime
 from pathlib import Path
 
-from lexme.eval.artifact import read_artifact
-from lexme.eval.cases import ClarificationAnswer
-from lexme.eval.cli import main
-from lexme.eval.fingerprint import ConfigFingerprint
+from lexme.eval.artifact import RunArtifact, read_artifact
+from lexme.eval.calibration import (
+    REVIEWER_MODEL,
+    CalibrationItem,
+    JudgeCalibration,
+    build_calibration,
+)
+from lexme.eval.cases import ClarificationAnswer, EvalCase
+from lexme.eval.cli import _parse_args, main
+from lexme.eval.fingerprint import ConfigFingerprint, TaskFingerprint, build_fingerprint
+from lexme.eval.judge import JUDGE_TASK
 from lexme.eval.metrics import Disambiguation
-from lexme.eval.runner import CaseRun
+from lexme.eval.runner import CaseRun, run_suite
+from lexme.llm import load_task_registry
 from lexme.mode1 import Outcome
 from tests.eval.conftest import (
     AS_OF,
@@ -304,3 +312,94 @@ def test_a_corrupt_citation_in_a_resumed_answer_still_hard_fails_the_run(tmp_pat
     assert artifact.passed is False
     assert artifact.cases[0].disambiguation == Disambiguation.RESUMED.value
     assert [failure.case_id for failure in artifact.hard_failures] == ["plazo"]
+
+
+def _judged_fingerprint(judge_model: str) -> ConfigFingerprint:
+    """A fingerprint pinning ``judge_model`` to the judge task, as a live run does."""
+    return _fingerprint().model_copy(
+        update={
+            "models": {
+                JUDGE_TASK: TaskFingerprint(
+                    provider="openrouter", model=judge_model, temperature=0.0
+                )
+            }
+        }
+    )
+
+
+def _calibration_of(judge_model: str) -> JudgeCalibration:
+    """A calibration record grading ``judge_model``, agreement 1.0 over one ruling."""
+    return build_calibration(
+        judge_model,
+        "reviewer",
+        REVIEWER_MODEL,
+        NOW,
+        [
+            CalibrationItem(
+                case_id="plazo",
+                kind="key_point",
+                ref=GOLD_A9,
+                judge_label=True,
+                reviewer_label=True,
+            )
+        ],
+    )
+
+
+def _suite_with(fingerprint: ConfigFingerprint, calibration: JudgeCalibration) -> RunArtifact:
+    """Run a one-case suite under ``fingerprint`` carrying ``calibration``."""
+    return run_suite(
+        "modo1",
+        [EvalCase(id="plazo", question=QUESTION, gold_block_refs=(GOLD_A9,))],
+        StubRunner(answer_response(("a9", QUOTE), evidence=((NORM_ID, "a9"),))),
+        InMemoryCorpus({(NORM_ID, "a9"): BLOCK_TEXT}),
+        AS_OF,
+        fingerprint,
+        NOW,
+        calibration=calibration,
+    )
+
+
+def test_a_run_publishes_the_calibration_of_the_judge_it_actually_used() -> None:
+    calibration = _calibration_of("qwen/qwen3-235b-a22b-2507")
+
+    artifact = _suite_with(_judged_fingerprint("qwen/qwen3-235b-a22b-2507"), calibration)
+
+    assert artifact.judge_calibration == calibration
+
+
+def test_a_run_that_swapped_the_judge_publishes_no_agreement_from_the_old_one() -> None:
+    artifact = _suite_with(
+        _judged_fingerprint("qwen/qwen3-235b-a22b-2507"),
+        _calibration_of("openai/gpt-oss-20b:free"),
+    )
+
+    assert artifact.judge_calibration is None
+
+
+def test_the_harness_runs_judged_unless_asked_not_to() -> None:
+    judged = _parse_args(["run", "--vertical", "vivienda"])
+    unjudged = _parse_args(["run", "--vertical", "vivienda", "--no-judge"])
+
+    assert judged.no_judge is False
+    assert unjudged.no_judge is True
+
+
+def test_an_unjudged_run_pins_no_judge_and_so_publishes_no_agreement() -> None:
+    artifact = _suite_with(_fingerprint(), _calibration_of("deepseek/deepseek-v3.2"))
+
+    assert JUDGE_TASK not in artifact.fingerprint.models
+    assert artifact.judge_calibration is None
+
+
+def test_dropping_the_judge_task_leaves_its_provider_out_of_the_fingerprint() -> None:
+    registry = load_task_registry()
+
+    judged = build_fingerprint(registry, "vivienda", Path("."), None, "p", "d")
+    unjudged = build_fingerprint(
+        registry.without(JUDGE_TASK), "vivienda", Path("."), None, "p", "d"
+    )
+
+    assert JUDGE_TASK in judged.models
+    assert JUDGE_TASK not in unjudged.models
+    assert judged.fingerprint != unjudged.fingerprint

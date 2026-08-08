@@ -13,17 +13,26 @@ from lexme.llm.gemini_adapter import GeminiAdapter
 from lexme.llm.openrouter_adapter import OpenRouterAdapter
 from lexme.llm.protocol import LlmClient
 from lexme.llm.provider import ProviderAdapter
-from lexme.llm.registry import DEFAULT_TASKS_PATH, LlmConfigError, load_task_registry
+from lexme.llm.registry import (
+    DEFAULT_TASKS_PATH,
+    LlmConfigError,
+    TaskRegistry,
+    load_task_registry,
+)
 
 
 def build_llm_client(settings: Settings, tasks_path: Path = DEFAULT_TASKS_PATH) -> LlmClient:
-    """Return a :class:`LlmClient` routing every task to its configured provider.
+    """Return a :class:`LlmClient` for every task the registry at ``tasks_path`` names."""
+    return build_client(load_task_registry(tasks_path), settings)
 
-    Reads the task registry from ``tasks_path`` and builds one adapter per
-    referenced provider using the API keys in ``settings``. Raises
-    :class:`LlmConfigError` if the registry names an unknown provider.
+
+def build_client(registry: TaskRegistry, settings: Settings) -> LlmClient:
+    """Return a :class:`LlmClient` routing every task in ``registry`` to its provider.
+
+    Builds one adapter per referenced provider from the keys in ``settings``, so a
+    registry narrowed to the tasks a run actually uses needs keys for only those
+    providers. Raises :class:`LlmConfigError` if the registry names an unknown one.
     """
-    registry = load_task_registry(tasks_path)
     adapters = {provider: _build_adapter(provider, settings) for provider in registry.providers()}
     return RoutingLlmClient(registry, adapters)
 

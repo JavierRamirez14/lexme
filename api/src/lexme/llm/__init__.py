@@ -10,7 +10,7 @@ provider adapters only speak HTTP. In tests, :class:`FakeLlmClient` is the singl
 substitution point for the whole system.
 """
 
-from lexme.llm.factory import build_llm_client
+from lexme.llm.factory import build_client, build_llm_client
 from lexme.llm.fake import FakeLlmClient, RecordedCall
 from lexme.llm.protocol import (
     LlmClient,
@@ -41,6 +41,7 @@ __all__ = [
     "TaskModel",
     "TaskNotConfiguredError",
     "TaskRegistry",
+    "build_client",
     "build_llm_client",
     "load_task_registry",
 ]

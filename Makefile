@@ -72,8 +72,9 @@ ask-resume-stream: ## Stream the resumed run as SSE: make ask-resume-stream T=<t
 contract: ## Analyze a contract (smoke test): make contract F=path/to/contrato.pdf
 	curl -s -X POST http://localhost:8000/contract/analyze -F "file=@$(F)"
 
-eval: ## Run the Mode 1 eval harness against the real system: make eval [V=vivienda] [N=3]
-	$(COMPOSE) exec api eval run --vertical $(or $(V),vivienda) $(if $(N),--repeat $(N))
+eval: ## Run the Mode 1 eval harness against the real system: make eval [V=vivienda] [N=3] [JUDGE=off]
+	$(COMPOSE) exec api eval run --vertical $(or $(V),vivienda) $(if $(N),--repeat $(N)) \
+		$(if $(filter off,$(JUDGE)),--no-judge)
 
 eval-modo2: ## Run the Mode 2 (false-tranquility) eval harness: make eval-modo2 [V=vivienda] [N=3]
 	$(COMPOSE) exec api eval run --mode modo2 --vertical $(or $(V),vivienda) $(if $(N),--repeat $(N))

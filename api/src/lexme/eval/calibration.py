@@ -14,13 +14,20 @@ Who reviewed decides what the number means, so the record declares it in
 evidence about the judge, while agreement with another model shares whatever blind
 spots the two models have in common and is weaker evidence. A record that does not
 say which one it is cannot be published as either.
+
+An agreement is also only about the judge it graded, so swapping the judge model
+invalidates the record by construction and the run publishes none until the pass is
+redone.
 """
 
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
 
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 CALIBRATION_FILENAME = "judge-calibration.json"
 
@@ -110,6 +117,27 @@ def build_calibration(
         agreement=compute_agreement(items),
         items=items,
     )
+
+
+def calibration_for_judge(
+    calibration: JudgeCalibration | None, judge_model: str | None
+) -> JudgeCalibration | None:
+    """``calibration`` when it graded ``judge_model``, else ``None``.
+
+    ``judge_model`` is ``None`` for a run that pinned no judge, which matches no
+    record: there is no grader for an agreement to be about.
+    """
+    if calibration is None:
+        return None
+    if calibration.judge_model != judge_model:
+        logger.warning(
+            "calibration grades judge '%s' but this run judges with '%s'; publishing no "
+            "agreement until the calibration pass is redone",
+            calibration.judge_model,
+            judge_model,
+        )
+        return None
+    return calibration
 
 
 def load_calibration(path: Path) -> JudgeCalibration | None:
