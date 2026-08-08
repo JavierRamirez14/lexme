@@ -78,7 +78,7 @@ configuration fingerprint, so results are reproducible and comparable across cha
 Precision is always reported next to its abstention rate, so you can't inflate one by
 hiding behind the other.
 
-Mode 1 figures are the **median of 3 repetitions** under one fingerprint, with the observed
+Every figure is the **median of 3 repetitions** under one fingerprint, with the observed
 range in brackets. A bare number over 21 cases was not comparable: see the note below.
 
 | Metric | Value | Denominator |
@@ -92,15 +92,15 @@ range in brackets. A bare number over 21 cases was not comparable: see the note 
 | Disambiguation (Mode 1) | 0.33 [0.24–0.38] | fraction of cases the gate stopped; all resumed, 0 left stranded |
 | Judge completeness · unsupported claims (Mode 1) | 0.74 [0.74–0.80] · 0.03 [0.00–0.06] | 11 judged cases, against human-reviewed key points |
 | Judge–reviewer agreement (Mode 1) | 0.94 | 47 / 50 rulings, sampled with seed 20, reviewed by a model — calibrated on the July baseline and carried forward, not re-drawn on this run |
-| Outcome match rate (Mode 2) | 1.00 | 3 / 3 contracts reached the outcome their case declared |
-| Recall 🔴/🟠, end to end (Mode 2) | 1.00 | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
-| False-tranquility rate, end to end (Mode 2) | 0.00 | 0 / 7 real 🔴/🟠 called reassuring |
-| Recall 🔴/🟠, conditioned on segmentation (Mode 2) | 1.00 | 7 / 7 correctly delimited problematic clauses — diagnostic only |
-| False-tranquility rate, conditioned on segmentation (Mode 2) | 0.00 | 0 / 7 real 🔴/🟠 passed off as reassuring, over the delimited ones |
+| Outcome match rate (Mode 2) | 1.00 [1.00–1.00] | 3 / 3 contracts reached the outcome their case declared |
+| Recall 🔴/🟠, end to end (Mode 2) | 1.00 [1.00–1.00] | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
+| False-tranquility rate, end to end (Mode 2) | 0.00 [0.00–0.00] | 0 / 7 real 🔴/🟠 called reassuring |
+| Recall 🔴/🟠, conditioned on segmentation (Mode 2) | 1.00 [1.00–1.00] | 7 / 7 correctly delimited problematic clauses — diagnostic only |
+| False-tranquility rate, conditioned on segmentation (Mode 2) | 0.00 [0.00–0.00] | 0 / 7 real 🔴/🟠 passed off as reassuring, over the delimited ones |
 | Not reported (Mode 2) | 0 | problematic clauses the segmentation layer never delimited, so never shown to a reader as anything |
-| Flag precision · abstention (Mode 2) | 0.875 · 0.00 | 7 / 8 flags correct · 0 / 16 clauses abstained |
-| Segmentation IoU ≥ 0.80 (Mode 2) | 1.00 | 16 / 16 clauses delimited |
-| Absence ⚪ recall · precision (Mode 2) | 0.98 · 1.00 | 43 / 44 omitted rights surfaced · 0 false ones |
+| Flag precision · abstention (Mode 2) | 0.875 [0.875–1.00] · 0.06 [0.00–0.06] | 7 / 8 flags correct · 1 / 16 clauses abstained |
+| Segmentation IoU ≥ 0.80 (Mode 2) | 1.00 [1.00–1.00] | 16 / 16 clauses delimited |
+| Absence ⚪ recall · precision (Mode 2) | 0.98 [0.98–0.98] · 1.00 [1.00–1.00] | 43 / 44 omitted rights surfaced · 0 false ones |
 
 Mode 1 stops to ask one question when a case turns on a fact that changes the applicable
 regime. Each case therefore carries the answers to those branches as reviewed data, and
@@ -133,16 +133,17 @@ Reports: Mode 1 →
 repetitions — every banded figure above comes from it), with
 [`modo1-20260805T171438Z.json`](eval-runs/modo1-20260805T171438Z.json) a fourth draw at the
 same fingerprint; Mode 2 →
-[`modo2-20260728T134505Z.json`](eval-runs/modo2-20260728T134505Z.json) (`9443e189…`, a
-single repetition — Mode 2 has not been re-run with repetitions yet).
+[`modo2-20260808T125407Z.json`](eval-runs/modo2-20260808T125407Z.json) (`9443e189…`, 3
+repetitions, same fingerprint as the July run it replaces).
 Both were measured against the same four-norm corpus the repo builds today; every
 number on this page comes from one of those two artifacts.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
-regression — this Mode 2 run's fingerprint changed from the prior one because the
-scope gate's prompt and the vertical's scope package both moved.
+regression — this Mode 2 run carries the *same* fingerprint as the July one it replaces,
+so the two are directly comparable, and the only figure that moved is the abstention rate
+(`0.00 → 0.06`, one clause of sixteen, inside its own measured band).
 
-The Mode 1 fingerprint moved too, and for two reasons at once: the planner's prompt
+The Mode 1 fingerprint moved, and for two reasons at once: the planner's prompt
 changed, and so did the vertical's scope package. So the aggregate deltas against the
 July baseline are **not attributable to either change alone**, and the fingerprint is
 doing exactly the job it exists for by refusing to call this a clean comparison. The one

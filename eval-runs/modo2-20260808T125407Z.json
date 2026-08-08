@@ -1,0 +1,808 @@
+{
+  "suite": "modo2",
+  "created_at": "2026-08-08T12:54:07.226894Z",
+  "fingerprint": {
+    "models": {
+      "mode1_router": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_planning": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_selfcritique": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_synthesis": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_triage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_segmentation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_mapping": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_classification": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "judge": {
+        "provider": "openrouter",
+        "model": "openai/gpt-oss-20b:free",
+        "temperature": 0.0
+      },
+      "refset_query_generation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.7
+      }
+    },
+    "vertical": "vivienda",
+    "prompts_hash": "c97d52f9db49ae27",
+    "vertical_config_hash": "360bb26ba66724cd",
+    "corpus_hash": "f4d74aa608157a00c83142c427582e7d",
+    "dataset_hash": "ea89e96fd0c05761",
+    "fingerprint": "9443e189fb7fb688"
+  },
+  "metrics": {
+    "cases": 3,
+    "outcomes": {
+      "analizado": 3
+    },
+    "outcome_match_rate": 1.0,
+    "displayed_citations": 56,
+    "reference_clauses": 16,
+    "delimited_clauses": 16,
+    "segmentation_delimited_rate": 1.0,
+    "matched_clauses": 16,
+    "confusion": {
+      "ilegal": {
+        "ilegal": 4,
+        "peor_que_default": 0,
+        "negociable": 0,
+        "correcto": 0,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      },
+      "peor_que_default": {
+        "ilegal": 3,
+        "peor_que_default": 0,
+        "negociable": 0,
+        "correcto": 0,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      },
+      "negociable": {
+        "ilegal": 0,
+        "peor_que_default": 0,
+        "negociable": 2,
+        "correcto": 0,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 1
+      },
+      "correcto": {
+        "ilegal": 0,
+        "peor_que_default": 1,
+        "negociable": 0,
+        "correcto": 5,
+        "informativa": 0,
+        "no_concluyente": 0,
+        "fuera_de_ambito": 0
+      }
+    },
+    "problematic_total": 7,
+    "problematic_detected": 7,
+    "recall_problematic": 1.0,
+    "false_tranquility_events": 0,
+    "false_tranquility_rate": 0.0,
+    "flagged_problematic": 8,
+    "flagged_true_positive": 7,
+    "precision_problematic": 0.875,
+    "abstention_clauses": 1,
+    "abstention_rate": 0.0625,
+    "problematic_total_e2e": 7,
+    "problematic_detected_e2e": 7,
+    "recall_problematic_e2e": 1.0,
+    "false_tranquility_events_e2e": 0,
+    "false_tranquility_rate_e2e": 0.0,
+    "not_reported_problematic": 0,
+    "absence_expected": 44,
+    "absence_detected": 43,
+    "absence_recall": 0.9772727272727273,
+    "absence_predicted": 43,
+    "absence_precision": 1.0
+  },
+  "cases": [
+    {
+      "id": "contrato-abusivo-01",
+      "outcome": "analizado",
+      "outcome_as_expected": true,
+      "displayed_citations": 18,
+      "segmentation": {
+        "threshold": 0.8,
+        "reference_clauses": 6,
+        "delimited": 6,
+        "delimited_rate": 1.0,
+        "matches": [
+          {
+            "reference_id": "contrato-abusivo-01-c1",
+            "predicted_id": "c1",
+            "iou": 0.9896907216494846,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c2",
+            "predicted_id": "c2",
+            "iou": 0.9753086419753086,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c3",
+            "predicted_id": "c3",
+            "iou": 0.96,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c4",
+            "predicted_id": "c4",
+            "iou": 0.9620853080568721,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c5",
+            "predicted_id": "c5",
+            "iou": 0.9441340782122905,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-abusivo-01-c6",
+            "predicted_id": "c6",
+            "iou": 0.918918918918919,
+            "matched": true
+          }
+        ]
+      },
+      "clause_predictions": [
+        {
+          "clause_id": "contrato-abusivo-01-c1",
+          "expected_level": "ilegal",
+          "predicted_class": "ilegal",
+          "iou": 0.9896907216494846,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c2",
+          "expected_level": "ilegal",
+          "predicted_class": "ilegal",
+          "iou": 0.9753086419753086,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c3",
+          "expected_level": "ilegal",
+          "predicted_class": "ilegal",
+          "iou": 0.96,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c4",
+          "expected_level": "ilegal",
+          "predicted_class": "ilegal",
+          "iou": 0.9620853080568721,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c5",
+          "expected_level": "peor_que_default",
+          "predicted_class": "ilegal",
+          "iou": 0.9441340782122905,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-abusivo-01-c6",
+          "expected_level": "negociable",
+          "predicted_class": "fuera_de_ambito",
+          "iou": 0.918918918918919,
+          "matched": true
+        }
+      ],
+      "confusion": {
+        "ilegal": {
+          "ilegal": 4,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "peor_que_default": {
+          "ilegal": 1,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "negociable": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 1
+        },
+        "correcto": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        }
+      },
+      "matched_clauses": 6,
+      "problematic_total": 5,
+      "problematic_detected": 5,
+      "recall_problematic": 1.0,
+      "false_tranquility_events": 0,
+      "false_tranquility_rate": 0.0,
+      "flagged_problematic": 5,
+      "flagged_true_positive": 5,
+      "precision_problematic": 1.0,
+      "abstention_clauses": 1,
+      "abstention_rate": 0.16666666666666666,
+      "problematic_total_e2e": 5,
+      "problematic_detected_e2e": 5,
+      "recall_problematic_e2e": 1.0,
+      "false_tranquility_events_e2e": 0,
+      "false_tranquility_rate_e2e": 0.0,
+      "not_reported_problematic": 0,
+      "absences": {
+        "expected": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-08",
+          "CHK-10",
+          "CHK-12",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "detected": [
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-08",
+          "CHK-10",
+          "CHK-12",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "missed": [
+          "CHK-02"
+        ],
+        "spurious": [],
+        "recall": 0.9285714285714286,
+        "precision": 1.0
+      },
+      "violations": []
+    },
+    {
+      "id": "contrato-limpio-03",
+      "outcome": "analizado",
+      "outcome_as_expected": true,
+      "displayed_citations": 19,
+      "segmentation": {
+        "threshold": 0.8,
+        "reference_clauses": 5,
+        "delimited": 5,
+        "delimited_rate": 1.0,
+        "matches": [
+          {
+            "reference_id": "contrato-limpio-03-c1",
+            "predicted_id": "c1",
+            "iou": 0.9904306220095693,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c2",
+            "predicted_id": "c2",
+            "iou": 0.9792746113989638,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c3",
+            "predicted_id": "c3",
+            "iou": 0.9668508287292817,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c4",
+            "predicted_id": "c4",
+            "iou": 0.9520958083832335,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-limpio-03-c5",
+            "predicted_id": "c5",
+            "iou": 0.9386503067484663,
+            "matched": true
+          }
+        ]
+      },
+      "clause_predictions": [
+        {
+          "clause_id": "contrato-limpio-03-c1",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9904306220095693,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c2",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9792746113989638,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c3",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9668508287292817,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c4",
+          "expected_level": "correcto",
+          "predicted_class": "peor_que_default",
+          "iou": 0.9520958083832335,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-limpio-03-c5",
+          "expected_level": "negociable",
+          "predicted_class": "negociable",
+          "iou": 0.9386503067484663,
+          "matched": true
+        }
+      ],
+      "confusion": {
+        "ilegal": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "peor_que_default": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "negociable": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 1,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "correcto": {
+          "ilegal": 0,
+          "peor_que_default": 1,
+          "negociable": 0,
+          "correcto": 3,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        }
+      },
+      "matched_clauses": 5,
+      "problematic_total": 0,
+      "problematic_detected": 0,
+      "recall_problematic": null,
+      "false_tranquility_events": 0,
+      "false_tranquility_rate": null,
+      "flagged_problematic": 1,
+      "flagged_true_positive": 0,
+      "precision_problematic": 0.0,
+      "abstention_clauses": 0,
+      "abstention_rate": 0.0,
+      "problematic_total_e2e": 0,
+      "problematic_detected_e2e": 0,
+      "recall_problematic_e2e": null,
+      "false_tranquility_events_e2e": 0,
+      "false_tranquility_rate_e2e": null,
+      "not_reported_problematic": 0,
+      "absences": {
+        "expected": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-19"
+        ],
+        "detected": [
+          "CHK-02",
+          "CHK-03",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-19"
+        ],
+        "missed": [],
+        "spurious": [],
+        "recall": 1.0,
+        "precision": 1.0
+      },
+      "violations": []
+    },
+    {
+      "id": "contrato-mixto-02",
+      "outcome": "analizado",
+      "outcome_as_expected": true,
+      "displayed_citations": 19,
+      "segmentation": {
+        "threshold": 0.8,
+        "reference_clauses": 5,
+        "delimited": 5,
+        "delimited_rate": 1.0,
+        "matches": [
+          {
+            "reference_id": "contrato-mixto-02-c1",
+            "predicted_id": "c1",
+            "iou": 0.9904306220095693,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c2",
+            "predicted_id": "c2",
+            "iou": 0.9771428571428571,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c3",
+            "predicted_id": "c3",
+            "iou": 0.9726027397260274,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c4",
+            "predicted_id": "c4",
+            "iou": 0.958974358974359,
+            "matched": true
+          },
+          {
+            "reference_id": "contrato-mixto-02-c5",
+            "predicted_id": "c5",
+            "iou": 0.9408284023668639,
+            "matched": true
+          }
+        ]
+      },
+      "clause_predictions": [
+        {
+          "clause_id": "contrato-mixto-02-c1",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.9904306220095693,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c2",
+          "expected_level": "peor_que_default",
+          "predicted_class": "ilegal",
+          "iou": 0.9771428571428571,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c3",
+          "expected_level": "peor_que_default",
+          "predicted_class": "ilegal",
+          "iou": 0.9726027397260274,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c4",
+          "expected_level": "correcto",
+          "predicted_class": "correcto",
+          "iou": 0.958974358974359,
+          "matched": true
+        },
+        {
+          "clause_id": "contrato-mixto-02-c5",
+          "expected_level": "negociable",
+          "predicted_class": "negociable",
+          "iou": 0.9408284023668639,
+          "matched": true
+        }
+      ],
+      "confusion": {
+        "ilegal": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "peor_que_default": {
+          "ilegal": 2,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "negociable": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 1,
+          "correcto": 0,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        },
+        "correcto": {
+          "ilegal": 0,
+          "peor_que_default": 0,
+          "negociable": 0,
+          "correcto": 2,
+          "informativa": 0,
+          "no_concluyente": 0,
+          "fuera_de_ambito": 0
+        }
+      },
+      "matched_clauses": 5,
+      "problematic_total": 2,
+      "problematic_detected": 2,
+      "recall_problematic": 1.0,
+      "false_tranquility_events": 0,
+      "false_tranquility_rate": 0.0,
+      "flagged_problematic": 2,
+      "flagged_true_positive": 2,
+      "precision_problematic": 1.0,
+      "abstention_clauses": 0,
+      "abstention_rate": 0.0,
+      "problematic_total_e2e": 2,
+      "problematic_detected_e2e": 2,
+      "recall_problematic_e2e": 1.0,
+      "false_tranquility_events_e2e": 0,
+      "false_tranquility_rate_e2e": 0.0,
+      "not_reported_problematic": 0,
+      "absences": {
+        "expected": [
+          "CHK-02",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "detected": [
+          "CHK-02",
+          "CHK-04",
+          "CHK-05",
+          "CHK-06",
+          "CHK-07",
+          "CHK-09",
+          "CHK-10",
+          "CHK-11",
+          "CHK-12",
+          "CHK-13",
+          "CHK-14",
+          "CHK-15",
+          "CHK-16",
+          "CHK-17",
+          "CHK-19"
+        ],
+        "missed": [],
+        "spurious": [],
+        "recall": 1.0,
+        "precision": 1.0
+      },
+      "violations": []
+    }
+  ],
+  "hard_failures": [],
+  "passed": true,
+  "repetitions": {
+    "repetitions": 3,
+    "bands": [
+      {
+        "metric": "cases",
+        "values": [
+          3.0,
+          3.0,
+          3.0
+        ],
+        "median": 3.0,
+        "low": 3.0,
+        "high": 3.0
+      },
+      {
+        "metric": "outcome_match_rate",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "median": 1.0,
+        "low": 1.0,
+        "high": 1.0
+      },
+      {
+        "metric": "recall_problematic",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "median": 1.0,
+        "low": 1.0,
+        "high": 1.0
+      },
+      {
+        "metric": "false_tranquility_rate",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      {
+        "metric": "recall_problematic_e2e",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "median": 1.0,
+        "low": 1.0,
+        "high": 1.0
+      },
+      {
+        "metric": "false_tranquility_rate_e2e",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      {
+        "metric": "precision_problematic",
+        "values": [
+          0.875,
+          1.0,
+          0.875
+        ],
+        "median": 0.875,
+        "low": 0.875,
+        "high": 1.0
+      },
+      {
+        "metric": "abstention_rate",
+        "values": [
+          0.0625,
+          0.0,
+          0.0625
+        ],
+        "median": 0.0625,
+        "low": 0.0,
+        "high": 0.0625
+      },
+      {
+        "metric": "segmentation_delimited_rate",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "median": 1.0,
+        "low": 1.0,
+        "high": 1.0
+      },
+      {
+        "metric": "absence_recall",
+        "values": [
+          0.9772727272727273,
+          0.9772727272727273,
+          0.9772727272727273
+        ],
+        "median": 0.9772727272727273,
+        "low": 0.9772727272727273,
+        "high": 0.9772727272727273
+      },
+      {
+        "metric": "absence_precision",
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ],
+        "median": 1.0,
+        "low": 1.0,
+        "high": 1.0
+      }
+    ]
+  }
+}
