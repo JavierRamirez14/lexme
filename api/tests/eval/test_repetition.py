@@ -133,3 +133,55 @@ def test_a_metric_one_side_never_measured_is_not_classified() -> None:
     )
 
     assert movement is None
+
+
+def test_a_move_outside_both_bands_but_inside_the_drift_allowance_is_named_drift() -> None:
+    base = observe(0.95, Span(low=0.94, high=0.96))
+    run = observe(0.90, Span(low=0.89, high=0.91))
+
+    movement = classify_movement(base, run, MetricDirection.HIGHER_IS_BETTER, allowance=0.05)
+
+    assert movement is Movement.DRIFT
+
+
+def test_a_move_beyond_the_drift_allowance_is_still_a_regression() -> None:
+    base = observe(0.95, Span(low=0.94, high=0.96))
+    run = observe(0.60, Span(low=0.59, high=0.61))
+
+    movement = classify_movement(base, run, MetricDirection.HIGHER_IS_BETTER, allowance=0.05)
+
+    assert movement is Movement.REGRESSION
+
+
+def test_a_move_the_bands_already_cover_stays_variance_under_an_allowance() -> None:
+    base = observe(0.90, Span(low=0.87, high=0.92))
+    run = observe(0.89, Span(low=0.88, high=0.91))
+
+    movement = classify_movement(base, run, MetricDirection.HIGHER_IS_BETTER, allowance=0.05)
+
+    assert movement is Movement.VARIANCE
+
+
+def test_a_zero_width_band_still_absorbs_a_move_the_allowance_covers() -> None:
+    base = observe(0.9474, Span(low=0.9474, high=0.9474))
+    run = observe(0.8684, Span(low=0.8684, high=0.8684))
+
+    movement = classify_movement(base, run, MetricDirection.HIGHER_IS_BETTER, allowance=0.08)
+
+    assert movement is Movement.DRIFT
+
+
+def test_without_an_allowance_the_classification_is_unchanged() -> None:
+    base = observe(0.95, Span(low=0.94, high=0.96))
+    run = observe(0.90, Span(low=0.89, high=0.91))
+
+    assert classify_movement(base, run, MetricDirection.HIGHER_IS_BETTER) is Movement.REGRESSION
+
+
+def test_a_neutral_metric_drifting_is_named_drift_rather_than_a_shift() -> None:
+    base = observe(0.52, Span(low=0.52, high=0.52))
+    run = observe(0.38, Span(low=0.38, high=0.38))
+
+    movement = classify_movement(base, run, MetricDirection.NEUTRAL, allowance=0.15)
+
+    assert movement is Movement.DRIFT

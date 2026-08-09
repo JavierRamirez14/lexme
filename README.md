@@ -115,6 +115,13 @@ columns, and it is why they are published side by side rather than collapsed int
 "retrieval recall". Note that the fused layer is the *union of the dense and lexical
 candidates*, not a ranked shortlist, so the two can only be equal if nothing is ever cut.
 
+The gap reproduces; *which case pays for it* does not. On 5 August it was `mh-02`, whose
+`LAU:a27` the pool held and synthesis dropped; on 9 August `mh-02` came back clean at `1.00`
+and the identical one-block loss landed on `mh-03`, this time the *Código Civil*'s
+`art1554`. Both runs lose exactly one multi-hop gold block at the cut. So the defect is in
+the cut, not in a case, and naming a case for it would have been reading one draw as a
+finding.
+
 **Why the brackets.** Two runs of this suite under an identical fingerprint — same models,
 same prompts, same corpus, same cases — disagree. Across the three repetitions here,
 `disambiguation_rate` spans `0.38–0.52` and completeness `0.79–0.84`; on the July baseline
@@ -123,12 +130,55 @@ measured. A single number over 21 cases could not tell a real regression from a 
 so the run reports the median and the range it was drawn from, and a comparison only
 calls something a regression when it lands outside the band.
 
-The bands have a limit worth stating, because this run found it. Three repetitions inside
-one session share whatever the provider is doing that hour, so they measure *within-session*
-spread and not day-to-day drift. Between 5 and 9 August, with the corpus and the case set
-byte-identical and nothing changed upstream of retrieval, mean recall moved `0.95 → 0.87`
-— outside both runs' bands, and not attributable to anything in the diff. Read a band as
-a floor on the noise, never as its ceiling.
+**What a band measures, and what it does not.** Three repetitions inside one session share
+whatever the provider is serving that hour, so a band is the spread *within a session*. It
+is not the noise between two sessions, and I have now measured how far apart those two are
+rather than asserting it. Grouping the archive under [`eval-runs/`](eval-runs/) by
+fingerprint gives sets of runs that differ in nothing but when they were launched; the
+spread across each set is drift, and it is versioned per metric in
+[`drift-modo1.json`](eval-runs/drift-modo1.json) and
+[`drift-modo2.json`](eval-runs/drift-modo2.json).
+
+Both columns are measured the same way — the gap between two runs' *observed ranges*, never
+between their medians, so the within-session noise is not counted twice and then handed to a
+rule that adds both bands back.
+
+| Metric | Within one session | Between sessions | Read |
+| --- | --- | --- | --- |
+| Evidence layer recall (Mode 1) | **0.000** | 0.056 | the sharpest case: three repetitions returned the identical number, so the band says the noise is zero, and the metric moves 0.056 between sessions anyway |
+| Mean recall (Mode 1) | 0.053 | 0.053 | the band matches the drift here — and on the 9 August run it too collapsed to 0.000 across all three repetitions |
+| First-pass recall (Mode 1) | 0.056 | 0.056 | same shape |
+| Lexical layer recall (Mode 1) | 0.056 | 0.111 | the widest drift on the page: twice what any single session saw |
+| Judge completeness (Mode 1) | 0.060 | 0.079 | drift is a third wider than anything one session saw |
+| Disambiguation rate (Mode 1) | 0.143 | 0.095 | the one metric that goes the other way — its band already covers its drift |
+| Every headline Mode 2 metric | 0.000 | 0.000 | recall 🔴/🟠, false tranquility, segmentation and absence recall returned the identical number 11 days apart at one fingerprint |
+
+So the answer is not the same for the two modes, which is why the note this replaces was too
+coarse. For **Mode 1** the within-session band is a floor on the noise and not its ceiling,
+and worst of all when it collapses: a metric whose three repetitions agree exactly has a
+zero-width band, and a comparison reading only that band calls *every* later move a
+regression. That is exactly what happened to the `0.95 → 0.87` mean-recall move between 5 and
+9 August: the gap between the two runs' ranges is 0.026, against a drift of 0.053 measured at
+identical fingerprints. It was never a regression on anything anyone wrote, and `eval compare`
+now says so — it reports that move as `drift`. For **Mode 2**, so far, nothing moves at all.
+
+Two things that table is not, both worth saying before anyone leans on it. Only the
+`mean_recall` and first-pass rows rest on a pair of runs on **different days** (27 → 28 July);
+the completeness and lexical figures come from two sessions three hours apart on 27 July, and
+the disambiguation figure from two on 5 August. What the archive actually establishes is that
+the boundary is the **session**, not the day — which is the more useful finding, but it is not
+the one the question was phrased around. And the Mode 2 row is a single fingerprint with
+**two** runs behind it: enough to say those numbers did not move, not enough to say they
+cannot. Its `precision_problematic` records 0.000 between sessions against 0.125 within one,
+which is exactly what a thin sample looks like.
+
+The allowances are also derived from the same archived runs they classify, so no run already
+in the archive can exceed its own allowance. The out-of-sample test is repeated runs at one
+fingerprint on further days, which is what the next entries under `eval-runs/` are for.
+
+`make eval-drift` rebuilds the records as runs accumulate; `eval compare` reads the one
+lying beside the baseline, and `--no-drift` puts it back to classifying against the
+repetition bands alone.
 
 The case-level spread is wider than the aggregate suggests too: on the July baseline mean
 recall moved `0.89 → 0.95` across repetitions while `mh-02` alone swung the full
@@ -145,7 +195,8 @@ configurations and their judged numbers are not one series. Mode 2 →
 repetitions, same fingerprint as the July run it replaces).
 All were measured against the same four-norm corpus the repo builds today; every
 number on this page comes from one of those artifacts.
-Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
+Regenerate with `make eval` / `make eval-modo2`; remeasure the drift with `make eval-drift`;
+diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
 regression — this Mode 2 run carries the *same* fingerprint as the July one it replaces,
 so the two are directly comparable, and the only figure that moved is the abstention rate

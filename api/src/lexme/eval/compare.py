@@ -15,6 +15,7 @@ from collections.abc import Mapping
 from pydantic import BaseModel
 
 from lexme.eval.artifact import RunArtifact
+from lexme.eval.drift import DriftRecord
 from lexme.eval.metrics import METRIC_DIRECTIONS, scalar_metrics
 from lexme.eval.mode2.artifact import Mode2RunArtifact
 from lexme.eval.mode2.metrics import MODE2_METRIC_DIRECTIONS, scalar_metrics_mode2
@@ -37,6 +38,8 @@ class MetricDelta(BaseModel):
     is ``movement``. The published value is the median across repetitions whenever
     the side ran more than one, and ``base_span``/``run_span`` are the range it was
     observed across -- absent for a run that measured no band.
+    ``drift_allowance`` is the between-session drift the movement was classified
+    against, ``None`` when the comparison was given no drift record.
     """
 
     metric: str
@@ -46,6 +49,7 @@ class MetricDelta(BaseModel):
     movement: Movement | None = None
     base_span: Span | None = None
     run_span: Span | None = None
+    drift_allowance: float | None = None
 
 
 class Comparison(BaseModel):
@@ -55,21 +59,27 @@ class Comparison(BaseModel):
     describe two different configurations and are not regressions. ``noise_measured``
     is the second: when false, at least one side ran a single repetition, so no band
     bounds the noise and every non-zero move is reported as if it were a result.
+    ``drift_measured`` is the third: when false, the only noise the deltas were
+    classified against is the spread each run saw inside its own session, which is
+    a floor on the noise and not its ceiling.
     """
 
     fingerprint_changed: bool
     base_fingerprint: str
     run_fingerprint: str
     noise_measured: bool
+    drift_measured: bool = False
     deltas: list[MetricDelta]
 
 
-def compare(base: RunArtifact, run: RunArtifact) -> Comparison:
+def compare(base: RunArtifact, run: RunArtifact, drift: DriftRecord | None = None) -> Comparison:
     """Compare ``run`` against ``base``, returning the per-metric deltas.
 
     Covers the scalar quality metrics and every citation verdict count. The
     fingerprint comparison frames the rest: identical fingerprints make the deltas
     a regression signal, different ones make them an experiment comparison.
+    ``drift`` is the between-session noise the archive measured; without it, only
+    each run's own session is used to say what a move amounts to.
     """
     return _compare_scalars(
         base_fingerprint=base.fingerprint.fingerprint,
@@ -79,15 +89,19 @@ def compare(base: RunArtifact, run: RunArtifact) -> Comparison:
         base_repetitions=base.repetitions,
         run_repetitions=run.repetitions,
         directions=METRIC_DIRECTIONS,
+        drift=drift,
     )
 
 
-def compare_mode2(base: Mode2RunArtifact, run: Mode2RunArtifact) -> Comparison:
+def compare_mode2(
+    base: Mode2RunArtifact, run: Mode2RunArtifact, drift: DriftRecord | None = None
+) -> Comparison:
     """Compare a Mode 2 ``run`` against ``base``, returning the per-metric deltas.
 
     Covers both the conditioned-on-segmentation numbers and their end-to-end
     counterparts, so a schema-change comparison shows the same denominator shift the
-    fingerprint flags. As with Mode 1, the fingerprint comparison frames the rest.
+    fingerprint flags. As with Mode 1, the fingerprint comparison frames the rest
+    and ``drift`` widens the bands by the noise one session cannot see.
     """
     return _compare_scalars(
         base_fingerprint=base.fingerprint.fingerprint,
@@ -97,6 +111,7 @@ def compare_mode2(base: Mode2RunArtifact, run: Mode2RunArtifact) -> Comparison:
         base_repetitions=base.repetitions,
         run_repetitions=run.repetitions,
         directions=MODE2_METRIC_DIRECTIONS,
+        drift=drift,
     )
 
 
@@ -109,6 +124,7 @@ def _compare_scalars(
     base_repetitions: RepetitionSummary | None,
     run_repetitions: RepetitionSummary | None,
     directions: Mapping[str, MetricDirection],
+    drift: DriftRecord | None,
 ) -> Comparison:
     """Build the comparison over two runs' scalar projections and their bands."""
     metrics = list(base_values) + [metric for metric in run_values if metric not in base_values]
@@ -117,12 +133,14 @@ def _compare_scalars(
         base_fingerprint=base_fingerprint,
         run_fingerprint=run_fingerprint,
         noise_measured=_measures_noise(base_repetitions) and _measures_noise(run_repetitions),
+        drift_measured=drift is not None,
         deltas=[
             _delta(
                 metric,
                 _observation(metric, base_values, base_repetitions),
                 _observation(metric, run_values, run_repetitions),
                 directions.get(metric, MetricDirection.NEUTRAL),
+                drift.allowance(metric) if drift is not None else None,
             )
             for metric in metrics
         ],
@@ -144,6 +162,7 @@ def _delta(
     base: MetricObservation,
     run: MetricObservation,
     direction: MetricDirection,
+    allowance: float | None,
 ) -> MetricDelta:
     """Build a delta, leaving it ``None`` unless both sides measured the metric."""
     delta = run.value - base.value if base.value is not None and run.value is not None else None
@@ -152,9 +171,12 @@ def _delta(
         base=base.value,
         run=run.value,
         delta=delta,
-        movement=classify_movement(base, run, direction),
+        movement=classify_movement(
+            base, run, direction, allowance if allowance is not None else 0.0
+        ),
         base_span=base.span,
         run_span=run.span,
+        drift_allowance=allowance,
     )
 
 

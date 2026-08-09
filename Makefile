@@ -8,7 +8,7 @@ DB_CONTAINER := lexme_v2-db-1
 TEST_DB := lexme_test
 TEST_DB_URL := postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5432/$(TEST_DB)
 
-.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract eval eval-modo2 eval-compare eval-calibrate-export eval-calibrate-build refset-validate-bank refset-assemble refset-generate refset-review test test-integration lint fmt fe-install fe-build
+.PHONY: help up up-d down down-v build logs ps health embed ingest validate-checklist ask ask-resume ask-stream ask-resume-stream contract eval eval-modo2 eval-compare eval-drift eval-calibrate-export eval-calibrate-build refset-validate-bank refset-assemble refset-generate refset-review test test-integration lint fmt fe-install fe-build
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
@@ -81,6 +81,9 @@ eval-modo2: ## Run the Mode 2 (false-tranquility) eval harness: make eval-modo2 
 
 eval-compare: ## Compare a run against a baseline: make eval-compare BASE=<file> RUN=<file>
 	$(COMPOSE) exec api eval compare --base $(BASE) --run $(RUN)
+
+eval-drift: ## Measure the archive's between-session drift: make eval-drift [MODE=modo1]
+	$(COMPOSE) exec api eval drift build --mode $(or $(MODE),modo1)
 
 eval-calibrate-export: ## Draw the judge rulings of a run for human review: make eval-calibrate-export RUN=<file> [SIZE=50] [SEED=0]
 	$(COMPOSE) exec api eval calibrate export --vertical $(or $(V),vivienda) \

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from lexme.eval.artifact import RunArtifact, build_artifact, read_artifact
 from lexme.eval.compare import compare, compare_mode2
+from lexme.eval.drift import DriftBand, DriftRecord
 from lexme.eval.fingerprint import ConfigFingerprint
 from lexme.eval.metrics import SuiteMetrics, scalar_metrics
 from lexme.eval.mode2.artifact import Mode2RunArtifact, build_mode2_artifact, read_mode2_artifact
@@ -334,3 +335,93 @@ def test_a_mode2_artifact_written_before_the_e2e_schema_change_still_reads_back(
     assert delta.base is None
     assert delta.run == 1.0
     assert delta.delta is None
+
+
+def _drift(**allowances: float) -> DriftRecord:
+    """A drift record declaring those between-session allowances."""
+    return DriftRecord(
+        suite="modo1",
+        measured_at=NOW,
+        runs=["a.json", "b.json"],
+        bands=[
+            DriftBand(
+                metric=metric,
+                between_sessions=allowance,
+                within_session=0.0,
+                fingerprint="fp",
+                runs=["a.json", "b.json"],
+            )
+            for metric, allowance in allowances.items()
+        ],
+    )
+
+
+def test_a_drop_the_declared_drift_covers_is_not_called_a_regression() -> None:
+    base = _banded("fp", [0.95, 0.95, 0.95])
+    run = _banded("fp", [0.87, 0.87, 0.87])
+
+    comparison = compare(base, run, drift=_drift(mean_recall=0.10))
+
+    assert _delta(comparison, "mean_recall").movement is Movement.DRIFT
+
+
+def test_a_drop_beyond_the_declared_drift_is_still_a_regression() -> None:
+    base = _banded("fp", [0.95, 0.95, 0.95])
+    run = _banded("fp", [0.87, 0.87, 0.87])
+
+    comparison = compare(base, run, drift=_drift(mean_recall=0.02))
+
+    assert _delta(comparison, "mean_recall").movement is Movement.REGRESSION
+
+
+def test_a_metric_the_archive_never_drifted_on_is_allowed_none() -> None:
+    base = _banded("fp", [0.95, 0.95, 0.95])
+    run = _banded("fp", [0.87, 0.87, 0.87])
+
+    comparison = compare(base, run, drift=_drift(outcome_match_rate=0.5))
+
+    assert _delta(comparison, "mean_recall").movement is Movement.REGRESSION
+
+
+def test_each_delta_publishes_the_allowance_it_was_classified_against() -> None:
+    base = _banded("fp", [0.95, 0.95, 0.95])
+    run = _banded("fp", [0.87, 0.87, 0.87])
+
+    comparison = compare(base, run, drift=_drift(mean_recall=0.10))
+
+    assert comparison.drift_measured is True
+    assert _delta(comparison, "mean_recall").drift_allowance == 0.10
+
+
+def test_comparing_without_a_drift_record_says_no_drift_was_allowed() -> None:
+    base = _banded("fp", [0.95, 0.95, 0.95])
+    run = _banded("fp", [0.87, 0.87, 0.87])
+
+    comparison = compare(base, run)
+
+    assert comparison.drift_measured is False
+    assert _delta(comparison, "mean_recall").drift_allowance is None
+    assert _delta(comparison, "mean_recall").movement is Movement.REGRESSION
+
+
+def test_mode2_drift_is_allowed_the_same_way() -> None:
+    base = _banded_mode2("fp", [0.00, 0.00, 0.00])
+    run = _banded_mode2("fp", [0.20, 0.20, 0.20])
+    drift = DriftRecord(
+        suite="modo2",
+        measured_at=NOW,
+        runs=["a.json", "b.json"],
+        bands=[
+            DriftBand(
+                metric="false_tranquility_rate_e2e",
+                between_sessions=0.25,
+                within_session=0.0,
+                fingerprint="fp",
+                runs=["a.json", "b.json"],
+            )
+        ],
+    )
+
+    comparison = compare_mode2(base, run, drift=drift)
+
+    assert _delta(comparison, "false_tranquility_rate_e2e").movement is Movement.DRIFT

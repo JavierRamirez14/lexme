@@ -34,13 +34,17 @@ class Movement(StrEnum):
     """What a metric's move between two runs amounts to.
 
     ``VARIANCE`` is the move the measured noise already accounts for; it is not a
-    result and must never be reported as one. ``SHIFT`` is a move outside the noise
-    on a metric with no better direction.
+    result and must never be reported as one. ``DRIFT`` is the move one session's
+    repetitions could not see but the archive of same-fingerprint runs has: outside
+    both bands, inside the declared between-session allowance, and no more a result
+    than ``VARIANCE`` is. ``SHIFT`` is a move outside both on a metric with no
+    better direction.
     """
 
     REGRESSION = "regression"
     IMPROVEMENT = "improvement"
     VARIANCE = "variance"
+    DRIFT = "drift"
     SHIFT = "shift"
 
 
@@ -115,20 +119,28 @@ def observe(value: float | None, span: Span | None) -> MetricObservation:
 
 
 def classify_movement(
-    base: MetricObservation, run: MetricObservation, direction: MetricDirection
+    base: MetricObservation,
+    run: MetricObservation,
+    direction: MetricDirection,
+    allowance: float = 0.0,
 ) -> Movement | None:
     """Say what the move from ``base`` to ``run`` is, against the noise both measured.
 
     Overlapping bands mean the two runs are indistinguishable at the noise they
     showed, so the move is ``VARIANCE``. A side without a band is read as a
     zero-width one at its own value, which is what a single repetition honestly
-    measured: everything but an exact tie then falls outside. Returns ``None`` when
-    either side never measured the metric.
+    measured: everything but an exact tie then falls outside. ``allowance`` is the
+    between-session drift declared for the metric; a gap the two bands leave open
+    but the allowance covers is ``DRIFT`` rather than a result, because two runs
+    are never the same session. Returns ``None`` when either side never measured
+    the metric.
     """
     if base.value is None or run.value is None:
         return None
     if _overlap(_span_of(base), _span_of(run)):
         return Movement.VARIANCE
+    if _overlap(_span_of(base), _span_of(run), allowance):
+        return Movement.DRIFT
     if direction is MetricDirection.NEUTRAL:
         return Movement.SHIFT
     improved = (
@@ -171,6 +183,6 @@ def _span_of(observation: MetricObservation) -> Span:
     return Span(low=observation.value, high=observation.value)
 
 
-def _overlap(first: Span, second: Span) -> bool:
-    """Whether two observed ranges share any value at all."""
-    return first.low <= second.high and second.low <= first.high
+def _overlap(first: Span, second: Span, allowance: float = 0.0) -> bool:
+    """Whether two observed ranges share a value once each is widened by ``allowance``."""
+    return first.low - allowance <= second.high and second.low - allowance <= first.high

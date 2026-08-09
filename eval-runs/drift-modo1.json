@@ -1,0 +1,235 @@
+{
+  "suite": "modo1",
+  "measured_at": "2026-08-09T18:32:41.316314Z",
+  "runs": [
+    "modo1-20260726T170157Z.json",
+    "modo1-20260727T112714Z.json",
+    "modo1-20260727T160707Z.json",
+    "modo1-20260727T190930Z.json",
+    "modo1-20260728T074601Z.json",
+    "modo1-20260805T152307Z.json",
+    "modo1-20260805T171438Z.json",
+    "modo1-20260809T164728Z.json"
+  ],
+  "bands": [
+    {
+      "metric": "cases",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "mean_recall",
+      "between_sessions": 0.05263157894736836,
+      "within_session": 0.05263157894736836,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "mean_first_pass_recall",
+      "between_sessions": 0.05555555555555558,
+      "within_session": 0.05555555555555558,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "mean_recall_delta",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "outcome_match_rate",
+      "between_sessions": 0.0,
+      "within_session": 0.09523809523809523,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "abstention_rate",
+      "between_sessions": 0.0,
+      "within_session": 0.09523809523809523,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "disambiguation_rate",
+      "between_sessions": 0.09523809523809523,
+      "within_session": 0.1428571428571429,
+      "fingerprint": "d1029d9c58c9c075",
+      "runs": [
+        "modo1-20260805T152307Z.json",
+        "modo1-20260805T171438Z.json"
+      ]
+    },
+    {
+      "metric": "expected_abstention_recall",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "mean_agentic_delta",
+      "between_sessions": 0.0,
+      "within_session": 0.09523809523809523,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "judge.completeness",
+      "between_sessions": 0.07948717948717954,
+      "within_session": 0.06043956043956045,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "judge.unsupported_claim_rate",
+      "between_sessions": 0.057692307692307696,
+      "within_session": 0.06382978723404255,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "judge.mean_clarity",
+      "between_sessions": 0.0,
+      "within_session": 0.07692307692307754,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "citation_verdicts.verificada_directa",
+      "between_sessions": 3.0,
+      "within_session": 7.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "citation_verdicts.reparada_snap",
+      "between_sessions": 1.0,
+      "within_session": 5.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "citation_verdicts.reparada_anclaje",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "citation_verdicts.descartada",
+      "between_sessions": 2.0,
+      "within_session": 1.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "retrieval_layer_recall.dense",
+      "between_sessions": 0.02777777777777779,
+      "within_session": 0.02777777777777779,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "retrieval_layer_recall.lexical",
+      "between_sessions": 0.11111111111111116,
+      "within_session": 0.05555555555555558,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "retrieval_layer_recall.fused",
+      "between_sessions": 0.02777777777777779,
+      "within_session": 0.02777777777777779,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    },
+    {
+      "metric": "retrieval_layer_recall.evidence",
+      "between_sessions": 0.05555555555555558,
+      "within_session": 0.0,
+      "fingerprint": "d870d388891e955c",
+      "runs": [
+        "modo1-20260727T160707Z.json",
+        "modo1-20260727T190930Z.json",
+        "modo1-20260728T074601Z.json"
+      ]
+    }
+  ]
+}

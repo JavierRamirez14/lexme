@@ -6,8 +6,10 @@ the citation guardrail and writes a versionable artifact, exiting non-zero if an
 citation broke the literality invariant. ``--repeat`` runs the suite more than once
 under that one fingerprint, so each metric is published as the band it moved in.
 ``eval compare`` reads two artifacts and reports the per-metric delta together with
-what it amounts to against those bands. ``--no-judge`` drops the one task on a paid
-provider, so a checkout without that credit still measures every other metric.
+what it amounts to against those bands and against the between-session drift
+``eval drift build`` measures over the archive -- a band is the spread one session
+saw, and two runs are never the same session. ``--no-judge`` drops the one task on a
+paid provider, so a checkout without that credit still measures every other metric.
 ``eval calibrate`` draws the judge's own rulings out of a run for a reviewer to
 confirm and records the labels the agreement is derived from. The harness uses a
 real model; tests inject the runner, corpus and fingerprint to exercise it without
@@ -42,6 +44,13 @@ from lexme.eval.calibration import (
 )
 from lexme.eval.cases import EvalCase, load_cases, reject_unknown_branches
 from lexme.eval.compare import Comparison, compare, compare_mode2
+from lexme.eval.drift import (
+    DRIFT_FILENAME_TEMPLATE,
+    DriftRecord,
+    RunObservation,
+    load_drift,
+    measure_drift,
+)
 from lexme.eval.fingerprint import (
     ConfigFingerprint,
     build_fingerprint,
@@ -52,7 +61,7 @@ from lexme.eval.fingerprint import (
 )
 from lexme.eval.guardrail import GuardrailViolation
 from lexme.eval.judge import JUDGE_TASK, Judge, LlmJudge, assert_judge_distinct_from_generator
-from lexme.eval.metrics import JudgeAggregate
+from lexme.eval.metrics import JudgeAggregate, scalar_metrics
 from lexme.eval.mode2 import (
     DEFAULT_IOU_THRESHOLD,
     Mode2EvalCase,
@@ -62,7 +71,8 @@ from lexme.eval.mode2 import (
     read_mode2_artifact,
     run_mode2_suite,
 )
-from lexme.eval.repetition import RepetitionSummary, Span
+from lexme.eval.mode2.metrics import scalar_metrics_mode2
+from lexme.eval.repetition import MetricBand, RepetitionSummary, Span
 from lexme.eval.review import (
     ReviewSample,
     build_sample,
@@ -139,6 +149,8 @@ def main(
     args = _parse_args(argv)
     if args.command == "compare":
         return _do_compare(args)
+    if args.command == "drift":
+        return _do_drift(args, now=now)
     if args.command == "calibrate":
         return _do_calibrate(args, corpus=corpus, now=now)
     return _do_run(
@@ -253,7 +265,9 @@ def _do_compare(args: argparse.Namespace) -> int:
 
     Dispatches on which suite each artifact belongs to -- Mode 2's metrics schema
     is not Mode 1's, so each side is read with its own model. Comparing a Mode 1
-    artifact against a Mode 2 one is refused rather than silently misread.
+    artifact against a Mode 2 one is refused rather than silently misread. The
+    suite's drift record is read from beside the baseline unless ``--no-drift``
+    says to classify against the repetition bands alone.
     """
     base_is_mode2 = _is_mode2_artifact(args.base)
     run_is_mode2 = _is_mode2_artifact(args.run)
@@ -262,12 +276,113 @@ def _do_compare(args: argparse.Namespace) -> int:
             f"cannot compare a Mode 1 artifact against a Mode 2 one: "
             f"base={args.base} (mode2={base_is_mode2}) run={args.run} (mode2={run_is_mode2})"
         )
+    suite = MODE2 if base_is_mode2 else MODE1
+    drift = _drift_for_comparison(args, suite)
     if base_is_mode2:
-        comparison = compare_mode2(read_mode2_artifact(args.base), read_mode2_artifact(args.run))
+        comparison = compare_mode2(
+            read_mode2_artifact(args.base), read_mode2_artifact(args.run), drift
+        )
     else:
-        comparison = compare(read_artifact(args.base), read_artifact(args.run))
-    _report_comparison(comparison)
+        comparison = compare(read_artifact(args.base), read_artifact(args.run), drift)
+    _report_comparison(comparison, drift)
     return 0
+
+
+def _drift_for_comparison(args: argparse.Namespace, suite: str) -> DriftRecord | None:
+    """The drift record a comparison classifies against, or ``None`` when it has none.
+
+    ``--no-drift`` refuses one and ``--drift`` names one, which must exist: a path
+    typed by hand and silently missed would classify as if drift had never been
+    measured. Otherwise the record is looked for beside the baseline artifact,
+    where ``eval drift build`` writes it over the archive the baseline belongs to,
+    and its absence is the honest answer that none has been measured yet.
+    """
+    if args.no_drift:
+        return None
+    if args.drift is not None:
+        record = load_drift(args.drift, suite=suite)
+        if record is None:
+            raise ValueError(f"no drift record at {args.drift}")
+        return record
+    return load_drift(args.base.parent / DRIFT_FILENAME_TEMPLATE.format(suite=suite), suite=suite)
+
+
+def _do_drift(args: argparse.Namespace, *, now: datetime | None) -> int:
+    """Measure the archive's between-session drift and write the record.
+
+    Reads every run artifact of the suite in the runs directory, groups them by
+    fingerprint and records how far each metric moved between runs that share one.
+    """
+    runs_dir = args.runs or Path(get_settings().eval_runs_dir)
+    paths = _archived_runs(runs_dir, args.mode)
+    record = measure_drift(
+        args.mode,
+        [_observe_archived_run(path, args.mode) for path in paths],
+        now or datetime.now(UTC),
+    )
+    out_path = args.out or runs_dir / DRIFT_FILENAME_TEMPLATE.format(suite=args.mode)
+    record.write(out_path)
+    _report_drift(record, out_path)
+    return 0
+
+
+def _archived_runs(runs_dir: Path, suite: str) -> list[Path]:
+    """Every run artifact of ``suite`` in ``runs_dir``, oldest name first.
+
+    The review sheets a calibration pass leaves beside the runs carry the run's own
+    name and would be read as runs; they are excluded by their suffix rather than
+    by failing to parse.
+    """
+    return sorted(
+        path for path in runs_dir.glob(f"{suite}-*.json") if REVIEW_SUFFIX not in path.stem
+    )
+
+
+def _observe_archived_run(path: Path, suite: str) -> RunObservation:
+    """Read one archived run of ``suite`` as the values and spans drift is measured over."""
+    if suite == MODE2:
+        mode2 = read_mode2_artifact(path)
+        return _run_observation(
+            path,
+            mode2.fingerprint.fingerprint,
+            scalar_metrics_mode2(mode2.metrics),
+            mode2.repetitions,
+        )
+    artifact = read_artifact(path)
+    return _run_observation(
+        path,
+        artifact.fingerprint.fingerprint,
+        scalar_metrics(artifact.metrics),
+        artifact.repetitions,
+    )
+
+
+def _run_observation(
+    path: Path,
+    fingerprint: str,
+    values: dict[str, float | None],
+    repetitions: RepetitionSummary | None,
+) -> RunObservation:
+    """Fold a run's published values and its repetition bands into one observation.
+
+    A banded metric publishes its median rather than the first repetition's draw,
+    the same value a comparison reads, so the spread measured across runs is the
+    spread of what the runs actually claim.
+    """
+    bands = _measured_bands(repetitions)
+    return RunObservation(
+        run=path.name,
+        fingerprint=fingerprint,
+        values={**values, **{metric: band.median for metric, band in bands.items()}},
+        spans={metric: band.span for metric, band in bands.items()},
+    )
+
+
+def _measured_bands(repetitions: RepetitionSummary | None) -> dict[str, MetricBand]:
+    """The run's bands by metric, empty when it ran too few repetitions to band."""
+    if repetitions is None or not repetitions.measures_noise:
+        return {}
+    return {band.metric: band for band in repetitions.bands}
 
 
 def _is_mode2_artifact(path: Path) -> bool:
@@ -539,7 +654,7 @@ def _out_path(
 
 
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
-    """Parse the ``run`` and ``compare`` subcommands and their options."""
+    """Parse the ``run``, ``compare``, ``drift`` and ``calibrate`` subcommands."""
     parser = argparse.ArgumentParser(description="Run the Lexme evaluation harness.")
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -573,10 +688,41 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     comparison = sub.add_parser("compare", help="compare a run against a baseline artifact")
     comparison.add_argument("--base", type=Path, required=True, help="baseline artifact path")
     comparison.add_argument("--run", type=Path, required=True, help="run artifact path")
+    comparison.add_argument(
+        "--drift",
+        type=Path,
+        default=None,
+        help="drift record to classify against (default: the one beside the baseline)",
+    )
+    comparison.add_argument(
+        "--no-drift",
+        action="store_true",
+        help="classify against the repetition bands alone, which measure the spread "
+        "inside one session and not the drift between them",
+    )
 
+    _add_drift_parser(sub)
     _add_calibrate_parser(sub)
 
     return parser.parse_args(argv)
+
+
+def _add_drift_parser(sub: argparse._SubParsersAction) -> None:
+    """Register ``drift build`` and its options."""
+    drift = sub.add_parser("drift", help="measure the archive's between-session drift")
+    drift_sub = drift.add_subparsers(dest="drift_command", required=True)
+
+    build = drift_sub.add_parser("build", help="measure drift over the archived runs")
+    build.add_argument(
+        "--mode",
+        choices=(MODE1, MODE2),
+        default=MODE1,
+        help="which suite's archive to measure (default: modo1)",
+    )
+    build.add_argument(
+        "--runs", type=Path, help="directory of run artifacts (default: the runs directory)"
+    )
+    build.add_argument("--out", type=Path, help="drift record destination path")
 
 
 def _add_calibrate_parser(sub: argparse._SubParsersAction) -> None:
@@ -810,7 +956,7 @@ def _report_mode2_guardrail(artifact: Mode2RunArtifact) -> None:
     )
 
 
-def _report_comparison(comparison: Comparison) -> None:
+def _report_comparison(comparison: Comparison, drift: DriftRecord | None) -> None:
     """Log whether the fingerprint changed and each metric's delta and movement."""
     if comparison.fingerprint_changed:
         logger.warning(
@@ -828,6 +974,7 @@ def _report_comparison(comparison: Comparison) -> None:
             "at least one side ran a single repetition: no noise band was measured, so a "
             "move outside an exact tie is reported as a result whether or not it is one"
         )
+    _report_drift_source(drift)
     for delta in comparison.deltas:
         logger.info(
             "%s: base=%s%s run=%s%s delta=%s [%s]",
@@ -839,6 +986,41 @@ def _report_comparison(comparison: Comparison) -> None:
             delta.delta,
             delta.movement.value if delta.movement is not None else "not measured",
         )
+
+
+def _report_drift_source(drift: DriftRecord | None) -> None:
+    """Log which drift record framed the classification, or that none did."""
+    if drift is None:
+        logger.warning(
+            "no drift record: moves are classified against the within-session repetition "
+            "bands alone, which are a floor on the noise and not its ceiling"
+        )
+        return
+    logger.info(
+        "drift measured over %d archived runs (%s): a move the declared allowance covers "
+        "is reported as drift, not as a result",
+        len(drift.runs),
+        drift.measured_at.date().isoformat(),
+    )
+
+
+def _report_drift(record: DriftRecord, out_path: Path) -> None:
+    """Log each metric's between-session drift beside the spread one session saw."""
+    logger.info(
+        "drift for '%s' over %d archived runs; between sessions vs within one",
+        record.suite,
+        len(record.runs),
+    )
+    for band in record.bands:
+        logger.info(
+            "%s: between=%s within=%s over %d runs at %s",
+            band.metric,
+            band.between_sessions,
+            "not banded" if band.within_session is None else band.within_session,
+            len(band.runs),
+            band.fingerprint,
+        )
+    logger.info("drift record written to %s", out_path)
 
 
 def _span_label(span: Span | None) -> str:

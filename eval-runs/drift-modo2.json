@@ -1,0 +1,123 @@
+{
+  "suite": "modo2",
+  "measured_at": "2026-08-09T18:32:44.274713Z",
+  "runs": [
+    "modo2-20260726T184248Z.json",
+    "modo2-20260728T083753Z.json",
+    "modo2-20260728T103544Z.json",
+    "modo2-20260728T134505Z.json",
+    "modo2-20260808T125407Z.json"
+  ],
+  "bands": [
+    {
+      "metric": "cases",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "outcome_match_rate",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "recall_problematic",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "false_tranquility_rate",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "recall_problematic_e2e",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "false_tranquility_rate_e2e",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "precision_problematic",
+      "between_sessions": 0.0,
+      "within_session": 0.125,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "abstention_rate",
+      "between_sessions": 0.0,
+      "within_session": 0.0625,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "segmentation_delimited_rate",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "absence_recall",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    },
+    {
+      "metric": "absence_precision",
+      "between_sessions": 0.0,
+      "within_session": 0.0,
+      "fingerprint": "9443e189fb7fb688",
+      "runs": [
+        "modo2-20260728T134505Z.json",
+        "modo2-20260808T125407Z.json"
+      ]
+    }
+  ]
+}
