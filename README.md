@@ -71,7 +71,7 @@ configuration fingerprint, so results are reproducible and comparable across cha
 | **False-tranquility rate, end to end** | **0.0 (0 / 7)** | Genuinely 🔴/🟠 clauses the system called reassuring (🟢), over every problematic clause that exists. With `not_reported` at 0, nothing sits outside this denominator either. |
 | **Recall of 🔴/🟠 clauses, conditioned on segmentation** | **1.0 (7 / 7)** | Of only the problematic clauses the segmentation layer correctly delimited, how many it also flagged as problematic — isolates a classification failure from a segmentation one. It equals the end-to-end figure only because segmentation now delimits every reference clause; the two are kept apart precisely so that stops being an assumption. |
 | **Citation literality** | **0 of 84 failed** | Every displayed citation is re-resolved from the point-in-time corpus and re-checked character-for-character, independently of the verdict the runtime path gave it. One displayed citation that does not re-verify fails the whole run. |
-| **Judge–reviewer agreement** | **0.94 (47 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a stronger *model*, not a human — see the caveat under the judge's numbers. |
+| **Judge–reviewer agreement** | **0.96 (48 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a *model*, not a human — see the caveat under the judge's numbers. |
 
 ### Full results
 
@@ -83,15 +83,15 @@ range in brackets. A bare number over 21 cases was not comparable: see the note 
 
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | 0 failed, every repetition | invariant; a displayed citation that does not re-verify fails the run. Mode 1 showed 30 citations [27–31], Mode 2 showed 56. A quote the verifier discards *before* display is that mechanism working, not a failure: Mode 1 discarded 1 [0–1] |
-| Retrieval recall by layer (Mode 1) | 0.94 · 0.83 · 0.97 · 0.94 | dense · lexical · fused · evidence, over 36 gold blocks. The gap that matters is the last two: what the candidate pool holds versus what survives the cut into synthesis. **Single draw, not banded** — the layer recalls sat outside the banded projection when this run was written; they are inside it now, so the next run bands them |
-| Retrieval recall, first pass (Mode 1) | 1.00 [0.94–1.00] | gold blocks recovered before the agentic loop, over a four-norm corpus |
-| Retrieval recall, final (Mode 1) | 0.95 [0.89–0.95] | over the evidence accumulated across passes. It reads *below* first-pass because the two average over different case sets — a case with no recorded first pass is scored in one and not the other — not because the loop loses ground |
+| Citation literality (both modes) | 0 failed, every repetition | invariant; a displayed citation that does not re-verify fails the run. Mode 1 showed 29 citations [25–30], Mode 2 showed 56. A quote the verifier discards *before* display is that mechanism working, not a failure: Mode 1 discarded 0 in every repetition this time |
+| Retrieval recall by layer (Mode 1) | 0.94 [0.92–0.94] · 0.78 [0.75–0.81] · 0.94 [0.94–0.97] · 0.92 [0.92–0.92] | dense · lexical · fused · evidence — banded for the first time. Each is the mean of the per-case recalls over the 18 cases that declare gold blocks and reached retrieval (24 gold blocks between them), not a pooled count. The gap that matters is the last two: what the candidate pool holds versus what survives the cut into synthesis |
+| Retrieval recall, first pass (Mode 1) | 0.92 [0.92–0.92] | gold blocks recovered before the agentic loop, over a four-norm corpus |
+| Retrieval recall, final (Mode 1) | 0.87 [0.87–0.87] | over the evidence accumulated across passes. It reads *below* first-pass because the two average over different case sets — a case with no recorded first pass is scored in one and not the other — not because the loop loses ground |
 | Multi-hop recall (Mode 1) | 6 / 8 | gold blocks across the 4 cases that need more than one norm. First repetition only, not banded |
-| Outcome match rate (Mode 1) | 0.95 [0.86–0.95] | cases that reached the outcome they were written for |
-| Disambiguation (Mode 1) | 0.33 [0.24–0.38] | fraction of cases the gate stopped; all resumed, 0 left stranded |
-| Judge completeness · unsupported claims (Mode 1) | 0.74 [0.74–0.80] · 0.03 [0.00–0.06] | 11 judged cases, against human-reviewed key points |
-| Judge–reviewer agreement (Mode 1) | 0.94 | 47 / 50 rulings, sampled with seed 20, reviewed by a model — calibrated on the July baseline and carried forward, not re-drawn on this run |
+| Outcome match rate (Mode 1) | 0.90 [0.90–0.90] | cases that reached the outcome they were written for |
+| Disambiguation (Mode 1) | 0.52 [0.38–0.52] | fraction of cases the gate stopped. In the repetition the artifact keeps per-case detail for, all 8 were resumed with the reply their case pins and 0 were left stranded |
+| Judge completeness · unsupported claims (Mode 1) | 0.83 [0.79–0.84] · 0.05 [0.04–0.05] | 13 judged cases, against human-written key points, graded by the new judge |
+| Judge–reviewer agreement (Mode 1) | 0.96 | 48 / 50 rulings, sampled with seed 25, reviewed by a model — re-done on this run for the new judge; the old judge's record was refused rather than carried forward |
 | Outcome match rate (Mode 2) | 1.00 [1.00–1.00] | 3 / 3 contracts reached the outcome their case declared |
 | Recall 🔴/🟠, end to end (Mode 2) | 1.00 [1.00–1.00] | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
 | False-tranquility rate, end to end (Mode 2) | 0.00 [0.00–0.00] | 0 / 7 real 🔴/🟠 called reassuring |
@@ -117,26 +117,34 @@ candidates*, not a ranked shortlist, so the two can only be equal if nothing is 
 
 **Why the brackets.** Two runs of this suite under an identical fingerprint — same models,
 same prompts, same corpus, same cases — disagree. Across the three repetitions here,
-`outcome_match_rate` spans `0.86–0.95` and `unsupported_claim_rate` spans `0.00–0.06`;
-a fourth draw at the same fingerprint put completeness at `0.70`, below the `0.74–0.80`
-the three measured. A single number over 21 cases could not tell a real regression from
-a re-roll, so the run now reports the median and the range it was drawn from, and a
-comparison only calls something a regression when it lands outside the band.
+`disambiguation_rate` spans `0.38–0.52` and completeness `0.79–0.84`; on the July baseline
+a fourth draw put completeness at `0.70`, below the `0.74–0.80` its three repetitions
+measured. A single number over 21 cases could not tell a real regression from a re-roll,
+so the run reports the median and the range it was drawn from, and a comparison only
+calls something a regression when it lands outside the band.
 
-The case-level spread is wider than the aggregate suggests, which is the part worth
-internalising: mean recall moved `0.89 → 0.95` across repetitions while `mh-02` alone
-swung the full `0.50 → 1.00`. A steady headline number is not evidence that nothing moved
-underneath it.
+The bands have a limit worth stating, because this run found it. Three repetitions inside
+one session share whatever the provider is doing that hour, so they measure *within-session*
+spread and not day-to-day drift. Between 5 and 9 August, with the corpus and the case set
+byte-identical and nothing changed upstream of retrieval, mean recall moved `0.95 → 0.87`
+— outside both runs' bands, and not attributable to anything in the diff. Read a band as
+a floor on the noise, never as its ceiling.
+
+The case-level spread is wider than the aggregate suggests too: on the July baseline mean
+recall moved `0.89 → 0.95` across repetitions while `mh-02` alone swung the full
+`0.50 → 1.00`. A steady headline number is not evidence that nothing moved underneath it.
 
 Reports: Mode 1 →
-[`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) (`d1029d9c…`, 3
-repetitions — every banded figure above comes from it), with
-[`modo1-20260805T171438Z.json`](eval-runs/modo1-20260805T171438Z.json) a fourth draw at the
-same fingerprint; Mode 2 →
+[`modo1-20260809T164728Z.json`](eval-runs/modo1-20260809T164728Z.json) (`4906958e…`, 3
+repetitions — every banded Mode 1 figure above comes from it), which is an **experiment
+against**, not a regression on,
+[`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) (`d1029d9c…`): the
+judge model and the synthesis prompt both changed, so the two are different
+configurations and their judged numbers are not one series. Mode 2 →
 [`modo2-20260808T125407Z.json`](eval-runs/modo2-20260808T125407Z.json) (`9443e189…`, 3
 repetitions, same fingerprint as the July run it replaces).
-Both were measured against the same four-norm corpus the repo builds today; every
-number on this page comes from one of those two artifacts.
+All were measured against the same four-norm corpus the repo builds today; every
+number on this page comes from one of those artifacts.
 Regenerate with `make eval` / `make eval-modo2`; diff against a baseline with
 `make eval-compare`. A changed fingerprint marks a run as an experiment rather than a
 regression — this Mode 2 run carries the *same* fingerprint as the July one it replaces,
@@ -228,23 +236,64 @@ The layered metrics are what make both of those statements sayable instead of gu
 and the honest summary is that a failure moved from one measured layer to another and
 became less frequent, which is worth having and is not a fix.
 
-**The judge's agreement figure was produced by a model reviewer, and that is a weaker
-claim than the one I set out to make.** Calibration is the one-time pass that gives the
-judge's numbers a unit: a sample of its own rulings is re-read against the article, and
-the fraction the reviewer confirms is published beside every judged metric. The run
-artifact records who did that reading in a `reviewer_kind` field the loader will not
-accept as missing, because who reviewed decides what the number means. Here it is
-`model`: a stronger model re-read 50 of the run's 92 rulings (sampled with seed 20) and
-disagreed with 3. Two language models share blind spots a human would not, so **0.94 is
-an upper bound on what a human pass would find, not a substitute for one** — the human
-pass is still open, and running it replaces this record with `reviewer_kind: human`.
+**The judge was the weakest link in this whole table, so I replaced it — and the
+completeness numbers before and after are not a series.** Until this run the grader was
+`openai/gpt-oss-20b:free`: a 20B model on a free tier deciding whether an answer covers
+the points a human marked as essential. It is now `deepseek/deepseek-v3.2`, the one task
+in the project on a paid provider, at roughly cents per run.
 
-What the three disagreements say is more useful than the score. All three are the judge
-being *too harsh*: twice it marked a reference key point uncovered while its own claim
-list showed the answer stating it, and once it flagged a claim as unsupported that the
-cited article plainly backs. So on this sample the judge does not rubber-stamp — the
-failure mode to watch is the opposite one, and completeness 0.74 is more likely an
-understatement than an inflation.
+Choosing it was itself a measurement, and the method is the part worth keeping. Grading
+untouched answers did not discriminate at all — six candidates returned the same
+verdicts. What separated them was planting faults with a known answer into a real reply.
+Delete a key point's sentence and append an invented deadline: `qwen3-235b` and `kimi-k2`
+both read the deleted key point as **covered**, which inflates completeness, the wrong
+direction to fail in. Then take a complete answer whose third point rests on a Código
+Civil article it never cites: `gpt-oss-20b` called every claim supported, while DeepSeek
+flagged the three the cited article does not back. That is the unsupported-claim rate
+firing instead of reading zero by default, and it is the real reason for the change.
+Latency settled the free tier separately — 64.5 s per ruling is ~40 minutes of judging
+per three-repetition run, and one free candidate never returned at all. The full
+comparison is in [`verticales/vivienda/eval/README.md`](verticales/vivienda/eval/README.md).
+
+Swapping the grader invalidated the old calibration by construction, and the harness now
+refuses to carry it: a run whose pinned judge is not the record's `judge_model` publishes
+no agreement rather than the previous grader's. That fired on the first real run under
+DeepSeek, which came out honestly uncalibrated until the pass was re-done.
+
+**The new agreement figure was again produced by a model reviewer, which is still weaker
+than the claim I set out to make.** The artifact records who read in a `reviewer_kind`
+field the loader will not accept as missing. Here it is `model`: a model re-read 50 of
+this run's 124 rulings (seed 25) and disagreed with 2. Two language models share blind
+spots a human would not, so **0.96 is an upper bound on what a human pass would find**;
+that pass is still open.
+
+What the two disagreements say is more useful than the score, and the direction has
+flipped. Both are the new judge being *too lenient*: it marked a two-limb key point
+covered when the answer supplied only one limb, and it accepted a claim that attaches
+art. 36.2's one-or-two-month cap to art. 36.3's period, which instead defers to whatever
+the parties agreed. The old judge erred by being too harsh; this one errs by waving
+things through, so **completeness 0.83 is more likely a slight overstatement than an
+understatement** — the opposite caveat to the one this section used to carry.
+
+**Read the completeness jump as an experiment, not a result.** Against the July baseline
+the median moves `0.74 → 0.83`, but the fingerprint changed for *two* reasons at once —
+the judge model and the synthesis prompt — so the delta cannot be attributed to either
+one, and `eval compare` classifies it as variance rather than improvement because the
+bands still overlap by a hair (`[0.74–0.80]` against `[0.79–0.84]`). Separating the two
+causes would need a third run, new judge with the old prompt, which costs a full day of
+the generator's free-tier quota. `unsupported_claim_rate` moved `0.03 → 0.05` over the
+same change: inside the baseline band, classified as variance, and partly just DeepSeek
+enumerating claims more finely than a 20B did. It did not worsen in any sense the
+measurement can distinguish from noise, and I would not claim more than that.
+
+**One number moved that nothing I changed can explain.** Retrieval recall fell
+`0.95 → 0.87`, outside its band, and the lexical layer with it. The synthesis prompt runs
+*after* retrieval and the judge never touches it; the corpus and dataset hashes are
+byte-identical between the two runs. So this is either provider drift between 5 and 9
+August or, more likely, evidence that three repetitions inside one session understate the
+real spread — they share whatever the provider is doing that hour. That is a caution
+about how much the bands are worth, and it applies to the completeness reading above just
+as much as to this one.
 
 ## Architecture
 
@@ -306,7 +355,10 @@ guardrail as a hard invariant, and for Mode 2 the recall of problematic clauses 
 the false-tranquility rate, with abstention always beside precision. The LLM-judge is
 a different model family from the generator, version-pinned, temperature 0, and
 calibrated against an independent reviewer whose *kind* — human or model — the record
-has to declare, because that is what decides how much the agreement is worth.
+has to declare, because that is what decides how much the agreement is worth. Changing
+the judge invalidates that record by construction, so the harness refuses to publish an
+agreement measured on a grader the run did not use: swapping the model leaves the numbers
+honestly uncalibrated until the pass is re-done.
 
 **The eval harness is not the test suite.** The unit/integration suite (fake LLM,
 deterministic, in CI) protects contracts and code logic; the `eval` harness (real

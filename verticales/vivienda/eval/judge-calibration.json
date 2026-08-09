@@ -1,10 +1,10 @@
 {
-  "judge_model": "openai/gpt-oss-20b:free",
+  "judge_model": "deepseek/deepseek-v3.2",
   "reviewed_by": "Claude Opus 5 (revisor modelo, no humano)",
   "reviewer_kind": "model",
-  "reviewed_at": "2026-07-28T08:37:43.779857Z",
+  "reviewed_at": "2026-08-09T17:11:25.799772Z",
   "sample_size": 50,
-  "agreement": 0.94,
+  "agreement": 0.96,
   "items": [
     {
       "case_id": "gen-actualizacion-renta",
@@ -15,43 +15,22 @@
     },
     {
       "case_id": "gen-actualizacion-renta",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a18#3",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-actualizacion-renta",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a18#4",
+      "kind": "claim",
+      "ref": "No es legal que el casero te suba el alquiler de palabra ni cuando quiera.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-actualizacion-renta",
       "kind": "claim",
-      "ref": "El incremento de la renta no puede superar el porcentaje de variación del IPC.",
+      "ref": "Durante la vigencia del contrato la renta solo se puede actualizar en la fecha exacta en que se cumpla cada año de vigencia.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-actualizacion-renta",
       "kind": "claim",
-      "ref": "Para que la actualización sea exigible, el arrendador debe notificarla por escrito, indicando el porcentaje de alteración.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-actualizacion-renta",
-      "kind": "claim",
-      "ref": "La renta actualizada solo será exigible a partir del mes siguiente a la notificación por escrito.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-desistimiento",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a11#1",
+      "ref": "Es válida una nota en el recibo de la mensualidad anterior.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -72,21 +51,7 @@
     {
       "case_id": "gen-desistimiento",
       "kind": "claim",
-      "ref": "El arrendatario puede desistir del contrato de arrendamiento una vez que hayan transcurrido al menos seis meses.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-desistimiento",
-      "kind": "claim",
-      "ref": "El arrendatario debe comunicar el desistimiento al arrendador con una antelación mínima de treinta días.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-duracion-total",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a9#1",
+      "ref": "Debe comunicar el desistimiento al arrendador con una antelación mínima de treinta días.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -94,20 +59,6 @@
       "case_id": "gen-duracion-total",
       "kind": "key_point",
       "ref": "BOE-A-1994-26003:a10#2",
-      "judge_label": false,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-duracion-total",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a10#3",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-duracion-total",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a10#4",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -116,68 +67,54 @@
       "kind": "key_point",
       "ref": "BOE-A-1994-26003:a9#5",
       "judge_label": true,
-      "reviewer_label": true
+      "reviewer_label": false
     },
     {
       "case_id": "gen-duracion-total",
       "kind": "claim",
-      "ref": "Si el contrato es inferior a cinco años, se prorroga obligatoriamente por plazos anuales hasta cinco años, salvo que el inquilino manifieste su voluntad de no renovarlo con treinta días de antelación.",
+      "ref": "Los arrendamientos sin plazo se entienden celebrados por un año, con derecho a prórroga anual hasta cinco años.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-duracion-total",
       "kind": "claim",
-      "ref": "Para denegar la prórroga por necesidad de destinar la vivienda a un familiar, es requisito que se haya hecho constar expresamente en el contrato y se comunique al arrendatario con al menos dos meses de antelación.",
+      "ref": "El contrato se ha prorrogado obligatoriamente por plazos anuales hasta alcanzar la duración mínima de cinco años.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-duracion-total",
       "kind": "claim",
-      "ref": "El propietario no puede echarme sin aviso previo, ya que el contrato se ha prorrogado automáticamente.",
-      "judge_label": false,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-fianza",
-      "kind": "claim",
-      "ref": "Se pueden pactar garantías adicionales a la fianza en metálico.",
+      "ref": "En zona tensionada, el inquilino puede solicitar una prórroga extraordinaria por plazos anuales hasta un máximo de tres años, que el arrendador debe aceptar obligatoriamente.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-fianza",
-      "kind": "claim",
-      "ref": "El arrendador puede exigir que la fianza sea incrementada en la prórroga hasta una o dos mensualidades.",
+      "kind": "key_point",
+      "ref": "BOE-A-1994-26003:a36#3",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-gastos-agencia",
       "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a20#3",
+      "ref": "BOE-A-1994-26003:a20#1",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-gastos-agencia",
+      "kind": "key_point",
+      "ref": "BOE-A-1994-26003:a20#2",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-gastos-agencia",
       "kind": "claim",
-      "ref": "Los gastos de gestión inmobiliaria y los de formalización del contrato serán a cargo del arrendador.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-gastos-agencia",
-      "kind": "claim",
-      "ref": "Para que sea válido el pacto de que el inquilino pague los gastos generales, este debe constar por escrito y determinar el importe anual de dichos gastos a la fecha del contrato.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-gastos-agencia",
-      "kind": "claim",
-      "ref": "Los gastos por servicios de la finca arrendada que se individualicen mediante aparatos contadores serán siempre a cargo del arrendatario.",
+      "ref": "Para que el pacto de que el inquilino pague los gastos generales sea válido, debe constar por escrito y determinar el importe anual de dichos gastos a la fecha del contrato.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -191,7 +128,21 @@
     {
       "case_id": "gen-obras-mejora-desistir",
       "kind": "claim",
-      "ref": "Si el arrendatario permanece, tiene derecho a una reducción proporcional de la renta y a indemnización por gastos derivados de las obras.",
+      "ref": "El casero debe notificarle las obras por escrito con al menos tres meses de antelación, detallando su naturaleza, comienzo, duración y coste previsible.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-obras-mejora-desistir",
+      "kind": "claim",
+      "ref": "Si ejerce este derecho, el contrato se extinguirá en el plazo de dos meses desde su desistimiento, periodo durante el cual no podrán comenzar las obras.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-obras-mejora-desistir",
+      "kind": "claim",
+      "ref": "Si decide quedarse y soportar las obras de mejora, la ley le otorga el derecho a una reducción de la renta en proporción a la parte de la vivienda de la que se vea privado.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -204,22 +155,15 @@
     },
     {
       "case_id": "gen-plazo-minimo",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a9#4",
+      "kind": "claim",
+      "ref": "La duración del alquiler es libre.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-plazo-minimo",
       "kind": "claim",
-      "ref": "El arrendamiento se prorrogará obligatoriamente por plazos anuales hasta alcanzar una duración mínima de cinco años, salvo que el inquilino manifieste con al menos treinta días de antelación su voluntad de no renovarlo.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-plazo-minimo",
-      "kind": "claim",
-      "ref": "El propietario no puede invocar la necesidad de ocupar la vivienda para su hijo si no se hizo constar expresamente en el contrato al momento de su firma.",
+      "ref": "Para que el propietario pueda hacer uso de este derecho se exige estrictamente que, al tiempo de celebrar el contrato, se hubiese hecho constar en el mismo de forma expresa dicha necesidad.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -233,7 +177,35 @@
     {
       "case_id": "gen-premisa-falsa-fianza",
       "kind": "claim",
-      "ref": "Durante los cinco primeros años de duración del contrato (o siete si el arrendador es persona jurídica), la fianza no está sujeta a actualización.",
+      "ref": "Durante los primeros cinco años de duración del contrato (o siete años si el arrendador fuese persona jurídica), la fianza en metálico no está sujeta a actualización.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-premisa-falsa-fianza",
+      "kind": "claim",
+      "ref": "La fianza solo se puede exigir que sea incrementada (o disminuir, según corresponda) hasta hacerse igual a una o dos mensualidades de la renta vigente cada vez que el arrendamiento se prorrogue.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-premisa-falsa-fianza",
+      "kind": "claim",
+      "ref": "La fianza solo se puede exigir que sea incrementada (o disminuir, según corresponda) hasta hacerse igual a una o dos mensualidades de la renta vigente durante el período de tiempo en que el plazo pactado para el arrendamiento exceda de cinco años (o de siete si el arrendador es persona jurídica).",
+      "judge_label": true,
+      "reviewer_label": false
+    },
+    {
+      "case_id": "gen-premisa-falsa-fianza",
+      "kind": "claim",
+      "ref": "Cuando el plazo pactado exceda de cinco o siete años, la actualización de la fianza se regirá por lo estipulado por las partes.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-premisa-falsa-fianza",
+      "kind": "claim",
+      "ref": "A falta de pacto específico sobre la actualización de la fianza cuando el plazo exceda de cinco o siete años, lo acordado sobre la actualización de la renta se presumirá querido también para la actualización de la fianza.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -246,43 +218,43 @@
     },
     {
       "case_id": "gen-prorroga-tacita",
-      "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a10#3",
-      "judge_label": false,
+      "kind": "claim",
+      "ref": "Si han transcurrido cinco años y ninguna parte ha notificado su voluntad de no renovar con la antelación exigida, el contrato se prorroga obligatoriamente.",
+      "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-prorroga-tacita",
       "kind": "claim",
-      "ref": "El arrendatario puede desistir del contrato después de seis meses con 30 días de antelación, pudiendo pactar indemnización.",
+      "ref": "El inquilino puede manifestar al arrendador su voluntad de no renovar el contrato con un mes de antelación a la fecha de terminación de cualquiera de las anualidades.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-prorroga-tacita",
+      "kind": "claim",
+      "ref": "El inquilino puede desistir del contrato en cualquier momento una vez que hayan transcurrido al menos seis meses desde el inicio, comunicándolo al arrendador con una antelación mínima de treinta días.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "gen-venta-vivienda",
+      "kind": "key_point",
+      "ref": "BOE-A-1994-26003:a14#1",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-venta-vivienda",
       "kind": "claim",
-      "ref": "El nuevo comprador no puede echarle inmediatamente por el simple hecho de comprar la vivienda.",
+      "ref": "El nuevo comprador de la vivienda no te puede echar inmediatamente de forma general.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "gen-venta-vivienda",
       "kind": "claim",
-      "ref": "El nuevo comprador debe subrogarse en los derechos y obligaciones del arrendador durante los primeros cinco años de vigencia del contrato (o siete años si el arrendador anterior era una persona jurídica).",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-venta-vivienda",
-      "kind": "claim",
-      "ref": "El nuevo comprador debe respetar el alquiler durante el tiempo que le resta para alcanzar ese plazo mínimo.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "gen-venta-vivienda",
-      "kind": "claim",
-      "ref": "El inquilino tiene derecho de adquisición preferente en caso de venta de la vivienda.",
+      "ref": "El adquirente de una vivienda arrendada queda subrogado en los derechos y obligaciones del arrendador durante los cinco primeros años de vigencia del contrato (o siete años si el anterior arrendador era una persona jurídica), aun cuando concurran en él los requisitos del artículo 34 de la Ley Hipotecaria.",
       "judge_label": true,
       "reviewer_label": true
     },
@@ -303,56 +275,84 @@
     {
       "case_id": "mh-02-enervacion-desahucio",
       "kind": "claim",
-      "ref": "Esta opción no es posible si el desahucio ya se ha enervado antes, salvo que el cobro no se hubiera realizado por causas imputables al arrendador, o si el arrendador exigió el pago mediante un medio que permita acreditar su constancia con el plazo de antelación previsto por la ley antes de presentar la demanda y el pago no se efectuó a tiempo.",
+      "ref": "La Ley de Enjuiciamiento Civil señala que debes realizar el pago dentro del plazo conferido en el requerimiento que se te hace tras la admisión de la demanda.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "mh-02-enervacion-desahucio",
+      "kind": "claim",
+      "ref": "La disposición adicional quinta de la Ley de Arrendamientos Urbanos contempla que el pago puede efectuarse en algún momento anterior al señalado para la celebración del juicio.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "mh-02-enervacion-desahucio",
+      "kind": "claim",
+      "ref": "La enervación no podrá tener lugar si ya habías enervado el desahucio en una ocasión anterior (salvo que el cobro no se hubiera producido por causas imputables al arrendador).",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "mh-03-reparaciones-conservacion",
       "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a21#1",
+      "ref": "BOE-A-1889-4763:art1554#3",
+      "judge_label": false,
+      "reviewer_label": false
+    },
+    {
+      "case_id": "mh-03-reparaciones-conservacion",
+      "kind": "claim",
+      "ref": "El arrendatario es responsable de los deterioros causados por las personas de su casa.",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "mh-03-reparaciones-conservacion",
       "kind": "claim",
-      "ref": "El arrendador debe reparar la caldera.",
-      "judge_label": true,
-      "reviewer_label": true
-    },
-    {
-      "case_id": "mh-03-reparaciones-conservacion",
-      "kind": "claim",
-      "ref": "El arrendador solo debe reparar si el daño no es imputable al arrendatario.",
-      "judge_label": true,
-      "reviewer_label": true
+      "ref": "El hecho de que el inquilino use la caldera no la convierte automáticamente en una pequeña reparación a su cargo.",
+      "judge_label": false,
+      "reviewer_label": false
     },
     {
       "case_id": "mh-04-renta-zona-tensionada",
       "kind": "key_point",
       "ref": "BOE-A-1994-26003:a17#1",
-      "judge_label": false,
-      "reviewer_label": false
+      "judge_label": true,
+      "reviewer_label": true
     },
     {
       "case_id": "mh-04-renta-zona-tensionada",
       "kind": "key_point",
-      "ref": "BOE-A-1994-26003:a17#2",
-      "judge_label": false,
-      "reviewer_label": false
-    },
-    {
-      "case_id": "mh-04-renta-zona-tensionada",
-      "kind": "claim",
-      "ref": "La renta pactada al inicio del nuevo contrato no puede superar el límite máximo del precio aplicable según el sistema de índices de precios de referencia que corresponda a las características de la vivienda y del edificio.",
+      "ref": "BOE-A-2023-12203:a3#3",
       "judge_label": true,
       "reviewer_label": true
     },
     {
       "case_id": "mh-04-renta-zona-tensionada",
       "kind": "claim",
-      "ref": "El arrendador es gran tenedor porque posee más de diez inmuebles urbanos de uso residencial.",
+      "ref": "En una zona de mercado residencial tensionado, la Ley de Arrendamientos Urbanos establece límites estrictos para la renta al iniciar un nuevo contrato de alquiler de vivienda.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "mh-04-renta-zona-tensionada",
+      "kind": "claim",
+      "ref": "La empresa propietaria, al tener alquilados más de veinte pisos, tiene la consideración legal de gran tenedor.",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "mh-04-renta-zona-tensionada",
+      "kind": "claim",
+      "ref": "Con carácter general para cualquier nuevo contrato en zona tensionada, la renta inicial no puede rebasar la última renta vigente del contrato de los últimos cinco años (actualizada anualmente).",
+      "judge_label": true,
+      "reviewer_label": true
+    },
+    {
+      "case_id": "mh-04-renta-zona-tensionada",
+      "kind": "claim",
+      "ref": "Solo se permite un incremento excepcional de hasta un máximo del 10 por ciento sobre dicha renta anterior si en los dos años previos se han realizado obras de rehabilitación fiscalmente previstas.",
       "judge_label": true,
       "reviewer_label": true
     }
