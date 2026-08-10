@@ -1,6 +1,6 @@
 {
   "suite": "modo1",
-  "measured_at": "2026-08-09T18:32:41.316314Z",
+  "measured_at": "2026-08-10T20:01:26.506800Z",
   "runs": [
     "modo1-20260726T170157Z.json",
     "modo1-20260727T112714Z.json",
@@ -9,7 +9,8 @@
     "modo1-20260728T074601Z.json",
     "modo1-20260805T152307Z.json",
     "modo1-20260805T171438Z.json",
-    "modo1-20260809T164728Z.json"
+    "modo1-20260809T164728Z.json",
+    "modo1-20260810T193500Z.json"
   ],
   "bands": [
     {
@@ -26,7 +27,7 @@
     {
       "metric": "mean_recall",
       "between_sessions": 0.05263157894736836,
-      "within_session": 0.05263157894736836,
+      "within_session": 0.07894736842105265,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",
@@ -37,7 +38,7 @@
     {
       "metric": "mean_first_pass_recall",
       "between_sessions": 0.05555555555555558,
-      "within_session": 0.05555555555555558,
+      "within_session": 0.08333333333333337,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",
@@ -201,7 +202,7 @@
     {
       "metric": "retrieval_layer_recall.lexical",
       "between_sessions": 0.11111111111111116,
-      "within_session": 0.05555555555555558,
+      "within_session": 0.11111111111111105,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",
@@ -223,7 +224,7 @@
     {
       "metric": "retrieval_layer_recall.evidence",
       "between_sessions": 0.05555555555555558,
-      "within_session": 0.0,
+      "within_session": 0.08333333333333337,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",

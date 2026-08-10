@@ -115,12 +115,14 @@ columns, and it is why they are published side by side rather than collapsed int
 "retrieval recall". Note that the fused layer is the *union of the dense and lexical
 candidates*, not a ranked shortlist, so the two can only be equal if nothing is ever cut.
 
-The gap reproduces; *which case pays for it* does not. On 5 August it was `mh-02`, whose
-`LAU:a27` the pool held and synthesis dropped; on 9 August `mh-02` came back clean at `1.00`
-and the identical one-block loss landed on `mh-03`, this time the *Código Civil*'s
-`art1554`. Both runs lose exactly one multi-hop gold block at the cut. So the defect is in
-the cut, not in a case, and naming a case for it would have been reading one draw as a
-finding.
+Neither the case nor the loss itself is fixed. On 5 August the block dropped at the cut was
+`mh-02`'s `LAU:a27`; on 9 August `mh-02` came back clean at `1.00` and the loss landed on
+`mh-03`, the *Código Civil*'s `art1554`; on 10 August the first repetition lost nothing at
+all, and across that run's three repetitions evidence recall spanned `0.889–0.972` — between
+zero and two gold blocks cut, in one session, under one fingerprint. So there is no case to
+name and no per-run count to quote: what the cut costs is drawn afresh every repetition.
+Reading one repetition's `covered=false` as a defect in a particular case, which is what the
+first pass at this did, was reading a draw as a finding.
 
 **Why the brackets.** Two runs of this suite under an identical fingerprint — same models,
 same prompts, same corpus, same cases — disagree. Across the three repetitions here,
@@ -143,38 +145,57 @@ Both columns are measured the same way — the gap between two runs' *observed r
 between their medians, so the within-session noise is not counted twice and then handed to a
 rule that adds both bands back.
 
-| Metric | Within one session | Between sessions | Read |
-| --- | --- | --- | --- |
-| Evidence layer recall (Mode 1) | **0.000** | 0.056 | the sharpest case: three repetitions returned the identical number, so the band says the noise is zero, and the metric moves 0.056 between sessions anyway |
-| Mean recall (Mode 1) | 0.053 | 0.053 | the band matches the drift here — and on the 9 August run it too collapsed to 0.000 across all three repetitions |
-| First-pass recall (Mode 1) | 0.056 | 0.056 | same shape |
-| Lexical layer recall (Mode 1) | 0.056 | 0.111 | the widest drift on the page: twice what any single session saw |
-| Judge completeness (Mode 1) | 0.060 | 0.079 | drift is a third wider than anything one session saw |
-| Disambiguation rate (Mode 1) | 0.143 | 0.095 | the one metric that goes the other way — its band already covers its drift |
-| Every headline Mode 2 metric | 0.000 | 0.000 | recall 🔴/🟠, false tranquility, segmentation and absence recall returned the identical number 11 days apart at one fingerprint |
+The answer is not what I expected, and it is not the one this section said when the drift
+record was first built. **The band does not systematically underestimate the noise. Its own
+width is unstable.** Here is `mean_recall`, same suite, same fingerprint, three sessions:
 
-So the answer is not the same for the two modes, which is why the note this replaces was too
-coarse. For **Mode 1** the within-session band is a floor on the noise and not its ceiling,
-and worst of all when it collapses: a metric whose three repetitions agree exactly has a
-zero-width band, and a comparison reading only that band calls *every* later move a
-regression. That is exactly what happened to the `0.95 → 0.87` mean-recall move between 5 and
-9 August: the gap between the two runs' ranges is 0.026, against a drift of 0.053 measured at
-identical fingerprints. It was never a regression on anything anyone wrote, and `eval compare`
-now says so — it reports that move as `drift`. For **Mode 2**, so far, nothing moves at all.
+| Session | The three repetitions | Band width |
+| --- | --- | --- |
+| 5 August | 0.895 · 0.947 · 0.947 | 0.053 |
+| 9 August | 0.868 · 0.868 · 0.868 | **0.000** |
+| 10 August | 0.921 · 0.842 · 0.895 | **0.079** |
 
-Two things that table is not, both worth saying before anyone leans on it. Only the
-`mean_recall` and first-pass rows rest on a pair of runs on **different days** (27 → 28 July);
-the completeness and lexical figures come from two sessions three hours apart on 27 July, and
-the disambiguation figure from two on 5 August. What the archive actually establishes is that
-the boundary is the **session**, not the day — which is the more useful finding, but it is not
-the one the question was phrased around. And the Mode 2 row is a single fingerprint with
-**two** runs behind it: enough to say those numbers did not move, not enough to say they
-cannot. Its `precision_problematic` records 0.000 between sessions against 0.125 within one,
-which is exactly what a thin sample looks like.
+On 9 August three repetitions returned the identical number and the band said the noise was
+zero. The next day, with nothing changed — the fingerprint is byte-identical `4906958e`, the
+container image predates the change — the same metric spanned 0.079. So the 9 August band was
+not evidence that the metric is stable; it was one draw that happened to come up flat. Three
+repetitions are too few to measure a width you can lean on, which means a band read as a floor
+is wrong just as often as a band read as a ceiling.
 
-The allowances are also derived from the same archived runs they classify, so no run already
-in the archive can exceed its own allowance. The out-of-sample test is repeated runs at one
-fingerprint on further days, which is what the next entries under `eval-runs/` are for.
+That reframes the drift comparison rather than cancelling it. Across the archive:
+
+| Metric | Widest within one session | Widest between sessions |
+| --- | --- | --- |
+| Mean recall (Mode 1) | 0.079 | 0.053 |
+| First-pass recall (Mode 1) | 0.083 | 0.056 |
+| Evidence layer recall (Mode 1) | 0.083 | 0.056 |
+| Lexical layer recall (Mode 1) | 0.111 | 0.111 |
+| Judge completeness (Mode 1) | 0.060 | 0.079 |
+| Disambiguation rate (Mode 1) | 0.143 | 0.095 |
+| Every headline Mode 2 metric | 0.000 | 0.000 |
+
+The two columns are the same order of magnitude, and which one is larger depends on the
+metric. What is unsafe is not "the band is smaller than the drift" — it is trusting *any*
+single run's band as the noise. The envelope over sessions is the thing to publish against,
+and that is what the drift record is.
+
+**The out-of-sample test passed.** The 10 August run is the first evidence the allowance had
+never seen. Comparing it against 9 August at identical fingerprint, all twenty metrics come
+back `variance` or `drift` — not one regression. The only metric outside both runs' bands is
+lexical recall (`[0.750, 0.806]` against `[0.833, 0.944]`, a gap of 0.028 against an allowance
+of 0.111), and that is precisely the move the old rule would have published as a result.
+
+The `0.95 → 0.87` mean-recall drop between 5 and 9 August was never a regression either: the
+gap between those runs' ranges is 0.026 against a 0.053 allowance, and `eval compare` now
+reports it as `drift`. There is no retriever defect to chase.
+
+Two limits worth stating. Of the between-session figures, only `mean_recall`, first-pass and
+the layer recalls rest on pairs a **day** apart; completeness comes from two sessions three
+hours apart on 27 July, and disambiguation from two on 5 August. What the archive establishes
+is that the boundary is the **session**, not the day. And the Mode 2 row is one fingerprint
+with **two** runs behind it — enough to say those numbers did not move across 11 days, not
+enough to say they cannot; its `precision_problematic` shows 0.000 between sessions against
+0.125 within one, which is what a thin sample looks like.
 
 `make eval-drift` rebuilds the records as runs accumulate; `eval compare` reads the one
 lying beside the baseline, and `--no-drift` puts it back to classifying against the
@@ -186,8 +207,12 @@ recall moved `0.89 → 0.95` across repetitions while `mh-02` alone swung the fu
 
 Reports: Mode 1 →
 [`modo1-20260809T164728Z.json`](eval-runs/modo1-20260809T164728Z.json) (`4906958e…`, 3
-repetitions — every banded Mode 1 figure above comes from it), which is an **experiment
-against**, not a regression on,
+repetitions — every banded Mode 1 figure above comes from it), replicated the next day at the
+identical fingerprint by
+[`modo1-20260810T193500Z.json`](eval-runs/modo1-20260810T193500Z.json), which moves no metric
+outside the measured noise. Read the two together rather than the first alone: the brackets in
+the table above are one session's draw, and the section on drift says what that is and is not
+worth. Both are an **experiment against**, not a regression on,
 [`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) (`d1029d9c…`): the
 judge model and the synthesis prompt both changed, so the two are different
 configurations and their judged numbers are not one series. Mode 2 →
