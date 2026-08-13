@@ -1,0 +1,3235 @@
+{
+  "suite": "modo1",
+  "created_at": "2026-08-13T18:19:59.746265Z",
+  "fingerprint": {
+    "models": {
+      "mode1_router": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_planning": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_selfcritique": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode1_synthesis": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_triage": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_segmentation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_mapping": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "mode2_clause_classification": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.0
+      },
+      "judge": {
+        "provider": "openrouter",
+        "model": "deepseek/deepseek-v3.2",
+        "temperature": 0.0
+      },
+      "refset_query_generation": {
+        "provider": "gemini",
+        "model": "gemini-3.5-flash-lite",
+        "temperature": 0.7
+      }
+    },
+    "vertical": "vivienda",
+    "prompts_hash": "53913eb07e1aebc0",
+    "vertical_config_hash": "360bb26ba66724cd",
+    "corpus_hash": "f4d74aa608157a00c83142c427582e7d",
+    "dataset_hash": "93d55d0cab42fa1e",
+    "fingerprint": "4906958e8e19ce84"
+  },
+  "metrics": {
+    "cases": 21,
+    "outcomes": {
+      "respuesta": 17,
+      "rechazo_router": 3,
+      "abstencion": 1
+    },
+    "disambiguation": {
+      "directo": 13,
+      "reanudado": 8,
+      "sin_respuesta": 0
+    },
+    "disambiguation_rate": 0.38095238095238093,
+    "mean_recall": 0.8947368421052632,
+    "mean_first_pass_recall": 0.9444444444444444,
+    "mean_recall_delta": 0.0,
+    "retrieval_layer_recall": {
+      "dense": 0.9722222222222222,
+      "lexical": 0.8888888888888888,
+      "fused": 0.9722222222222222,
+      "evidence": 0.9444444444444444
+    },
+    "outcome_match_rate": 0.9047619047619048,
+    "abstention_rate": 0.047619047619047616,
+    "expected_abstention_recall": 0.0,
+    "mean_agentic_delta": 0.047619047619047616,
+    "judge": {
+      "judged_cases": 13,
+      "mean_completeness": 0.8653846153846154,
+      "unsupported_claim_rate": 0.0,
+      "mean_clarity": 4.769230769230769
+    },
+    "citation_verdicts": {
+      "verificada_directa": 27,
+      "reparada_snap": 4,
+      "reparada_anclaje": 0,
+      "descartada": 0
+    }
+  },
+  "cases": [
+    {
+      "id": "01-plazo-minimo",
+      "question": "¿Cuál es la duración mínima de un contrato de alquiler de vivienda habitual?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-2023-12203:a3-3",
+        "BOE-A-1994-26003:a17"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a9"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "02-fianza",
+      "question": "¿Cuántos meses de fianza puede exigir el arrendador en un alquiler de vivienda?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:datercera",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a4",
+        "BOE-A-1994-26003:daquinta",
+        "BOE-A-1994-26003:a2",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:daoctava",
+        "BOE-A-2000-323:a439"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a36"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "03-actualizacion-renta",
+      "question": "¿Puede el casero subir la renta cada año durante la vigencia del contrato?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a18",
+        "BOE-A-1994-26003:da",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-2023-12203:a3-3",
+        "BOE-A-1994-26003:dt",
+        "BOE-A-2023-12203:a1-10",
+        "BOE-A-1994-26003:dacuaa",
+        "BOE-A-2023-12203:a3"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a18"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "04-desistimiento",
+      "question": "¿Puede el inquilino dejar el piso antes de que acabe el contrato y con cuánto preaviso?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:daquinta",
+        "BOE-A-1994-26003:a11",
+        "BOE-A-1994-26003:a12",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1889-4763:art1569",
+        "BOE-A-2000-323:a250"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a11"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "05-fuera-de-ambito",
+      "question": "¿Cómo recurro una multa de tráfico por exceso de velocidad?",
+      "outcome": "rechazo_router",
+      "expected_outcome": "rechazo_router",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 0,
+      "retrieved_block_refs": [],
+      "gold_block_refs": [],
+      "recall": null,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": null,
+      "citation_verdicts": {},
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "gen-actualizacion-renta",
+      "question": "Hola, llevo un año de alquiler y mi casero me ha dicho de palabra que me va a subir el alquiler el mes que viene basándose en la inflación. ¿Esto es legal? ¿Puede subirme el precio cuando quiera y de cualquier forma, o hay límites y requisitos de preaviso?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:da",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:a18",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:a4",
+        "BOE-A-2023-12203:a3-3",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a19",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1994-26003:a21"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a18"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a18"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 0.75,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 4,
+        "key_points_covered": 3,
+        "claims_total": 8,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a18",
+            "covered": true,
+            "evidence": "Durante la vigencia del contrato, la renta solo puede actualizarse en la fecha en que se cumpla cada año de vigencia y siempre que exista un pacto expreso entre las partes para ello; si no hay pacto expreso, la actualización no se aplica."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a18",
+            "covered": false,
+            "evidence": ""
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a18",
+            "covered": true,
+            "evidence": "el incremento derivado de dicha actualización anual no puede superar en ningún caso la variación porcentual del Índice de Precios al Consumo (IPC)."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a18",
+            "covered": true,
+            "evidence": "para que la renta actualizada sea exigible, es un requisito obligatorio que el arrendador se lo notifique por escrito al inquilino a partir del mes siguiente, expresando el porcentaje de alteración aplicado y acompañando la certificación del Instituto Nacional de Estadística si el inquilino lo exige"
+          }
+        ],
+        "claims": [
+          {
+            "claim": "La subida del alquiler no se puede hacer de cualquier forma ni cuando el casero quiera.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "Durante la vigencia del contrato, la renta solo puede actualizarse en la fecha en que se cumpla cada año de vigencia.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "La actualización solo se aplica si existe un pacto expreso entre las partes; si no hay pacto expreso, la actualización no se aplica.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "El incremento derivado de la actualización anual no puede superar en ningún caso la variación porcentual del Índice de Precios al Consumo (IPC).",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "La renta actualizada es exigible a partir del mes siguiente a aquel en que el arrendador lo notifique por escrito al inquilino.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "La notificación debe expresar el porcentaje de alteración aplicado.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "La notificación debe acompañar la certificación del Instituto Nacional de Estadística si el inquilino lo exige.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          },
+          {
+            "claim": "Es válida una notificación mediante nota en el recibo del pago anterior.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a18"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-desistimiento",
+      "question": "Hola, llevo viviendo de alquiler 7 meses y me ha salido un trabajo en otra ciudad. ¿Puedo dejar el piso ya? ¿Tengo que avisar con tiempo? ¿Me pueden cobrar alguna penalización por irme antes de que termine el año de contrato?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a11",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a12",
+        "BOE-A-1994-26003:a34",
+        "BOE-A-1994-26003:a22",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:daquinta",
+        "BOE-A-1994-26003:dasexta",
+        "BOE-A-2000-323:a439"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a11"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 3,
+        "key_points_covered": 3,
+        "claims_total": 4,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a11",
+            "covered": true,
+            "evidence": "la ley permite el desistimiento del contrato de arrendamiento una vez que han transcurrido al menos seis meses de duración"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a11",
+            "covered": true,
+            "evidence": "es obligatorio que se lo comuniques al arrendador con una antelación mínima de treinta días"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a11",
+            "covered": true,
+            "evidence": "solo te pueden cobrar si se pactó expresamente en el contrato: en ese caso, la indemnización máxima que te pueden exigir es el equivalente a una mensualidad de la renta en vigor por cada año del contrato que reste por cumplir, aplicando la parte proporcional si el período restante es inferior a un año"
+          }
+        ],
+        "claims": [
+          {
+            "claim": "Como inquilino, puedes dejar el piso antes de que termine el año de contrato, ya que la ley permite el desistimiento del contrato de arrendamiento una vez que han transcurrido al menos seis meses de duración.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          },
+          {
+            "claim": "Para ello, es obligatorio que se lo comuniques al arrendador con una antelación mínima de treinta días.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          },
+          {
+            "claim": "Respecto a la penalización por irte antes de que finalice el año, solo te pueden cobrar si se pactó expresamente en el contrato.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          },
+          {
+            "claim": "En ese caso, la indemnización máxima que te pueden exigir es el equivalente a una mensualidad de la renta en vigor por cada año del contrato que reste por cumplir, aplicando la parte proporcional si el período restante es inferior a un año.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-duracion-total",
+      "question": "Hola. Firmé un contrato de alquiler de vivienda con un particular, pero en el documento no pusimos ninguna duración. Ya llevo viviendo aquí 5 años completos. El propietario no me avisó con antelación de que quería que me fuera, pero ahora que se ha cumplido el plazo, me dice de repente que necesita el piso para que viva su hijo y que tengo que marcharme. Por otro lado, sé que mi piso está en una zona declarada oficialmente como tensionada y me gustaría quedarme. ¿Qué validez tiene mi contrato si no pusimos plazo, se ha prorrogado automáticamente por no avisarme a tiempo, y puede el dueño echarme ahora alegando que lo necesita su hijo estando en zona tensionada?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:dtprimera",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a13",
+        "BOE-A-1994-26003:a19",
+        "BOE-A-1994-26003:daoctava",
+        "BOE-A-1994-26003:dadecima",
+        "BOE-A-1889-4763:art1567",
+        "BOE-A-1994-26003:a21",
+        "BOE-A-1889-4763:art1569",
+        "BOE-A-2000-323:a439",
+        "BOE-A-2023-12203:a3-3",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-2023-12203:a1-10",
+        "BOE-A-2000-323:a444",
+        "BOE-A-1994-26003:a17"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a10"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 1,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq4",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9",
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 2,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 4,
+        "key_points_total": 5,
+        "key_points_covered": 5,
+        "claims_total": 9,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a9",
+            "covered": true,
+            "evidence": "la Ley de Arrendamientos Urbanos establece que los arrendamientos para los que no se haya estipulado un plazo de duración o este sea indeterminado se entenderán celebrados por un año, sin perjuicio del derecho de prórroga anual para el inquilino"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a10",
+            "covered": true,
+            "evidence": "si llegada la fecha de vencimiento del contrato, una vez transcurridos como mínimo cinco años, ninguna de las partes hubiese notificado a la otra su voluntad de no renovarlo (con al menos cuatro meses de antelación en el caso del arrendador...), el contrato se prorrogará obligatoriamente por plazos anuales hasta un máximo de tres años más"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a10",
+            "covered": true,
+            "evidence": "si el inmueble se ubica en una zona de mercado residencial tensionado... el contrato podrá prorrogarse de manera extraordinaria a petición del inquilino por plazos anuales por un periodo máximo de tres años... y esta solicitud deberá ser aceptada obligatoriamente por el arrendador"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a10",
+            "covered": true,
+            "evidence": "la ley establece excepciones a dicha aceptación obligatoria: entre ellas, se contempla el caso de que el arrendador haya comunicado, en los plazos y condiciones establecidos en el artículo 9.3, la necesidad de ocupar la vivienda para destinarla a vivienda permanente para sí o sus familiares en primer grado de consanguinidad o por adopción"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a9",
+            "covered": true,
+            "evidence": "Para poder acogerse a esta causa de recuperación de la vivienda durante los primeros cinco años de contrato, la ley exige como requisito indispensable que al tiempo de la celebración del contrato se hubiese hecho constar en el mismo, de forma expresa, dicha necesidad; por otro lado, para ejercer la potestad de recuperar la vivienda, el arrendador debe comunicar al arrendatario que tiene dicha necesidad especificando la causa al menos con dos meses de antelación"
+          }
+        ],
+        "claims": [
+          {
+            "claim": "Los arrendamientos sin plazo estipulado se entienden celebrados por un año, con derecho a prórroga anual para el inquilino.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "La duración del contrato se pacta libremente, y si es inferior a cinco años (con arrendador persona física), se prorroga obligatoriamente por plazos anuales hasta alcanzar los cinco años, salvo que el inquilino manifieste no renovar con 30 días de antelación.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Al haber transcurrido 5 años completos, el periodo de prórroga obligatoria ha finalizado.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Si, una vez transcurridos cinco años, ninguna parte notifica su voluntad de no renovar (con al menos 4 meses para el arrendador), el contrato se prorroga obligatoriamente por plazos anuales hasta un máximo de tres años más.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a10"
+          },
+          {
+            "claim": "Si el inmueble está en zona tensionada y finaliza el periodo de prórroga obligatoria, el inquilino puede solicitar una prórroga extraordinaria por plazos anuales hasta un máximo de tres años, que el arrendador debe aceptar obligatoriamente.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a10"
+          },
+          {
+            "claim": "Existe una excepción a la aceptación obligatoria de la prórroga extraordinaria en zona tensionada: que el arrendador comunique la necesidad de ocupar la vivienda para sí o familiares en primer grado, en los plazos y condiciones del artículo 9.3.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a10"
+          },
+          {
+            "claim": "Para recuperar la vivienda por necesidad de un familiar durante los primeros cinco años, es indispensable que esa necesidad se hubiese hecho constar expresamente en el contrato al celebrarlo.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Para ejercer la potestad de recuperar la vivienda, el arrendador debe comunicar la necesidad al inquilino con al menos dos meses de antelación.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Si tras la extinción del contrato o desalojo, el arrendador o sus familiares no ocupan la vivienda en tres meses, el inquilino puede optar entre ser repuesto por un nuevo periodo de hasta cinco años con indemnización o ser indemnizado con una mensualidad por cada año que quedara por cumplir hasta completar cinco años, salvo fuerza mayor.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          }
+        ],
+        "clarity": 4
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-fianza",
+      "question": "Hola, voy a alquilar un piso para vivir y el propietario me pide tres meses de fianza en metálico, además de un aval adicional. ¿Esto es legal? ¿Cuánto es lo máximo que me pueden exigir por ley como fianza y como garantía adicional? Y otra duda, ¿qué plazo tiene el casero para devolverme el dinero cuando se termine el contrato y le entregue las llaves?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:datercera",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:a4",
+        "BOE-A-1994-26003:a2",
+        "BOE-A-1994-26003:daoctava",
+        "BOE-A-1994-26003:a1",
+        "BOE-A-1994-26003:a9",
+        "BOE-A-2000-323:a439",
+        "BOE-A-1889-4763:art1547",
+        "BOE-A-1994-26003:a27"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a36"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 3,
+        "key_points_covered": 3,
+        "claims_total": 5,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a36",
+            "covered": true,
+            "evidence": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a36",
+            "covered": true,
+            "evidence": "Las partes podrán pactar cualquier tipo de garantía del cumplimiento por el arrendatario de sus obligaciones arrendaticias adicional a la fianza en metálico. En el caso del arrendamiento de vivienda, en contratos de hasta cinco años de duración, o de hasta siete años si el arrendador fuese persona jurídica, el valor de esta garantía adicional no podrá exceder de dos mensualidades de renta."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a36",
+            "covered": true,
+            "evidence": "El saldo de la fianza en metálico que deba ser restituido al arrendatario al final del arriendo, devengará el interés legal, transcurrido un mes desde la entrega de las llaves por el mismo sin que se hubiere hecho efectiva dicha restitución."
+          }
+        ],
+        "claims": [
+          {
+            "claim": "A la celebración del contrato será obligatoria la exigencia y prestación de fianza en metálico en cantidad equivalente a una mensualidad de renta en el arrendamiento de viviendas.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "Exigir tres meses de fianza en metálico no se ajusta a la norma general establecida para la vivienda.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "Las partes podrán pactar cualquier tipo de garantía del cumplimiento por el arrendatario de sus obligaciones arrendaticias adicional a la fianza en metálico.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "En el caso del arrendamiento de vivienda, en contratos de hasta cinco años de duración, o de hasta siete años si el arrendador fuese persona jurídica, el valor de esta garantía adicional no podrá exceder de dos mensualidades de renta.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "El saldo de la fianza en metálico que deba ser restituido al arrendatario al final del arriendo, devengará el interés legal, transcurrido un mes desde la entrega de las llaves por el mismo sin que se hubiere hecho efectiva dicha restitución.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-fuera-ambito-multa",
+      "question": "Hola, me ha llegado una multa de tráfico por exceso de velocidad. Me cazó un radar a 135 km/h en una zona de 120. Querría saber qué pasos debo seguir para recurrirla, qué plazos tengo y si me conviene pagar con descuento o presentar alegaciones.",
+      "outcome": "rechazo_router",
+      "expected_outcome": "rechazo_router",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 0,
+      "retrieved_block_refs": [],
+      "gold_block_refs": [],
+      "recall": null,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": null,
+      "citation_verdicts": {},
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "gen-gastos-agencia",
+      "question": "Hola, estoy por firmar un contrato de alquiler y la inmobiliaria me quiere cobrar a mí sus honorarios por buscar el piso y redactar el contrato. Además, quieren que pague los gastos de comunidad, pero en el borrador solo pone que me haré cargo de ellos sin indicar ninguna cifra. ¿Es esto legal? ¿Y quién tiene que pagar los recibos de la luz y el agua?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a20",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:a22",
+        "BOE-A-1994-26003:a30",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a37",
+        "BOE-A-2000-323:a439",
+        "BOE-A-1994-26003:a4",
+        "BOE-A-1994-26003:a1",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:dtsexta",
+        "BOE-A-2023-12203:a3",
+        "BOE-A-1889-4763:art1573",
+        "BOE-A-1889-4763:art1564",
+        "BOE-A-1889-4763:art1555",
+        "BOE-A-1889-4763:art1578"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a20"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a20"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 2,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 3,
+        "key_points_covered": 3,
+        "claims_total": 6,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a20",
+            "covered": true,
+            "evidence": "la ley establece de forma clara que los gastos de gestión inmobiliaria y los de formalización del contrato correrán a cargo del arrendador."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a20",
+            "covered": true,
+            "evidence": "para que este pacto sea válido, es un requisito indispensable que conste por escrito y que determine el importe anual de dichos gastos a la fecha del contrato."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a20",
+            "covered": true,
+            "evidence": "los gastos por servicios con que cuente la finca arrendada que se individualicen mediante aparatos contadores serán en todo caso de cuenta del arrendatario."
+          }
+        ],
+        "claims": [
+          {
+            "claim": "Los gastos de gestión inmobiliaria y los de formalización del contrato correrán a cargo del arrendador.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a20"
+          },
+          {
+            "claim": "Las partes pueden pactar que los gastos generales para el adecuado sostenimiento del inmueble, sus servicios, tributos, cargas y responsabilidades que no sean susceptibles de individualización y que correspondan a la vivienda o sus accesorios sean a cargo del inquilino.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a20"
+          },
+          {
+            "claim": "En edificios en régimen de propiedad horizontal, los gastos generales serán los que correspondan a la finca arrendada en función de su cuota de participación.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a20"
+          },
+          {
+            "claim": "En edificios que no estén en régimen de propiedad horizontal, los gastos generales serán los asignados en función de su superficie.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a20"
+          },
+          {
+            "claim": "Para que el pacto de que el inquilino pague los gastos generales sea válido, debe constar por escrito y determinar el importe anual de dichos gastos a la fecha del contrato.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a20"
+          },
+          {
+            "claim": "Los gastos por servicios con que cuente la finca arrendada que se individualicen mediante aparatos contadores serán en todo caso de cuenta del arrendatario.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a20"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-obras-mejora-desistir",
+      "question": "Llevo 8 meses viviendo de alquiler y mi casero me acaba de avisar por escrito de que va a realizar unas obras de mejora importantes en el piso que me dejarán sin poder usar la mitad de la casa. Me estoy planteando dos opciones. Por un lado, ¿puedo rescindir el contrato para irme antes de que empiecen las obras sin tener que pagar la penalización por desistimiento que pactamos en el contrato para cuando me fuera antes de tiempo? Por otro lado, si decido quedarme y aguantar las obras, ¿tengo derecho a algún tipo de rebaja en el alquiler o a que me paguen los gastos que me generen?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a22",
+        "BOE-A-1994-26003:a23",
+        "BOE-A-1994-26003:a21",
+        "BOE-A-1994-26003:a19",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1889-4763:art1573",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a30",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a26",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1889-4763:art1569",
+        "BOE-A-2000-323:a250"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a22",
+        "BOE-A-1994-26003:a11"
+      ],
+      "recall": 0.5,
+      "first_pass_recall": 0.5,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22",
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22"
+            ],
+            "recall": 0.5
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22",
+              "BOE-A-1994-26003:a11"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22"
+            ],
+            "recall": 0.5
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22"
+            ],
+            "recall": 0.5
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22"
+            ],
+            "recall": 0.5
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a22"
+            ],
+            "recall": 0.5
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 0.6666666666666666,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 3,
+        "key_points_covered": 2,
+        "claims_total": 4,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a22",
+            "covered": true,
+            "evidence": "la ley establece que si el arrendador le notifica por escrito la realización de obras de mejora con al menos tres meses de antelación... usted dispone de un plazo de un mes desde dicha notificación para desistir del contrato... el contrato se extinguirá en el plazo de dos meses a contar desde su desistimiento, periodo durante el cual no podrán comenzar las obras."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a22",
+            "covered": true,
+            "evidence": "tendrá derecho a una reducción de la renta en proporción a la parte de la vivienda de la que se vea privado por causa de dichas obras, así como a que se le indemnice por los gastos que las obras le obliguen a efectuar."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a11",
+            "covered": false,
+            "evidence": ""
+          }
+        ],
+        "claims": [
+          {
+            "claim": "Si el arrendador notifica por escrito la realización de obras de mejora con al menos tres meses de antelación (detallando naturaleza, comienzo, duración y coste), el arrendatario dispone de un plazo de un mes desde dicha notificación para desistir del contrato, salvo que las obras no afecten o afecten de modo irrelevante a la vivienda.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a22"
+          },
+          {
+            "claim": "Si el arrendatario ejerce el derecho de desistimiento, el contrato se extinguirá en el plazo de dos meses a contar desde su desistimiento, periodo durante el cual no podrán comenzar las obras.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a22"
+          },
+          {
+            "claim": "Si el arrendatario decide quedarse y soportar las obras de mejora, tendrá derecho a una reducción de la renta en proporción a la parte de la vivienda de la que se vea privado por causa de dichas obras.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a22"
+          },
+          {
+            "claim": "Si el arrendatario decide quedarse y soportar las obras de mejora, tendrá derecho a que se le indemnice por los gastos que las obras le obliguen a efectuar.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a22"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-plazo-minimo",
+      "question": "Firmé un contrato de alquiler de piso por un año con un propietario particular. ¿Tengo derecho a quedarme más tiempo si yo quiero? Es que me ha dicho que igual necesita el piso para su hijo, pero en el contrato no pone nada de eso.",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:a19",
+        "BOE-A-2023-12203:a3-3",
+        "BOE-A-2000-323:a439",
+        "BOE-A-1994-26003:a21",
+        "BOE-A-1994-26003:a5",
+        "BOE-A-1889-4763:art1569",
+        "BOE-A-1994-26003:a7"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a9"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a9"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 1,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 4,
+        "key_points_covered": 4,
+        "claims_total": 7,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a9",
+            "covered": true,
+            "evidence": "si se fija por un plazo inferior a cinco años —como es tu caso, que firmaste por un año—, llegado el día del vencimiento el contrato se prorroga obligatoriamente por plazos anuales hasta que el alquiler alcance una duración mínima de cinco años... Esta prórroga obligatoria solo se detiene si tú, como inquilino, avisas al propietario con al menos treinta días de antelación"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a9",
+            "covered": true,
+            "evidence": "no procederá la prórroga obligatoria del contrato para recuperar la vivienda para familiares (como un hijo) únicamente si, al tiempo de su celebración, se hizo constar en el contrato de forma expresa dicha necesidad. Como indicas que en el contrato no pone nada de esto, el propietario no puede invocar esta causa"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a9",
+            "covered": true,
+            "evidence": "una vez transcurrido el primer año de duración del contrato y siendo el arrendador una persona física, no procederá la prórroga obligatoria del contrato para recuperar la vivienda para familiares"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a9",
+            "covered": true,
+            "evidence": "para ejercer esta potestad el arrendador debería comunicarte su necesidad de la vivienda especificando la causa al menos con dos meses de antelación a la fecha en que la necesite"
+          }
+        ],
+        "claims": [
+          {
+            "claim": "La duración del alquiler se pacta libremente, pero si se fija por un plazo inferior a cinco años, llegado el vencimiento se prorroga obligatoriamente por plazos anuales hasta alcanzar una duración mínima de cinco años.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Esta prórroga obligatoria solo se detiene si el inquilino avisa al propietario con al menos treinta días de antelación a la fecha de terminación del contrato o de cualquiera de sus prórrogas de su voluntad de no renovarlo.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Una vez transcurrido el primer año de duración del contrato y siendo el arrendador una persona física, no procederá la prórroga obligatoria del contrato para recuperar la vivienda para familiares (como un hijo) únicamente si, al tiempo de su celebración, se hizo constar en el contrato de forma expresa dicha necesidad.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Como en el contrato no pone nada de esto, el propietario no puede invocar esta causa para evitar la prórroga obligatoria anual.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Si se hubiera hecho constar expresamente en el contrato desde el principio, para ejercer esta potestad el arrendador debería comunicar su necesidad de la vivienda especificando la causa al menos con dos meses de antelación a la fecha en que la necesite.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Si transcurridos tres meses desde la extinción del contrato o el desalojo, él o sus familiares no hubieran ocupado la vivienda, el inquilino tendría un plazo de treinta días para optar entre ser repuesto en el uso de la vivienda por un nuevo período de hasta cinco años con indemnización de los gastos de desalojo, o ser indemnizado con una cantidad equivalente a una mensualidad por cada año que quedara por cumplir hasta completar cinco años (salvo causa de fuerza mayor).",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          },
+          {
+            "claim": "Al no figurar la cláusula de necesidad de forma expresa en el contrato, esta opción de recuperación anticipada por parte del propietario no procede.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a9"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-premisa-falsa-fianza",
+      "question": "Hola, llevo dos años viviendo de alquiler en un piso alquilado a un particular y el casero me dice que, como ha subido el alquiler por el IPC, tengo que pagarle ahora una diferencia para actualizar la fianza. Tengo entendido que la fianza se tiene que actualizar obligatoriamente todos los años desde el principio del contrato, ¿es esto correcto?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 1,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:datercera",
+        "BOE-A-2023-12203:a3-3",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:a18",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1994-26003:da",
+        "BOE-A-1994-26003:daprimera"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a36"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a36"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 2,
+        "key_points_covered": 2,
+        "claims_total": 6,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a36",
+            "covered": true,
+            "evidence": "Durante los cinco primeros años de duración del contrato (o durante los siete primeros años si el arrendador fuese persona jurídica), la fianza no estará sujeta a actualización."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a36",
+            "covered": true,
+            "evidence": "Solo cada vez que el arrendamiento se prorrogue, el arrendador podrá exigir que la fianza sea incrementada, o el arrendatario que disminuya, hasta hacerse igual a una o dos mensualidades de la renta vigente, según proceda, al tiempo de la prórroga."
+          }
+        ],
+        "claims": [
+          {
+            "claim": "No es correcto que la fianza se deba actualizar obligatoriamente todos los años desde el principio del contrato.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "Durante los cinco primeros años de duración del contrato (o durante los siete primeros años si el arrendador fuese persona jurídica), la fianza no estará sujeta a actualización.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "Al llevar dos años viviendo en el piso alquilado a un particular, la fianza no se puede actualizar todavía por el paso de los años o por haber subido la renta.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "Solo cada vez que el arrendamiento se prorrogue, el arrendador podrá exigir que la fianza sea incrementada, o el arrendatario que disminuya, hasta hacerse igual a una o dos mensualidades de la renta vigente, según proceda, al tiempo de la prórroga.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "La actualización de la fianza durante el período de tiempo en que el plazo pactado para el arrendamiento exceda de cinco años, o de siete años si el arrendador fuese persona jurídica, se regirá por lo estipulado al efecto por las partes.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          },
+          {
+            "claim": "A falta de pacto específico sobre la actualización de la fianza, lo acordado sobre la actualización de la renta se presumirá querido también para la actualización de la fianza.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a36"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-prorroga-tacita",
+      "question": "Hola, llevo ya 5 años de alquiler en mi piso y el contrato se termina el mes que viene. Ninguno de los dos (ni el casero ni yo) nos hemos dicho nada sobre si renovar o no. ¿Se prorroga automáticamente el contrato? ¿Por cuánto tiempo? Y si se prorroga, ¿puedo decidir irme yo antes de que acabe?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:dtprimera",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a17",
+        "BOE-A-1994-26003:a1",
+        "BOE-A-1994-26003:a13",
+        "BOE-A-1994-26003:daquinta",
+        "BOE-A-1994-26003:a11",
+        "BOE-A-1889-4763:art1569",
+        "BOE-A-1994-26003:a12"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a10"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 1,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 0.3333333333333333,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 3,
+        "key_points_covered": 1,
+        "claims_total": 6,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a10",
+            "covered": true,
+            "evidence": "Según la Ley de Arrendamientos Urbanos, al cumplirse los primeros cinco años de duración y llegar la fecha de vencimiento, si ninguna de las partes ha notificado a la otra su voluntad de no renovarlo dentro de los plazos legales (al menos cuatro meses de antelación el arrendador y al menos dos meses el arrendatario), el contrato se prorroga de forma obligatoria por plazos anuales hasta un máximo de tres años más."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a10",
+            "covered": false,
+            "evidence": ""
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a10",
+            "covered": false,
+            "evidence": ""
+          }
+        ],
+        "claims": [
+          {
+            "claim": "El contrato se prorroga automáticamente al cumplirse los primeros cinco años de duración si ninguna parte notifica su voluntad de no renovarlo dentro de los plazos legales.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a10"
+          },
+          {
+            "claim": "Los plazos legales para notificar la no renovación son al menos cuatro meses de antelación para el arrendador y al menos dos meses para el arrendatario.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a10"
+          },
+          {
+            "claim": "El contrato se prorroga de forma obligatoria por plazos anuales hasta un máximo de tres años más.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a10"
+          },
+          {
+            "claim": "El inquilino puede desistir del contrato en cualquier momento una vez que hayan transcurrido al menos seis meses de duración total.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          },
+          {
+            "claim": "Para desistir, el inquilino debe comunicarlo al arrendador con una antelación mínima de treinta días.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          },
+          {
+            "claim": "Si en el contrato se pactó una cláusula de indemnización, el arrendador podrá exigir una cantidad equivalente a una mensualidad de la renta en vigor por cada año del contrato que reste por cumplir.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a11"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "gen-sin-base-obligar-venta",
+      "question": "Hola, mi casero me ha comunicado que va a vender el piso donde vivo y quiero comprarlo usando mi derecho de tanteo. Sin embargo, no me queda claro qué impuestos (como el ITP o el IVA) tengo que pagar al formalizar la compraventa y si existe alguna deducción o beneficio fiscal especial para los inquilinos que compran su vivienda habitual. ¿Me podríais explicar detalladamente qué gastos e impuestos tendré?",
+      "outcome": "rechazo_router",
+      "expected_outcome": "abstencion",
+      "outcome_as_expected": false,
+      "disambiguation": "directo",
+      "displayed_citations": 0,
+      "retrieved_block_refs": [],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a25"
+      ],
+      "recall": 0.0,
+      "first_pass_recall": null,
+      "recall_delta": null,
+      "agentic_delta": 0,
+      "retrieval": null,
+      "citation_verdicts": {},
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "gen-venta-vivienda",
+      "question": "Hola, me he enterado de que mi casero va a vender el piso en el que estoy alquilado. Llevo solo un año de contrato. ¿El nuevo comprador me puede echar inmediatamente o tiene la obligación de respetar mi alquiler?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a25",
+        "BOE-A-1994-26003:a14",
+        "BOE-A-1994-26003:dacuaa",
+        "BOE-A-1994-26003:daquinta",
+        "BOE-A-1994-26003:a29",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a31",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a13",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:a19"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a14"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a14"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a14"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a14"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a14"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a14"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a14"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 1,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 2,
+        "key_points_covered": 2,
+        "claims_total": 12,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a14",
+            "covered": true,
+            "evidence": "Según la Ley de Arrendamientos Urbanos, el adquirente de una vivienda arrendada queda subrogado en los derechos y obligaciones del arrendador durante los cinco primeros años de vigencia del contrato (o siete años si el anterior arrendador era persona jurídica)."
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a14",
+            "covered": true,
+            "evidence": "Si las partes hubieran estipulado en el contrato que la enajenación de la vivienda extingue el arrendamiento, el adquirente solo deberá soportar el alquiler durante el tiempo que reste para el transcurso del plazo de cinco años (o siete si era persona jurídica)."
+          }
+        ],
+        "claims": [
+          {
+            "claim": "El nuevo comprador no puede echarle inmediatamente.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a14"
+          },
+          {
+            "claim": "El adquirente de una vivienda arrendada queda subrogado en los derechos y obligaciones del arrendador durante los cinco primeros años de vigencia del contrato (o siete años si el anterior arrendador era persona jurídica).",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a14"
+          },
+          {
+            "claim": "Esto se aplica aun cuando concurran en el adquirente los requisitos del artículo 34 de la Ley Hipotecaria.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a14"
+          },
+          {
+            "claim": "Si las partes hubieran estipulado en el contrato que la enajenación de la vivienda extingue el arrendamiento, el adquirente solo deberá soportar el alquiler durante el tiempo que reste para el transcurso del plazo de cinco años (o siete si era persona jurídica).",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a14"
+          },
+          {
+            "claim": "En caso de venta, usted tiene derecho de adquisición preferente sobre la vivienda, salvo que en el contrato se hubiese pactado la renuncia a este derecho.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "Si no renunció, podrá ejercitar el derecho de tanteo en un plazo de treinta días naturales a contar desde el día siguiente en que se le notifique de forma fehaciente la decisión de vender, el precio y las condiciones esenciales.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "Si no renunció, podrá ejercitar el derecho de retracto en un plazo de treinta días naturales, contados desde el siguiente a la notificación fehaciente que deba hacer el adquirente (con entrega de copia de la escritura o documento de formalización), si no se le hizo la notificación previa, se omitió alguno de sus requisitos, o el precio efectivo fue inferior o las condiciones menos onerosas.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "Este derecho de retracto se sujeta a lo dispuesto en el artículo 1.518 del Código Civil.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "Si se pactó la renuncia al derecho de adquisición preferente, el arrendador tiene la obligación de comunicarle su intención de vender la vivienda con una antelación mínima de treinta días a la fecha de formalización de la compraventa.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "No habrá lugar a los derechos de tanteo o retracto si la vivienda se vende conjuntamente con las restantes viviendas o locales del mismo inmueble que sean propiedad del arrendador, ni cuando se vendan de forma conjunta por distintos propietarios a un mismo comprador la totalidad de pisos y locales del inmueble.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "Si en el inmueble solo existiera una vivienda, sí se mantendrán dichos derechos.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          },
+          {
+            "claim": "Tampoco podrá ejercitar los derechos de adquisición preferente solo sobre la vivienda si la venta recae además sobre objetos alquilados como accesorios por el mismo arrendador.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a25"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    },
+    {
+      "id": "mh-01-zona-tensionada-prorroga",
+      "question": "Llevo cinco años alquilado en un piso y el contrato vence en septiembre. La ciudad está declarada zona de mercado residencial tensionado y el casero me dice que no me renueva. ¿Puedo alargar el contrato más allá de esos cinco años?",
+      "outcome": "abstencion",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": false,
+      "disambiguation": "reanudado",
+      "displayed_citations": 0,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a40",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-2000-323:a22",
+        "BOE-A-1994-26003:a19",
+        "BOE-A-1994-26003:dacuaa",
+        "BOE-A-1994-26003:a14",
+        "BOE-A-1889-4763:art1570",
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:dtprimera",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:dasexta",
+        "BOE-A-2000-323:a444",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1994-26003:a26",
+        "BOE-A-1889-4763:art1569"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a10",
+        "BOE-A-2023-12203:a1-10"
+      ],
+      "recall": 0.5,
+      "first_pass_recall": 0.5,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 0.5
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 0.5
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 0.5
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 0.5
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [],
+            "recall": 0.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 0.5
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a10"
+            ],
+            "recall": 0.5
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 2,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": null,
+      "judge_verdict": null,
+      "violations": []
+    },
+    {
+      "id": "mh-02-enervacion-desahucio",
+      "question": "Me ha llegado una demanda de desahucio porque debo dos mensualidades del alquiler. Si reúno el dinero antes del juicio, ¿puedo parar el desahucio y quedarme en el piso?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "reanudado",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-2000-323:a22",
+        "BOE-A-1994-26003:daquinta",
+        "BOE-A-2000-323:a440",
+        "BOE-A-2000-323:a437",
+        "BOE-A-2000-323:a444",
+        "BOE-A-2000-323:a250",
+        "BOE-A-2000-323:a439",
+        "BOE-A-2000-323:a549",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1889-4763:art1569",
+        "BOE-A-1994-26003:a28"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a27",
+        "BOE-A-2000-323:a22"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a27",
+              "BOE-A-2000-323:a22"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a27",
+              "BOE-A-2000-323:a22"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a27",
+              "BOE-A-2000-323:a22"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a27",
+              "BOE-A-2000-323:a22"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-2000-323:a22"
+            ],
+            "recall": 0.5
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a27",
+              "BOE-A-2000-323:a22"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 2,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 0.5,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 4,
+        "key_points_total": 2,
+        "key_points_covered": 1,
+        "claims_total": 6,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a27",
+            "covered": false,
+            "evidence": ""
+          },
+          {
+            "block_ref": "BOE-A-2000-323:a22",
+            "covered": true,
+            "evidence": "Según la Ley de Enjuiciamiento Civil, los procesos de desahucio por falta de pago terminan si pagas al demandante o pones a su disposición en el Tribunal o ante notario, dentro del plazo que se te haya conferido en el requerimiento, tanto el importe de las cantidades reclamadas en la demanda como el de las que adeudes en el momento de ese pago enervador."
+          }
+        ],
+        "claims": [
+          {
+            "claim": "La Ley de Enjuiciamiento Civil y la Ley de Arrendamientos Urbanos prevén la posibilidad de enervar el desahucio por falta de pago.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-2000-323:a22"
+          },
+          {
+            "claim": "Puedes pagar lo que debes para paralizar el procedimiento y mantenerte en la vivienda.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-2000-323:a22"
+          },
+          {
+            "claim": "Según la Ley de Enjuiciamiento Civil, los procesos de desahucio por falta de pago terminan si pagas al demandante o pones a su disposición en el Tribunal o ante notario, dentro del plazo conferido en el requerimiento, el importe de las cantidades reclamadas y las que adeudes en ese momento.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-2000-323:a22"
+          },
+          {
+            "claim": "La Ley de Arrendamientos Urbanos dispone que el desahucio podrá ser enervado si pagas al actor o pones a su disposición en el Juzgado o notarialmente el importe de las cantidades en cuya inefectividad se sustenta la demanda y el de las que en dicho instante adeudes, en cualquier momento anterior al señalado para la celebración del juicio.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:daquinta"
+          },
+          {
+            "claim": "No se podrá enervar cuando ya hubieras enervado el desahucio en una ocasión anterior (salvo que el cobro no se hubiera producido por causas imputables al arrendador).",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-2000-323:a22"
+          },
+          {
+            "claim": "No se podrá enervar cuando el arrendador te hubiera requerido de pago por un medio fehaciente (o que permita acreditar su constancia) antes de la demanda —con un plazo de al menos treinta días de antelación según la Ley de Enjuiciamiento Civil, o de cuatro meses según la Ley de Arrendamientos Urbanos— y el pago no se hubiese efectuado al tiempo de dicha presentación.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-2000-323:a22"
+          }
+        ],
+        "clarity": 4
+      },
+      "violations": [
+        {
+          "case_id": "mh-02-enervacion-desahucio",
+          "block_ref": "BOE-A-2000-323:a22",
+          "reason": "displayed quote is not literally present in the corpus block"
+        }
+      ]
+    },
+    {
+      "id": "mh-03-reparaciones-conservacion",
+      "question": "La caldera del piso que tengo alquilado lleva un mes rota y llevo un mes sin agua caliente. He avisado al propietario y me dice que la arregle yo porque la uso yo. ¿Quién tiene que pagar esa reparación?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 6,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a21",
+        "BOE-A-1889-4763:art1554",
+        "BOE-A-1889-4763:art1558",
+        "BOE-A-1994-26003:a26",
+        "BOE-A-1994-26003:a27",
+        "BOE-A-1994-26003:dtsegunda",
+        "BOE-A-1889-4763:art1559",
+        "BOE-A-1889-4763:art1551",
+        "BOE-A-1994-26003:a9",
+        "BOE-A-1994-26003:a2",
+        "BOE-A-1889-4763:art1563",
+        "BOE-A-1889-4763:art1564",
+        "BOE-A-1994-26003:a36",
+        "BOE-A-1994-26003:a19",
+        "BOE-A-1994-26003:dttercera",
+        "BOE-A-1994-26003:a22",
+        "BOE-A-1994-26003:a34"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a21",
+        "BOE-A-1889-4763:art1554"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a21",
+              "BOE-A-1889-4763:art1554"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a21",
+              "BOE-A-1889-4763:art1554"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a21",
+              "BOE-A-1889-4763:art1554"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a21",
+              "BOE-A-1889-4763:art1554"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a21",
+              "BOE-A-1889-4763:art1554"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a21"
+            ],
+            "recall": 0.5
+          },
+          {
+            "id": "sq3",
+            "recovered_gold": [],
+            "recall": 0.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 6,
+        "reparada_snap": 0,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 4,
+        "key_points_total": 3,
+        "key_points_covered": 3,
+        "claims_total": 9,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a21",
+            "covered": true,
+            "evidence": "el propietario (arrendador) está obligado a realizar todas las reparaciones necesarias para conservar la vivienda en las condiciones de habitabilidad necesarias para servir al uso convenido, sin derecho a elevar por ello la renta"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a21",
+            "covered": true,
+            "evidence": "las pequeñas reparaciones que exija el desgaste por el uso ordinario de la vivienda serán de cargo del arrendatario"
+          },
+          {
+            "block_ref": "BOE-A-1889-4763:art1554",
+            "covered": true,
+            "evidence": "el Código Civil también impone al arrendador la obligación de hacer durante el arrendamiento todas las reparaciones necesarias a fin de conservar la cosa en estado de servir para el uso a y que ha sido destinada"
+          }
+        ],
+        "claims": [
+          {
+            "claim": "El arrendador está obligado a realizar todas las reparaciones necesarias para conservar la vivienda en condiciones de habitabilidad, sin derecho a elevar la renta.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a21"
+          },
+          {
+            "claim": "Esta obligación incluye los servicios cedidos como accesorios de la finca.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a2"
+          },
+          {
+            "claim": "El Código Civil impone al arrendador la obligación de hacer durante el arrendamiento todas las reparaciones necesarias para conservar la cosa en estado de servir para el uso a que ha sido destinada.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1889-4763:art1554"
+          },
+          {
+            "claim": "Las pequeñas reparaciones que exija el desgaste por el uso ordinario de la vivienda serán de cargo del arrendatario.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a21"
+          },
+          {
+            "claim": "El arrendatario es responsable del deterioro o pérdida que tuviere la cosa arrendada, a no ser que pruebe haberse ocasionado sin culpa suya.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1889-4763:art1563"
+          },
+          {
+            "claim": "El arrendatario es responsable del deterioro causado por las personas de su casa.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1889-4763:art1564"
+          },
+          {
+            "claim": "La obligación de reparación del arrendador tiene como límite la destrucción de la vivienda por causa no imputable a él.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a21"
+          },
+          {
+            "claim": "El arrendatario debe poner en conocimiento del propietario, en el plazo más breve posible, la necesidad de las reparaciones necesarias, siendo responsable de los daños y perjuicios que por su negligencia se ocasionaren al propietario.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1889-4763:art1559"
+          },
+          {
+            "claim": "El arrendatario podrá realizar las reparaciones que sean urgentes para evitar un daño inminente o una incomodidad grave, y exigir de inmediato su importe al arrendador.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a21"
+          }
+        ],
+        "clarity": 4
+      },
+      "violations": []
+    },
+    {
+      "id": "mh-04-renta-zona-tensionada",
+      "question": "Voy a firmar un contrato nuevo en un piso de una empresa que tiene alquilados más de veinte pisos en mi ciudad, que está declarada zona tensionada. Me piden 250 euros más al mes de lo que pagaba el inquilino anterior. ¿Pueden subir la renta así?",
+      "outcome": "respuesta",
+      "expected_outcome": "respuesta",
+      "outcome_as_expected": true,
+      "disambiguation": "directo",
+      "displayed_citations": 2,
+      "retrieved_block_refs": [
+        "BOE-A-1994-26003:a17",
+        "BOE-A-2023-12203:a1-10",
+        "BOE-A-1994-26003:dt",
+        "BOE-A-1994-26003:daprimera",
+        "BOE-A-1994-26003:a10",
+        "BOE-A-2023-12203:a3",
+        "BOE-A-1994-26003:a4",
+        "BOE-A-1994-26003:a18",
+        "BOE-A-2000-323:a439",
+        "BOE-A-1994-26003:a2",
+        "BOE-A-1889-4763:art1546"
+      ],
+      "gold_block_refs": [
+        "BOE-A-1994-26003:a17",
+        "BOE-A-2023-12203:a3"
+      ],
+      "recall": 1.0,
+      "first_pass_recall": 1.0,
+      "recall_delta": 0.0,
+      "agentic_delta": 0,
+      "retrieval": {
+        "layers": [
+          {
+            "layer": "dense",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a17",
+              "BOE-A-2023-12203:a3"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "lexical",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a17",
+              "BOE-A-2023-12203:a3"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "fused",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a17",
+              "BOE-A-2023-12203:a3"
+            ],
+            "recall": 1.0
+          },
+          {
+            "layer": "evidence",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a17",
+              "BOE-A-2023-12203:a3"
+            ],
+            "recall": 1.0
+          }
+        ],
+        "subqueries": [
+          {
+            "id": "sq1",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a17",
+              "BOE-A-2023-12203:a3"
+            ],
+            "recall": 1.0
+          },
+          {
+            "id": "sq2",
+            "recovered_gold": [
+              "BOE-A-1994-26003:a17",
+              "BOE-A-2023-12203:a3"
+            ],
+            "recall": 1.0
+          }
+        ]
+      },
+      "citation_verdicts": {
+        "verificada_directa": 1,
+        "reparada_snap": 1,
+        "reparada_anclaje": 0,
+        "descartada": 0
+      },
+      "judge": {
+        "completeness": 1.0,
+        "unsupported_claim_rate": 0.0,
+        "clarity": 5,
+        "key_points_total": 3,
+        "key_points_covered": 3,
+        "claims_total": 6,
+        "claims_unsupported": 0
+      },
+      "judge_verdict": {
+        "key_points": [
+          {
+            "block_ref": "BOE-A-1994-26003:a17",
+            "covered": true,
+            "evidence": "la ley dispone como regla general para las zonas tensionadas que la renta del nuevo contrato no puede superar la última renta del contrato de arrendamiento de vivienda habitual que hubiese estado vigente en los últimos cinco años en esa misma vivienda (aplicando únicamente la actualización anual que correspondiera)"
+          },
+          {
+            "block_ref": "BOE-A-1994-26003:a17",
+            "covered": true,
+            "evidence": "sin que se puedan fijar nuevas condiciones para repercutir gastos o cuotas que no estuviesen en el contrato anterior"
+          },
+          {
+            "block_ref": "BOE-A-2023-12203:a3",
+            "covered": true,
+            "evidence": "Dado que la empresa propietaria tiene alquilados más de diez inmuebles urbanos de uso residencial, tiene la consideración legal de gran tenedor."
+          }
+        ],
+        "claims": [
+          {
+            "claim": "La empresa propietaria, al tener alquilados más de diez inmuebles urbanos de uso residencial, es gran tenedor.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-2023-12203:a3"
+          },
+          {
+            "claim": "Al estar la vivienda en una zona de mercado residencial tensionado y sujeta a la LAU, la renta inicial del nuevo contrato se somete a límites estrictos.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a17"
+          },
+          {
+            "claim": "La renta inicial no puede exceder del límite máximo del precio aplicable conforme al sistema de índices de precios de referencia atendiendo a las condiciones y características de la vivienda y del edificio.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a17"
+          },
+          {
+            "claim": "En zonas tensionadas, la renta del nuevo contrato no puede superar la última renta del contrato anterior en los últimos cinco años, aplicando la actualización anual correspondiente.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a17"
+          },
+          {
+            "claim": "No se pueden fijar nuevas condiciones para repercutir gastos o cuotas que no estuviesen en el contrato anterior.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a17"
+          },
+          {
+            "claim": "La renta anterior solo podría incrementarse en un máximo del 10% si se acreditan ciertos supuestos de rehabilitación, mejora de eficiencia energética, obras de mejora de la accesibilidad (finalizadas en los dos años anteriores) o si el contrato se firma por un plazo de diez o más años o incluye un derecho de prórroga voluntaria por ese periodo.",
+            "supported": true,
+            "supporting_block_ref": "BOE-A-1994-26003:a17"
+          }
+        ],
+        "clarity": 5
+      },
+      "violations": []
+    }
+  ],
+  "hard_failures": [
+    {
+      "case_id": "mh-02-enervacion-desahucio",
+      "block_ref": "BOE-A-2000-323:a22",
+      "reason": "displayed quote is not literally present in the corpus block"
+    },
+    {
+      "case_id": "mh-02-enervacion-desahucio",
+      "block_ref": "BOE-A-2000-323:a22",
+      "reason": "displayed quote is not literally present in the corpus block"
+    }
+  ],
+  "passed": false,
+  "judge_calibration": {
+    "judge_model": "deepseek/deepseek-v3.2",
+    "reviewed_by": "Claude Opus 5 (revisor modelo, no humano)",
+    "reviewer_kind": "model",
+    "reviewed_at": "2026-08-09T17:11:25.799772Z",
+    "sample_size": 50,
+    "agreement": 0.96,
+    "items": [
+      {
+        "case_id": "gen-actualizacion-renta",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a18#2",
+        "judge_label": false,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "gen-actualizacion-renta",
+        "kind": "claim",
+        "ref": "No es legal que el casero te suba el alquiler de palabra ni cuando quiera.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-actualizacion-renta",
+        "kind": "claim",
+        "ref": "Durante la vigencia del contrato la renta solo se puede actualizar en la fecha exacta en que se cumpla cada año de vigencia.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-actualizacion-renta",
+        "kind": "claim",
+        "ref": "Es válida una nota en el recibo de la mensualidad anterior.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-desistimiento",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a11#2",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-desistimiento",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a11#3",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-desistimiento",
+        "kind": "claim",
+        "ref": "Debe comunicar el desistimiento al arrendador con una antelación mínima de treinta días.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-duracion-total",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a10#2",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-duracion-total",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a9#5",
+        "judge_label": true,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "gen-duracion-total",
+        "kind": "claim",
+        "ref": "Los arrendamientos sin plazo se entienden celebrados por un año, con derecho a prórroga anual hasta cinco años.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-duracion-total",
+        "kind": "claim",
+        "ref": "El contrato se ha prorrogado obligatoriamente por plazos anuales hasta alcanzar la duración mínima de cinco años.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-duracion-total",
+        "kind": "claim",
+        "ref": "En zona tensionada, el inquilino puede solicitar una prórroga extraordinaria por plazos anuales hasta un máximo de tres años, que el arrendador debe aceptar obligatoriamente.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-fianza",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a36#3",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-gastos-agencia",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a20#1",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-gastos-agencia",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a20#2",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-gastos-agencia",
+        "kind": "claim",
+        "ref": "Para que el pacto de que el inquilino pague los gastos generales sea válido, debe constar por escrito y determinar el importe anual de dichos gastos a la fecha del contrato.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-obras-mejora-desistir",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a22#1",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-obras-mejora-desistir",
+        "kind": "claim",
+        "ref": "El casero debe notificarle las obras por escrito con al menos tres meses de antelación, detallando su naturaleza, comienzo, duración y coste previsible.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-obras-mejora-desistir",
+        "kind": "claim",
+        "ref": "Si ejerce este derecho, el contrato se extinguirá en el plazo de dos meses desde su desistimiento, periodo durante el cual no podrán comenzar las obras.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-obras-mejora-desistir",
+        "kind": "claim",
+        "ref": "Si decide quedarse y soportar las obras de mejora, la ley le otorga el derecho a una reducción de la renta en proporción a la parte de la vivienda de la que se vea privado.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-plazo-minimo",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a9#3",
+        "judge_label": false,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "gen-plazo-minimo",
+        "kind": "claim",
+        "ref": "La duración del alquiler es libre.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-plazo-minimo",
+        "kind": "claim",
+        "ref": "Para que el propietario pueda hacer uso de este derecho se exige estrictamente que, al tiempo de celebrar el contrato, se hubiese hecho constar en el mismo de forma expresa dicha necesidad.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-premisa-falsa-fianza",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a36#1",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-premisa-falsa-fianza",
+        "kind": "claim",
+        "ref": "Durante los primeros cinco años de duración del contrato (o siete años si el arrendador fuese persona jurídica), la fianza en metálico no está sujeta a actualización.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-premisa-falsa-fianza",
+        "kind": "claim",
+        "ref": "La fianza solo se puede exigir que sea incrementada (o disminuir, según corresponda) hasta hacerse igual a una o dos mensualidades de la renta vigente cada vez que el arrendamiento se prorrogue.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-premisa-falsa-fianza",
+        "kind": "claim",
+        "ref": "La fianza solo se puede exigir que sea incrementada (o disminuir, según corresponda) hasta hacerse igual a una o dos mensualidades de la renta vigente durante el período de tiempo en que el plazo pactado para el arrendamiento exceda de cinco años (o de siete si el arrendador es persona jurídica).",
+        "judge_label": true,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "gen-premisa-falsa-fianza",
+        "kind": "claim",
+        "ref": "Cuando el plazo pactado exceda de cinco o siete años, la actualización de la fianza se regirá por lo estipulado por las partes.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-premisa-falsa-fianza",
+        "kind": "claim",
+        "ref": "A falta de pacto específico sobre la actualización de la fianza cuando el plazo exceda de cinco o siete años, lo acordado sobre la actualización de la renta se presumirá querido también para la actualización de la fianza.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-prorroga-tacita",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a10#1",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-prorroga-tacita",
+        "kind": "claim",
+        "ref": "Si han transcurrido cinco años y ninguna parte ha notificado su voluntad de no renovar con la antelación exigida, el contrato se prorroga obligatoriamente.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-prorroga-tacita",
+        "kind": "claim",
+        "ref": "El inquilino puede manifestar al arrendador su voluntad de no renovar el contrato con un mes de antelación a la fecha de terminación de cualquiera de las anualidades.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-prorroga-tacita",
+        "kind": "claim",
+        "ref": "El inquilino puede desistir del contrato en cualquier momento una vez que hayan transcurrido al menos seis meses desde el inicio, comunicándolo al arrendador con una antelación mínima de treinta días.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-venta-vivienda",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a14#1",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-venta-vivienda",
+        "kind": "claim",
+        "ref": "El nuevo comprador de la vivienda no te puede echar inmediatamente de forma general.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "gen-venta-vivienda",
+        "kind": "claim",
+        "ref": "El adquirente de una vivienda arrendada queda subrogado en los derechos y obligaciones del arrendador durante los cinco primeros años de vigencia del contrato (o siete años si el anterior arrendador era una persona jurídica), aun cuando concurran en él los requisitos del artículo 34 de la Ley Hipotecaria.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-02-enervacion-desahucio",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a27#1",
+        "judge_label": false,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "mh-02-enervacion-desahucio",
+        "kind": "key_point",
+        "ref": "BOE-A-2000-323:a22#2",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-02-enervacion-desahucio",
+        "kind": "claim",
+        "ref": "La Ley de Enjuiciamiento Civil señala que debes realizar el pago dentro del plazo conferido en el requerimiento que se te hace tras la admisión de la demanda.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-02-enervacion-desahucio",
+        "kind": "claim",
+        "ref": "La disposición adicional quinta de la Ley de Arrendamientos Urbanos contempla que el pago puede efectuarse en algún momento anterior al señalado para la celebración del juicio.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-02-enervacion-desahucio",
+        "kind": "claim",
+        "ref": "La enervación no podrá tener lugar si ya habías enervado el desahucio en una ocasión anterior (salvo que el cobro no se hubiera producido por causas imputables al arrendador).",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-03-reparaciones-conservacion",
+        "kind": "key_point",
+        "ref": "BOE-A-1889-4763:art1554#3",
+        "judge_label": false,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "mh-03-reparaciones-conservacion",
+        "kind": "claim",
+        "ref": "El arrendatario es responsable de los deterioros causados por las personas de su casa.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-03-reparaciones-conservacion",
+        "kind": "claim",
+        "ref": "El hecho de que el inquilino use la caldera no la convierte automáticamente en una pequeña reparación a su cargo.",
+        "judge_label": false,
+        "reviewer_label": false
+      },
+      {
+        "case_id": "mh-04-renta-zona-tensionada",
+        "kind": "key_point",
+        "ref": "BOE-A-1994-26003:a17#1",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-04-renta-zona-tensionada",
+        "kind": "key_point",
+        "ref": "BOE-A-2023-12203:a3#3",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-04-renta-zona-tensionada",
+        "kind": "claim",
+        "ref": "En una zona de mercado residencial tensionado, la Ley de Arrendamientos Urbanos establece límites estrictos para la renta al iniciar un nuevo contrato de alquiler de vivienda.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-04-renta-zona-tensionada",
+        "kind": "claim",
+        "ref": "La empresa propietaria, al tener alquilados más de veinte pisos, tiene la consideración legal de gran tenedor.",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-04-renta-zona-tensionada",
+        "kind": "claim",
+        "ref": "Con carácter general para cualquier nuevo contrato en zona tensionada, la renta inicial no puede rebasar la última renta vigente del contrato de los últimos cinco años (actualizada anualmente).",
+        "judge_label": true,
+        "reviewer_label": true
+      },
+      {
+        "case_id": "mh-04-renta-zona-tensionada",
+        "kind": "claim",
+        "ref": "Solo se permite un incremento excepcional de hasta un máximo del 10 por ciento sobre dicha renta anterior si en los dos años previos se han realizado obras de rehabilitación fiscalmente previstas.",
+        "judge_label": true,
+        "reviewer_label": true
+      }
+    ]
+  },
+  "repetitions": {
+    "repetitions": 3,
+    "bands": [
+      {
+        "metric": "cases",
+        "values": [
+          21.0,
+          21.0,
+          21.0
+        ],
+        "median": 21.0,
+        "low": 21.0,
+        "high": 21.0
+      },
+      {
+        "metric": "mean_recall",
+        "values": [
+          0.8947368421052632,
+          0.8947368421052632,
+          0.8947368421052632
+        ],
+        "median": 0.8947368421052632,
+        "low": 0.8947368421052632,
+        "high": 0.8947368421052632
+      },
+      {
+        "metric": "mean_first_pass_recall",
+        "values": [
+          0.9444444444444444,
+          0.9444444444444444,
+          0.9444444444444444
+        ],
+        "median": 0.9444444444444444,
+        "low": 0.9444444444444444,
+        "high": 0.9444444444444444
+      },
+      {
+        "metric": "mean_recall_delta",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      {
+        "metric": "outcome_match_rate",
+        "values": [
+          0.9047619047619048,
+          0.9047619047619048,
+          0.9047619047619048
+        ],
+        "median": 0.9047619047619048,
+        "low": 0.9047619047619048,
+        "high": 0.9047619047619048
+      },
+      {
+        "metric": "abstention_rate",
+        "values": [
+          0.047619047619047616,
+          0.047619047619047616,
+          0.047619047619047616
+        ],
+        "median": 0.047619047619047616,
+        "low": 0.047619047619047616,
+        "high": 0.047619047619047616
+      },
+      {
+        "metric": "disambiguation_rate",
+        "values": [
+          0.38095238095238093,
+          0.38095238095238093,
+          0.47619047619047616
+        ],
+        "median": 0.38095238095238093,
+        "low": 0.38095238095238093,
+        "high": 0.47619047619047616
+      },
+      {
+        "metric": "expected_abstention_recall",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      {
+        "metric": "mean_agentic_delta",
+        "values": [
+          0.047619047619047616,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.047619047619047616
+      },
+      {
+        "metric": "judge.completeness",
+        "values": [
+          0.8653846153846154,
+          0.8525641025641025,
+          0.85
+        ],
+        "median": 0.8525641025641025,
+        "low": 0.85,
+        "high": 0.8653846153846154
+      },
+      {
+        "metric": "judge.unsupported_claim_rate",
+        "values": [
+          0.0,
+          0.038461538461538464,
+          0.028985507246376812
+        ],
+        "median": 0.028985507246376812,
+        "low": 0.0,
+        "high": 0.038461538461538464
+      },
+      {
+        "metric": "judge.mean_clarity",
+        "values": [
+          4.769230769230769,
+          4.769230769230769,
+          4.923076923076923
+        ],
+        "median": 4.769230769230769,
+        "low": 4.769230769230769,
+        "high": 4.923076923076923
+      },
+      {
+        "metric": "citation_verdicts.verificada_directa",
+        "values": [
+          27.0,
+          27.0,
+          25.0
+        ],
+        "median": 27.0,
+        "low": 25.0,
+        "high": 27.0
+      },
+      {
+        "metric": "citation_verdicts.reparada_snap",
+        "values": [
+          4.0,
+          3.0,
+          4.0
+        ],
+        "median": 4.0,
+        "low": 3.0,
+        "high": 4.0
+      },
+      {
+        "metric": "citation_verdicts.reparada_anclaje",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      {
+        "metric": "citation_verdicts.descartada",
+        "values": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "median": 0.0,
+        "low": 0.0,
+        "high": 0.0
+      },
+      {
+        "metric": "retrieval_layer_recall.dense",
+        "values": [
+          0.9722222222222222,
+          0.9444444444444444,
+          0.9166666666666666
+        ],
+        "median": 0.9444444444444444,
+        "low": 0.9166666666666666,
+        "high": 0.9722222222222222
+      },
+      {
+        "metric": "retrieval_layer_recall.lexical",
+        "values": [
+          0.8888888888888888,
+          0.8333333333333334,
+          0.8888888888888888
+        ],
+        "median": 0.8888888888888888,
+        "low": 0.8333333333333334,
+        "high": 0.8888888888888888
+      },
+      {
+        "metric": "retrieval_layer_recall.fused",
+        "values": [
+          0.9722222222222222,
+          0.9444444444444444,
+          0.9444444444444444
+        ],
+        "median": 0.9444444444444444,
+        "low": 0.9444444444444444,
+        "high": 0.9722222222222222
+      },
+      {
+        "metric": "retrieval_layer_recall.evidence",
+        "values": [
+          0.9444444444444444,
+          0.9444444444444444,
+          0.9444444444444444
+        ],
+        "median": 0.9444444444444444,
+        "low": 0.9444444444444444,
+        "high": 0.9444444444444444
+      }
+    ]
+  }
+}

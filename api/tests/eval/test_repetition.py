@@ -8,6 +8,7 @@ from lexme.eval.repetition import (
     Span,
     classify_movement,
     observe,
+    repetition_values,
     summarize_repetitions,
 )
 
@@ -185,3 +186,31 @@ def test_a_neutral_metric_drifting_is_named_drift_rather_than_a_shift() -> None:
     movement = classify_movement(base, run, MetricDirection.NEUTRAL, allowance=0.15)
 
     assert movement is Movement.DRIFT
+
+
+def test_a_summary_gives_back_the_repetitions_it_folded() -> None:
+    summary = _summary(mean_recall=[0.92, 0.87], outcome_match_rate=[1.0, 0.9])
+
+    assert repetition_values(summary) == [
+        {"mean_recall": 0.92, "outcome_match_rate": 1.0},
+        {"mean_recall": 0.87, "outcome_match_rate": 0.9},
+    ]
+
+
+def test_a_metric_one_repetition_never_measured_comes_back_as_none() -> None:
+    summary = _summary(mean_recall=[0.92, 0.87], judge_completeness=[0.8, None])
+
+    assert repetition_values(summary)[1] == {"mean_recall": 0.87, "judge_completeness": None}
+
+
+def test_pooling_two_runs_repetitions_bands_them_as_one_envelope() -> None:
+    first = _summary(mean_recall=[0.92, 0.90])
+    second = _summary(mean_recall=[0.84, 0.87])
+
+    pooled = summarize_repetitions(repetition_values(first) + repetition_values(second))
+    band = pooled.band("mean_recall")
+
+    assert band is not None
+    assert pooled.repetitions == 4
+    assert (band.low, band.high) == (0.84, 0.92)
+    assert band.median == pytest.approx(0.885)

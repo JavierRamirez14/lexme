@@ -1,6 +1,6 @@
 {
   "suite": "modo1",
-  "measured_at": "2026-08-10T20:01:26.506800Z",
+  "measured_at": "2026-08-13T21:30:15.665180Z",
   "runs": [
     "modo1-20260726T170157Z.json",
     "modo1-20260727T112714Z.json",
@@ -10,7 +10,8 @@
     "modo1-20260805T152307Z.json",
     "modo1-20260805T171438Z.json",
     "modo1-20260809T164728Z.json",
-    "modo1-20260810T193500Z.json"
+    "modo1-20260810T193500Z.json",
+    "modo1-20260813T181959Z.json"
   ],
   "bands": [
     {
@@ -136,7 +137,7 @@
     {
       "metric": "judge.mean_clarity",
       "between_sessions": 0.0,
-      "within_session": 0.07692307692307754,
+      "within_session": 0.1538461538461542,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",
@@ -191,7 +192,7 @@
     {
       "metric": "retrieval_layer_recall.dense",
       "between_sessions": 0.02777777777777779,
-      "within_session": 0.02777777777777779,
+      "within_session": 0.05555555555555558,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",

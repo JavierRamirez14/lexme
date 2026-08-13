@@ -8,7 +8,10 @@ under that one fingerprint, so each metric is published as the band it moved in.
 ``eval compare`` reads two artifacts and reports the per-metric delta together with
 what it amounts to against those bands and against the between-session drift
 ``eval drift build`` measures over the archive -- a band is the spread one session
-saw, and two runs are never the same session. ``--no-judge`` drops the one task on a
+saw, and two runs are never the same session. ``eval envelope`` pools the
+repetitions of every archived run at one fingerprint into a single band, which is
+the range a published figure should carry: how wide a single session's band comes
+out is itself unstable. ``--no-judge`` drops the one task on a
 paid provider, so a checkout without that credit still measures every other metric.
 ``eval calibrate`` draws the judge's own rulings out of a run for a reviewer to
 confirm and records the labels the agreement is derived from. The harness uses a
@@ -21,7 +24,7 @@ import contextlib
 import json
 import logging
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from contextlib import ExitStack
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -72,7 +75,13 @@ from lexme.eval.mode2 import (
     run_mode2_suite,
 )
 from lexme.eval.mode2.metrics import scalar_metrics_mode2
-from lexme.eval.repetition import MetricBand, RepetitionSummary, Span
+from lexme.eval.repetition import (
+    MetricBand,
+    RepetitionSummary,
+    Span,
+    repetition_values,
+    summarize_repetitions,
+)
 from lexme.eval.review import (
     ReviewSample,
     build_sample,
@@ -151,6 +160,8 @@ def main(
         return _do_compare(args)
     if args.command == "drift":
         return _do_drift(args, now=now)
+    if args.command == "envelope":
+        return _do_envelope(args)
     if args.command == "calibrate":
         return _do_calibrate(args, corpus=corpus, now=now)
     return _do_run(
@@ -324,6 +335,67 @@ def _do_drift(args: argparse.Namespace, *, now: datetime | None) -> int:
     record.write(out_path)
     _report_drift(record, out_path)
     return 0
+
+
+def _do_envelope(args: argparse.Namespace) -> int:
+    """Band every repetition of every archived run at one fingerprint, and report it.
+
+    A single run's band is one session's draw of the noise, and how wide that draw
+    comes out is itself unstable. Pooling the repetitions of every run that shares a
+    fingerprint gives the range the configuration has actually been observed across,
+    which is what a published figure should carry. Raises :class:`ValueError` when
+    no archived run bears the fingerprint asked for.
+    """
+    runs_dir = args.runs or Path(get_settings().eval_runs_dir)
+    observed = [
+        (path, _observe_archived_run(path, args.mode))
+        for path in _archived_runs(runs_dir, args.mode)
+    ]
+    fingerprint = args.fingerprint or _newest_fingerprint(observed, runs_dir)
+    pooled = [(path, run) for path, run in observed if run.fingerprint == fingerprint]
+    if not pooled:
+        raise ValueError(f"no archived run of '{args.mode}' at fingerprint {fingerprint!r}")
+    _report_envelope(fingerprint, pooled, _pooled_repetitions(runs_dir, pooled, args.mode))
+    return 0
+
+
+def _newest_fingerprint(observed: Sequence[tuple[Path, RunObservation]], runs_dir: Path) -> str:
+    """The fingerprint of the most recent archived run, by artifact name."""
+    if not observed:
+        raise ValueError(f"no archived run to read a fingerprint from in {runs_dir}")
+    return observed[-1][1].fingerprint
+
+
+def _pooled_repetitions(
+    runs_dir: Path, pooled: Sequence[tuple[Path, RunObservation]], suite: str
+) -> RepetitionSummary:
+    """Fold every repetition of every pooled run into one band per metric.
+
+    A run that measured no band at all still contributes the one draw it is, so a
+    single-repetition run is not silently dropped from the envelope it belongs in.
+    """
+    draws: list[Mapping[str, float | None]] = []
+    for path, _ in pooled:
+        repetitions = _artifact_repetitions(path, suite)
+        if repetitions is None:
+            draws.append(_bare_values(path, suite))
+            continue
+        draws.extend(repetition_values(repetitions))
+    return summarize_repetitions(draws)
+
+
+def _artifact_repetitions(path: Path, suite: str) -> RepetitionSummary | None:
+    """The repetition summary an archived run carries, or ``None`` for an older one."""
+    if suite == MODE2:
+        return read_mode2_artifact(path).repetitions
+    return read_artifact(path).repetitions
+
+
+def _bare_values(path: Path, suite: str) -> Mapping[str, float | None]:
+    """One run's scalar projection, for a run that banded nothing."""
+    if suite == MODE2:
+        return scalar_metrics_mode2(read_mode2_artifact(path).metrics)
+    return scalar_metrics(read_artifact(path).metrics)
 
 
 def _archived_runs(runs_dir: Path, suite: str) -> list[Path]:
@@ -702,6 +774,7 @@ def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     )
 
     _add_drift_parser(sub)
+    _add_envelope_parser(sub)
     _add_calibrate_parser(sub)
 
     return parser.parse_args(argv)
@@ -723,6 +796,27 @@ def _add_drift_parser(sub: argparse._SubParsersAction) -> None:
         "--runs", type=Path, help="directory of run artifacts (default: the runs directory)"
     )
     build.add_argument("--out", type=Path, help="drift record destination path")
+
+
+def _add_envelope_parser(sub: argparse._SubParsersAction) -> None:
+    """Register ``envelope`` and its options."""
+    envelope = sub.add_parser(
+        "envelope", help="band every repetition of every archived run at one fingerprint"
+    )
+    envelope.add_argument(
+        "--mode",
+        choices=(MODE1, MODE2),
+        default=MODE1,
+        help="which suite's archive to pool (default: modo1)",
+    )
+    envelope.add_argument(
+        "--runs", type=Path, help="directory of run artifacts (default: the runs directory)"
+    )
+    envelope.add_argument(
+        "--fingerprint",
+        default=None,
+        help="the configuration to pool (default: the newest archived run's)",
+    )
 
 
 def _add_calibrate_parser(sub: argparse._SubParsersAction) -> None:
@@ -1002,6 +1096,26 @@ def _report_drift_source(drift: DriftRecord | None) -> None:
         len(drift.runs),
         drift.measured_at.date().isoformat(),
     )
+
+
+def _report_envelope(
+    fingerprint: str,
+    pooled: Sequence[tuple[Path, RunObservation]],
+    envelope: RepetitionSummary,
+) -> None:
+    """Log the pooled band per metric and the runs whose repetitions built it."""
+    logger.info(
+        "envelope at fingerprint '%s': %d repetitions over %d run(s)",
+        fingerprint,
+        envelope.repetitions,
+        len(pooled),
+    )
+    for path, _ in pooled:
+        logger.info("  pooled %s", path.name)
+    for band in envelope.bands:
+        logger.info(
+            "%s: %s [%s, %s] over %s", band.metric, band.median, band.low, band.high, band.values
+        )
 
 
 def _report_drift(record: DriftRecord, out_path: Path) -> None:

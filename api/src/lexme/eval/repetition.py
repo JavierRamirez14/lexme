@@ -113,6 +113,20 @@ def summarize_repetitions(runs: Sequence[Mapping[str, float | None]]) -> Repetit
     )
 
 
+def repetition_values(summary: RepetitionSummary) -> list[Mapping[str, float | None]]:
+    """Unfold a summary back into the per-repetition metrics it was built from.
+
+    The inverse of :func:`summarize_repetitions`, and the way the repetitions of
+    several runs are pooled into one band: a run under the same fingerprint as
+    another contributes draws of the same quantity, and a band over all of them is
+    a wider and more honest reading than any single run's.
+    """
+    return [
+        {band.metric: band.values[index] for band in summary.bands}
+        for index in range(summary.repetitions)
+    ]
+
+
 def observe(value: float | None, span: Span | None) -> MetricObservation:
     """Read one side of a comparison: its published value and the band it moves in."""
     return MetricObservation(value=value, span=span)
