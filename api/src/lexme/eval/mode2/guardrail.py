@@ -4,9 +4,11 @@ The same invariant Mode 1 holds -- every citation the system shows must re-resol
 against the corpus and quote it literally -- applies to the norm behind each risk
 finding. A clause placed at illegal, worse-than-default or conforming carries the
 article that grounds that level, and an absence white carries the law that grants
-the omitted right; both are shown to the tenant, so both are re-verified here at the
-run's point-in-time date. A citation that no longer resolves, or whose quote is not
-literally present, is a hard failure, exactly as in Mode 1.
+the omitted right; both are shown to the tenant, so both are re-verified here. A risk
+map declares no date of its own -- there is no disambiguation gate to move one -- so
+the date re-verified at is the run's point-in-time date. A citation that no longer
+resolves, or whose quote is not literally present, is a hard failure, exactly as in
+Mode 1.
 """
 
 from datetime import date
@@ -65,9 +67,7 @@ def _collect(
         return
     reason = _check_one(citation, corpus, target_date)
     if reason is not None:
-        violations.append(
-            GuardrailViolation(case_id=case_id, block_ref=citation.block_ref, reason=reason)
-        )
+        violations.append(GuardrailViolation.from_citation(case_id, citation, reason, target_date))
 
 
 def _check_one(

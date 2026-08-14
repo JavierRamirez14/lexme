@@ -70,7 +70,7 @@ configuration fingerprint, so results are reproducible and comparable across cha
 | **Recall of 🔴/🟠 clauses, end to end** | **1.0 (7 / 7)** | Of every genuinely problematic clause in the reference set — delimited or not — how many the system actually surfaced to a reader. This is the number a tenant experiences; the conditioned figure below is a diagnostic, not the headline. |
 | **False-tranquility rate, end to end** | **0.0 (0 / 7)** | Genuinely 🔴/🟠 clauses the system called reassuring (🟢), over every problematic clause that exists. With `not_reported` at 0, nothing sits outside this denominator either. |
 | **Recall of 🔴/🟠 clauses, conditioned on segmentation** | **1.0 (7 / 7)** | Of only the problematic clauses the segmentation layer correctly delimited, how many it also flagged as problematic — isolates a classification failure from a segmentation one. It equals the end-to-end figure only because segmentation now delimits every reference clause; the two are kept apart precisely so that stops being an assumption. |
-| **Citation literality** | **suspended — the checker has a date bug** | Every displayed citation is re-resolved from the corpus and re-checked character-for-character, independently of the runtime's own verdict, and one that does not re-verify fails the whole run. That check re-resolves at the *run* date even when the answer was given for an earlier one, so it has been comparing some answers against the wrong redaction. No literality figure is published until it is fixed. |
+| **Citation literality** | **not published — checker fixed, no run under it yet** | Every displayed citation is re-resolved from the corpus and re-checked character-for-character, independently of the runtime's own verdict, and one that does not re-verify fails the whole run. Until 14 August it re-resolved at the *run* date even when the answer had been given for an earlier one, so it compared those answers against the wrong redaction; it now re-resolves at the date the answer itself declares. (Only Mode 1 answers declare one — a Mode 2 risk map has no disambiguation gate to move its clock, so its citations were always checked at the date they were produced at.) The archived numbers cannot be recomputed — the artifacts never stored the quote that was checked — so this row stays empty until a run under the fixed checker fills it. |
 | **Judge–reviewer agreement** | **0.96 (48 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a *model*, not a human — see the caveat under the judge's numbers. |
 
 ### Full results
@@ -85,14 +85,14 @@ session's range: see the note below.
 
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | **under investigation** — see below | invariant; a displayed citation that does not re-verify fails the run. 0 failed across the first 6 repetitions; the 3 of 13 August recorded 2 hard failures, both on one case, and they trace to the *checker* re-resolving the law at the run date while the answer was given for 2023. Until that is fixed this row has no honest number. Mode 1 showed 25 citations [21–28], Mode 2 showed 56; Mode 1 discarded 0 in all 9 repetitions |
+| Citation literality (both modes) | **not published** — see below | invariant; a displayed citation that does not re-verify fails the run. The archive reads 0 failures across the first 6 repetitions and 2 on 13 August, but every one of those checks re-resolved the law at the *run* date: in the repetition each of the three runs below keeps per-case detail for, 12–18 of the 27–29 displayed citations belong to cases answered for an earlier signing date, and for those the comparison was against the wrong redaction — in both directions, so neither the passes nor the failures are evidence. What still stands from that archive is the runtime verdict count, which does not depend on a date: Mode 1 showed 25 citations [21–28], Mode 2 showed 56, and Mode 1 discarded 0 in all 9 repetitions |
 | Retrieval recall by layer (Mode 1) | 0.94 [0.92–0.97] · 0.83 [0.75–0.94] · 0.97 [0.94–0.97] · 0.94 [0.89–0.97] | dense · lexical · fused · evidence. Each is the mean of the per-case recalls over the 18 cases that declare gold blocks and reached retrieval (24 gold blocks between them), not a pooled count. The gap that matters is the last two: what the candidate pool holds versus what survives the cut into synthesis |
 | Retrieval recall, first pass (Mode 1) | 0.94 [0.89–0.97] | gold blocks recovered before the agentic loop, over a four-norm corpus |
 | Retrieval recall, final (Mode 1) | 0.89 [0.84–0.92] | over the evidence accumulated across passes. It reads *below* first-pass because the two average over different case sets — a case with no recorded first pass is scored in one and not the other — not because the loop loses ground |
 | Multi-hop recall (Mode 1) | 6 / 8 | gold blocks across the 4 cases that need more than one norm. First repetition only, not banded |
 | Outcome match rate (Mode 1) | 0.90 [0.90–0.90] | cases that reached the outcome they were written for |
 | Disambiguation (Mode 1) | 0.43 [0.38–0.52] | fraction of cases the gate stopped. In the repetition the artifact keeps per-case detail for, all 8 were resumed with the reply their case pins and 0 were left stranded |
-| Judge completeness · unsupported claims (Mode 1) | 0.84 [0.79–0.87] · 0.04 [0.00–0.06] | 13 judged cases, against human-written key points, graded by the new judge |
+| Judge completeness · unsupported claims (Mode 1) | 0.84 [0.79–0.87] · 0.04 [0.00–0.06] | 13 judged cases, against human-written key points, graded by the new judge. Read with the same caveat as the row above: the judge resolves each cited article at the *run* date, so for a case answered at an earlier signing date it grades against a redaction the answer was not written from. Unlike the guardrail this is a soft metric, and it is not fixed yet — doing so moves both numbers without the fingerprint recording it, so it needs its own run to re-baseline |
 | Judge–reviewer agreement (Mode 1) | 0.96 | 48 / 50 rulings, sampled with seed 25, reviewed by a model — re-done on this run for the new judge; the old judge's record was refused rather than carried forward |
 | Outcome match rate (Mode 2) | 1.00 [1.00–1.00] | 3 / 3 contracts reached the outcome their case declared |
 | Recall 🔴/🟠, end to end (Mode 2) | 1.00 [1.00–1.00] | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
@@ -225,8 +225,13 @@ the measured noise across the three. **The third is marked `passed: false`** and
 kept here anyway, which needs saying plainly: it recorded two citation-literality hard failures,
 both on `mh-02`, and they are not a quality result — they trace to the checker re-resolving the
 law at the run date while that answer was given for 2023, so it compared the quote against a
-redaction that did not yet exist. The quality metrics do not depend on that check. The literality
-row does, which is why it is suspended rather than reported. All three are an **experiment
+redaction that did not yet exist. The checker now re-resolves at the date the answer declares,
+and the artifact records the quote and that date with every hard failure, which is what a run had
+to be repeated to find out before. The archived runs cannot be re-checked, only re-read: their
+artifacts kept the case, the block and the reason, never the quote. So the historical literality
+record says one thing honestly — nothing was ever *shown* to fail on a citation the runtime's own
+verifier had discarded — and cannot say the stronger thing the row used to claim. The quality
+metrics do not depend on that check. All three are an **experiment
 against**, not a regression on,
 [`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) (`d1029d9c…`): the
 judge model and the synthesis prompt both changed, so the two are different

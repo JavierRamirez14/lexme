@@ -25,9 +25,11 @@ from lexme.eval.metrics import Disambiguation
 from lexme.eval.runner import CaseRun, run_suite
 from lexme.llm import load_task_registry
 from lexme.mode1 import Outcome
+from lexme.verification import CorpusReader
 from tests.eval.conftest import (
     AS_OF,
     NORM_ID,
+    DatedCorpus,
     InMemoryCorpus,
     StubRunner,
     answer_response,
@@ -40,6 +42,22 @@ BLOCK_TEXT = "La duración del arrendamiento será libremente pactada por las pa
 QUOTE = "La duración del arrendamiento será libremente pactada"
 FABRICATED = "El arrendador podrá desalojar al inquilino sin preaviso."
 NOW = datetime(2026, 7, 25, 9, 30, tzinfo=UTC)
+
+# A case that answers for the date its pinned reply anchors it to reads a redaction
+# the run date no longer sees, so the guardrail must follow the answer's date and not
+# the run's.
+SIGNED_ON = date(2015, 6, 1)
+OLD_BLOCK_TEXT = (
+    "La duración del arrendamiento será pactada por las partes, con un mínimo de tres años."
+)
+OLD_QUOTE = "con un mínimo de tres años"
+
+
+def _redacted_corpus() -> DatedCorpus:
+    """A corpus where block a9 was rewritten between the signing date and the run date."""
+    return DatedCorpus(
+        {(NORM_ID, "a9"): [(date(2013, 6, 6), OLD_BLOCK_TEXT), (date(2019, 3, 6), BLOCK_TEXT)]}
+    )
 
 
 def _fingerprint() -> ConfigFingerprint:
@@ -66,7 +84,7 @@ def _cases_dir(tmp_path: Path) -> Path:
     return directory
 
 
-def _run(tmp_path: Path, runner: StubRunner, corpus: InMemoryCorpus) -> tuple[int, Path]:
+def _run(tmp_path: Path, runner: StubRunner, corpus: CorpusReader) -> tuple[int, Path]:
     """Invoke ``eval run`` with injected seams and return its exit code and artifact path."""
     out = tmp_path / "run.json"
     code = main(
@@ -298,6 +316,38 @@ def test_a_corrupt_displayed_citation_hard_fails_the_run_and_flags_the_case(
     assert artifact.passed is False
     assert [failure.case_id for failure in artifact.hard_failures] == ["plazo"]
     assert artifact.hard_failures[0].block_ref == GOLD_A9
+
+
+def test_a_resumed_answer_is_re_verified_against_the_law_of_the_date_it_declares(
+    tmp_path: Path,
+) -> None:
+    resumed = answer_response(
+        ("a9", OLD_QUOTE), evidence=((NORM_ID, "a9"),), fecha_objetivo=SIGNED_ON
+    )
+    runner = StubRunner(CaseRun(response=resumed, disambiguation=Disambiguation.RESUMED))
+
+    code, out = _run(tmp_path, runner, _redacted_corpus())
+
+    assert code == 0
+    artifact = read_artifact(out)
+    assert artifact.passed is True
+    assert artifact.hard_failures == []
+
+
+def test_a_hard_failure_records_the_quote_shown_and_the_date_it_was_re_verified_at(
+    tmp_path: Path,
+) -> None:
+    resumed = answer_response(
+        ("a9", FABRICATED), evidence=((NORM_ID, "a9"),), fecha_objetivo=SIGNED_ON
+    )
+    runner = StubRunner(CaseRun(response=resumed, disambiguation=Disambiguation.RESUMED))
+
+    code, out = _run(tmp_path, runner, _redacted_corpus())
+
+    assert code == 1
+    (failure,) = read_artifact(out).hard_failures
+    assert failure.quote == FABRICATED
+    assert failure.verified_at == SIGNED_ON
 
 
 def test_a_corrupt_citation_in_a_resumed_answer_still_hard_fails_the_run(tmp_path: Path) -> None:

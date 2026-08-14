@@ -81,7 +81,9 @@ class Mode1CaseRunner:
 
     Each case runs on its own checkpoint thread so no run resumes another's paused
     state. The per-case ``target_date`` fixes the point-in-time clock the corpus is
-    resolved at, the same date the guardrail re-verifies against.
+    resolved at, and a pinned reply on a date branch may move it: what the answer
+    ends up declaring, not what the case started at, is the date it is verified
+    against.
     """
 
     deps: Mode1Deps
@@ -142,15 +144,17 @@ def run_suite(
     """Run every case ``repetitions`` times and build the run artifact.
 
     Each case is answered at its own ``target_date`` when it pins one, else at
-    ``default_date``; the guardrail re-verifies that case's citations at the same
-    date, so a point-in-time case is measured against the law as it stood then. A
-    case that stops on the disambiguation gate is resumed with the reply it pins,
-    and the guardrail and the judge then see that resumed answer rather than the
-    pause. When a ``judge`` is given, every answered case carrying key points is
-    graded against them, and ``calibration`` is the reviewer agreement those scores
-    are published with -- but only when it graded the judge model this run's
-    fingerprint pins. A record for any other judge is dropped, so swapping the judge
-    leaves the run honestly uncalibrated instead of quoting the old grader's number.
+    ``default_date``; the guardrail re-verifies that case's citations at the date
+    the answer itself declares, so a point-in-time case is measured against the law
+    as it stood then even when a disambiguation reply moved that date away from the
+    one the case was launched at. A case that stops on the disambiguation gate is
+    resumed with the reply it pins, and the guardrail and the judge then see that
+    resumed answer rather than the pause. When a ``judge`` is given, every answered
+    case carrying key points is graded against them, and ``calibration`` is the
+    reviewer agreement those scores are published with -- but only when it graded
+    the judge model this run's fingerprint pins. A record for any other judge is
+    dropped, so swapping the judge leaves the run honestly uncalibrated instead of
+    quoting the old grader's number.
 
     Every repetition runs the same cases under the same fingerprint, so what moves
     between them is the model's own variance and nothing else; the artifact carries

@@ -57,6 +57,31 @@ class InMemoryCorpus:
         return ResolvedBlock(text=text, anchor=_anchor(block_id, norm_id))
 
 
+class DatedCorpus:
+    """A :class:`~lexme.verification.CorpusReader` over a block's successive redactions.
+
+    Programmed with ``{(norm_id, block_id): [(effective_date, text), ...]}``; resolves
+    a block to the last redaction in force at the date asked for, and returns ``None``
+    for an unknown block or for a date before its first redaction. It is what
+    separates the law of then from the law of now, which a single-text corpus cannot.
+    """
+
+    def __init__(self, blocks: dict[tuple[str, str], list[tuple[date, str]]]) -> None:
+        """Store each block's redactions, newest applied last."""
+        self._blocks = blocks
+
+    def resolve_block(self, norm_id: str, block_id: str, target_date: date) -> ResolvedBlock | None:
+        """Return the redaction in force at ``target_date``, or ``None`` if there is none."""
+        in_force = [
+            (effective, text)
+            for effective, text in sorted(self._blocks.get((norm_id, block_id), []))
+            if effective <= target_date
+        ]
+        if not in_force:
+            return None
+        return ResolvedBlock(text=in_force[-1][1], anchor=_anchor(block_id, norm_id))
+
+
 class StubRunner:
     """A :class:`CaseRunner` that replays a fixed run per question, in order.
 
@@ -198,19 +223,23 @@ def answer_response(
     *citations: tuple[str, str],
     evidence: tuple[tuple[str, str], ...],
     verdict: CitationVerdict = CitationVerdict.VERIFIED_DIRECT,
+    norm_id: str = NORM_ID,
+    fecha_objetivo: date = AS_OF,
 ) -> AskResponse:
     """An answer response citing ``(block_id, text)`` over the given evidence blocks.
 
     ``evidence`` is the ``(norm_id, block_id)`` retrieval trace the guardrail reads
     to find each citation's norm; ``verdict`` stamps every displayed citation, so a
-    test can hand out a verdict the corpus will not back up.
+    test can hand out a verdict the corpus will not back up. ``fecha_objetivo`` is
+    the date the answer declares it was given for, which is the date its citations
+    must re-verify at, and ``norm_id`` the norm the citations belong to.
     """
     fundamento = [
         VerifiedCitation(
-            block_ref=block_ref(block_id),
+            block_ref=block_ref(block_id, norm_id),
             text=text,
             verdict=verdict,
-            anchor=_anchor(block_id),
+            anchor=_anchor(block_id, norm_id),
         )
         for block_id, text in citations
     ]
@@ -226,7 +255,9 @@ def answer_response(
     return AskResponse(
         outcome=Outcome.ANSWER,
         thread_id="t",
-        answer=Answer(fundamento=fundamento, explicacion="e", accion=[], fecha_objetivo=AS_OF),
+        answer=Answer(
+            fundamento=fundamento, explicacion="e", accion=[], fecha_objetivo=fecha_objetivo
+        ),
         agentic=AgenticTrace(subqueries=[subquery], agentic_delta=1),
         citation_verdicts={verdict.value: len(fundamento)},
     )

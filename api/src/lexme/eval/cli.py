@@ -112,6 +112,7 @@ CALIBRATE_BUILD = "build"
 DEFAULT_SAMPLE_SIZE = 50
 DEFAULT_SAMPLE_SEED = 0
 REVIEW_SUFFIX = "-judge-review"
+NOT_RECORDED = "not recorded"
 
 
 @dataclass(frozen=True)
@@ -972,10 +973,12 @@ def _log_guardrail(
         return
     for failure in hard_failures:
         logger.error(
-            "guardrail failure in case '%s' [%s]: %s",
+            "guardrail failure in case '%s' [%s] re-verified at %s: %s -- displayed quote: %s",
             failure.case_id,
             failure.block_ref,
+            failure.verified_at.isoformat() if failure.verified_at else NOT_RECORDED,
             failure.reason,
+            repr(failure.quote) if failure.quote else NOT_RECORDED,
         )
     logger.error("citation guardrail FAILED: %d hard failure(s)", len(hard_failures))
 

@@ -4,9 +4,16 @@ Existence and literality of shown citations are an invariant, not a metric: a 98
 is not a good score, it is a bug. Two checks enforce it. First, the verifier's own
 telemetry: a citation still carrying a ``descartada`` verdict must never be shown.
 Second, independent re-verification: each displayed citation is re-resolved from the
-corpus at the run's point-in-time date and its literality re-checked against the
-quote as shown, so a defect in the runtime path that let a non-literal quote through
-cannot hide behind its own passing verdict. Any violation is a hard failure.
+corpus at the date the answer itself was given for and its literality re-checked
+against the quote as shown, so a defect in the runtime path that let a non-literal
+quote through cannot hide behind its own passing verdict. Any violation is a hard
+failure.
+
+The date is the answer's, not the run's, and the distinction is the whole check: an
+answer given for 2023 quotes the redaction in force in 2023, and re-resolving it at
+today's date compares it against a law that did not exist when it was written. Both
+directions matter -- a quote literal only in some *other* redaction than the one the
+answer declares is still a hard failure.
 """
 
 from datetime import date
@@ -34,8 +41,11 @@ class GuardrailViolation(BaseModel):
     """One displayed citation that failed re-verification, with why and where.
 
     ``case_id`` names the failing case so a run can point at it; ``block_ref`` and
-    ``reason`` say which citation broke the literality invariant and how. The
-    reference also reads its pre-expansion name so older run artifacts still load.
+    ``reason`` say which citation broke the literality invariant and how. ``quote``
+    is the text as displayed and ``verified_at`` the date the block was re-resolved
+    at: without those two a hard failure can only be diagnosed by running the case
+    again. Both are empty in an artifact that did not record them, as is the
+    reference read under its pre-expansion name, so older run artifacts still load.
     """
 
     model_config = ConfigDict(populate_by_name=True)
@@ -43,31 +53,60 @@ class GuardrailViolation(BaseModel):
     case_id: str
     block_ref: str = Field(validation_alias=AliasChoices("block_ref", "block_id"))
     reason: str
+    quote: str = ""
+    verified_at: date | None = None
+
+    @classmethod
+    def from_citation(
+        cls, case_id: str, citation: VerifiedCitation, reason: str, verified_at: date
+    ) -> "GuardrailViolation":
+        """Record a displayed citation's failure, keeping the quote and the date checked."""
+        return cls(
+            case_id=case_id,
+            block_ref=citation.block_ref,
+            reason=reason,
+            quote=citation.text,
+            verified_at=verified_at,
+        )
+
+
+def read_verification_date(response: AskResponse, case_date: date) -> date:
+    """The date a response's displayed citations must be re-verified at.
+
+    An answer states the date its corpus was resolved at, and that -- not the date
+    the case was launched at -- is the law its quotes were taken from; the two part
+    company whenever a disambiguation branch moves the clock back. A response that
+    reached no answer declares no date, and falls back to the case's.
+    """
+    if response.answer is None:
+        return case_date
+    return response.answer.fecha_objetivo
 
 
 def check_case_citations(
     case_id: str,
     response: AskResponse,
     corpus: CorpusReader,
-    target_date: date,
+    case_date: date,
 ) -> list[GuardrailViolation]:
     """Re-verify every displayed citation of one case, returning its violations.
 
     Reads the norm each citation belongs to from its own reference, checks that
     reference was really among the run's retrieval evidence, re-resolves it through
-    ``corpus`` at ``target_date`` and checks the shown quote is literally present.
-    Returns an empty list when the case displayed no answer or every citation
-    re-verifies.
+    ``corpus`` at the date the answer declares -- ``case_date`` only backs that up --
+    and checks the shown quote is literally present. Returns an empty list when the
+    case displayed no answer or every citation re-verifies.
     """
     if response.answer is None:
         return []
+    target_date = read_verification_date(response, case_date)
     evidence = _evidence_refs(response)
     violations = []
     for citation in response.answer.fundamento:
         reason = _check_one(citation, evidence, corpus, target_date)
         if reason is not None:
             violations.append(
-                GuardrailViolation(case_id=case_id, block_ref=citation.block_ref, reason=reason)
+                GuardrailViolation.from_citation(case_id, citation, reason, target_date)
             )
     return violations
 
