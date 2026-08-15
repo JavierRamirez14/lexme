@@ -144,12 +144,13 @@ def run_suite(
     """Run every case ``repetitions`` times and build the run artifact.
 
     Each case is answered at its own ``target_date`` when it pins one, else at
-    ``default_date``; the guardrail re-verifies that case's citations at the date
-    the answer itself declares, so a point-in-time case is measured against the law
-    as it stood then even when a disambiguation reply moved that date away from the
-    one the case was launched at. A case that stops on the disambiguation gate is
-    resumed with the reply it pins, and the guardrail and the judge then see that
-    resumed answer rather than the pause. When a ``judge`` is given, every answered
+    ``default_date``; the guardrail re-verifies that case's citations, and the judge
+    reads the articles it grades against, at the date the answer itself declares, so
+    a point-in-time case is measured against the law as it stood then even when a
+    disambiguation reply moved that date away from the one the case was launched at.
+    A case that stops on the disambiguation gate is resumed with the reply it pins,
+    and the guardrail and the judge then see that resumed answer rather than the
+    pause. When a ``judge`` is given, every answered
     case carrying key points is graded against them, and ``calibration`` is the
     reviewer agreement those scores are published with -- but only when it graded
     the judge model this run's fingerprint pins. A record for any other judge is

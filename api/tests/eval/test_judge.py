@@ -1,5 +1,7 @@
 """Tests for the with-reference judge, its derived metrics and its config invariant."""
 
+from datetime import date
+
 import pytest
 
 from lexme.eval.cases import EvalCase, KeyPoint
@@ -16,11 +18,23 @@ from lexme.eval.judge import (
 from lexme.llm import FakeLlmClient, TaskModel, TaskRegistry
 from lexme.llm.protocol import LlmError
 from lexme.mode1 import SYNTHESIS_TASK, Outcome
-from tests.eval.conftest import AS_OF, NORM_ID, InMemoryCorpus, answer_response
+from tests.eval.conftest import AS_OF, NORM_ID, DatedCorpus, InMemoryCorpus, answer_response
 
 REF_A36 = f"{NORM_ID}:a36"
 
 ARTICLE_TEXT = "La fianza será de una mensualidad de renta en el arrendamiento de viviendas."
+
+# Art. 22 LEC in its two redactions, as in the guardrail's tests: the newer one
+# moves an internal remission and adds a paragraph about costs.
+LEC = "BOE-A-2000-323"
+REF_A22 = f"{LEC}:a22"
+SIGNED_ON = date(2023, 1, 15)
+RUN_DATE = date(2026, 8, 14)
+LEC_22_2015 = "…conforme a lo dispuesto en el apartado 3 del artículo 440."
+LEC_22_2025 = (
+    "…conforme a lo dispuesto en el apartado 4 del artículo 439. En tal caso, las "
+    "costas se impondrán al arrendatario."
+)
 
 
 def _case() -> EvalCase:
@@ -63,6 +77,57 @@ def test_the_judge_grades_an_answered_case_against_its_reference() -> None:
     prompt = call.messages[1].content
     assert ARTICLE_TEXT in prompt
     assert "la fianza es una mensualidad" in prompt
+
+
+def _ruling_on(block_ref: str) -> JudgeVerdict:
+    """A verdict whose two rulings both name ``block_ref`` as the model wrote it."""
+    return JudgeVerdict(
+        key_points=[KeyPointCoverage(block_ref=block_ref, covered=True, evidence="e")],
+        claims=[ClaimAssessment(claim="c", supported=True, supporting_block_ref=block_ref)],
+        clarity=4,
+    )
+
+
+def _enervacion_case() -> EvalCase:
+    """The `mh-02` shape: one key point on art. 22 LEC, no pinned date of its own."""
+    return EvalCase(
+        id="mh-02",
+        question="¿puedo parar el desahucio pagando?",
+        gold_block_refs=(REF_A22,),
+        key_points=(KeyPoint(claim="el pago enerva el desahucio", block_ref=REF_A22),),
+    )
+
+
+def _judged_prompt_for(declared: date) -> str:
+    """The prompt the judge is sent for an answer declaring ``declared``, run at ``RUN_DATE``."""
+    llm = FakeLlmClient({JUDGE_TASK: [_ruling_on(REF_A22)]})
+    corpus = DatedCorpus(
+        {(LEC, "a22"): [(date(2015, 10, 1), LEC_22_2015), (date(2025, 4, 3), LEC_22_2025)]}
+    )
+    response = answer_response(
+        ("a22", "el arrendatario paga"),
+        evidence=((LEC, "a22"),),
+        norm_id=LEC,
+        fecha_objetivo=declared,
+    )
+
+    LlmJudge(llm=llm, corpus=corpus).judge(_enervacion_case(), response, RUN_DATE)
+
+    return llm.calls[0].messages[1].content
+
+
+def test_an_answer_given_for_a_past_date_is_graded_against_the_law_of_then() -> None:
+    prompt = _judged_prompt_for(SIGNED_ON)
+
+    assert LEC_22_2015 in prompt
+    assert LEC_22_2025 not in prompt
+
+
+def test_an_answer_given_for_today_is_still_graded_against_the_law_of_today() -> None:
+    prompt = _judged_prompt_for(RUN_DATE)
+
+    assert LEC_22_2025 in prompt
+    assert LEC_22_2015 not in prompt
 
 
 def test_an_unusable_verdict_leaves_the_case_unjudged_instead_of_ending_the_run() -> None:
@@ -108,15 +173,6 @@ def _judged(verdict: JudgeVerdict) -> JudgeVerdict | None:
     corpus = InMemoryCorpus({(NORM_ID, "a36"): ARTICLE_TEXT})
     response = answer_response(("a36", "una mensualidad"), evidence=((NORM_ID, "a36"),))
     return LlmJudge(llm=llm, corpus=corpus).judge(_case(), response, AS_OF)
-
-
-def _ruling_on(block_ref: str) -> JudgeVerdict:
-    """A verdict whose two rulings both name ``block_ref`` as the model wrote it."""
-    return JudgeVerdict(
-        key_points=[KeyPointCoverage(block_ref=block_ref, covered=True, evidence="e")],
-        claims=[ClaimAssessment(claim="c", supported=True, supporting_block_ref=block_ref)],
-        clarity=4,
-    )
 
 
 def test_a_reference_the_judge_wrapped_in_brackets_is_read_as_the_block_it_names() -> None:

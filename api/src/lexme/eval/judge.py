@@ -8,6 +8,12 @@ readings come back structured -- which key points the answer covers, whether eac
 legal claim it makes is supported by a cited article, and a short clarity rubric --
 so the hallucination number is judged claim by claim, not answer by answer.
 
+The articles it collates against are the ones in force at the date the answer
+itself declares, not at the date the run was launched: an answer given for 2023
+was written from the redaction of 2023, and grading it against today's would count
+as unsupported a claim its own cited article backs. The citation guardrail reads
+that date the same way, and for the same reason.
+
 The judge model is pinned, runs at temperature 0 and belongs to a different family
 than the generator whose answer it grades, to keep self-preference bias out of the
 score; :func:`assert_judge_distinct_from_generator` enforces that at wiring time.
@@ -23,6 +29,7 @@ from pydantic import BaseModel, Field
 
 from lexme.blocks import BlockRef
 from lexme.eval.cases import EvalCase
+from lexme.eval.guardrail import read_verification_date
 from lexme.llm import LlmClient, Message, TaskRegistry
 from lexme.llm.protocol import StructuredOutputError
 from lexme.mode1 import SYNTHESIS_TASK, AskResponse
@@ -102,10 +109,12 @@ class JudgeMetrics(BaseModel):
 class Judge(Protocol):
     """Grades one answered case against its reference key points and cited articles."""
 
-    def judge(
-        self, case: EvalCase, response: AskResponse, target_date: date
-    ) -> JudgeVerdict | None:
-        """Return the verdict, or ``None`` when the case is not judgeable."""
+    def judge(self, case: EvalCase, response: AskResponse, case_date: date) -> JudgeVerdict | None:
+        """Return the verdict, or ``None`` when the case is not judgeable.
+
+        ``case_date`` is the date the case was launched at, and only backs up the
+        date the answer itself declares.
+        """
         ...
 
 
@@ -135,19 +144,23 @@ _SYSTEM_PROMPT = (
 class LlmJudge:
     """A :class:`Judge` backed by the pinned, temperature-0 judge task.
 
-    Resolves the full text of each cited article from ``corpus`` at the case's date
-    so the judge weighs each claim against the article itself, not just the shown
-    quote. A case with no key points or no answer is not judgeable and returns
-    ``None`` without a model call.
+    Resolves the full text of each cited article from ``corpus`` at the date the
+    answer declares, so the judge weighs each claim against the article itself --
+    the redaction the answer was written from -- and not just the shown quote. A
+    case with no key points or no answer is not judgeable and returns ``None``
+    without a model call.
     """
 
     llm: LlmClient
     corpus: CorpusReader
 
-    def judge(
-        self, case: EvalCase, response: AskResponse, target_date: date
-    ) -> JudgeVerdict | None:
+    def judge(self, case: EvalCase, response: AskResponse, case_date: date) -> JudgeVerdict | None:
         """Grade ``response`` against ``case``'s key points, or ``None`` if not judgeable.
+
+        The cited articles are read at the date the answer declares, with
+        ``case_date`` as the fallback: a disambiguation reply can move a case's
+        clock back years, and grading its answer against the law of today would
+        mark as unsupported the claims its own citations carry.
 
         A reply that does not parse into a verdict leaves the case unjudged rather
         than ending the run: the judge is one soft metric among many, and a free-tier
@@ -156,7 +169,7 @@ class LlmJudge:
         """
         if not case.key_points or response.answer is None:
             return None
-        cited = self._cited_articles(response, target_date)
+        cited = self._cited_articles(response, read_verification_date(response, case_date))
         messages = [
             Message("system", _SYSTEM_PROMPT),
             Message("user", _render_prompt(case, response, cited)),
@@ -168,15 +181,15 @@ class LlmJudge:
             return None
         return _anchor_verdict(verdict, [*case.gold_block_refs, *cited])
 
-    def _cited_articles(self, response: AskResponse, target_date: date) -> dict[str, str]:
-        """Resolve the full in-force text of each cited block, keyed by its reference."""
+    def _cited_articles(self, response: AskResponse, verified_at: date) -> dict[str, str]:
+        """Resolve each cited block's text as it stood at ``verified_at``, keyed by reference."""
         texts: dict[str, str] = {}
         assert response.answer is not None  # guarded by the caller
         for citation in response.answer.fundamento:
             cited = BlockRef.parse(citation.block_ref)
             if cited is None:
                 continue
-            resolved = self.corpus.resolve_block(cited.norm_id, cited.block_id, target_date)
+            resolved = self.corpus.resolve_block(cited.norm_id, cited.block_id, verified_at)
             if resolved is not None:
                 texts[citation.block_ref] = resolved.text
         return texts
