@@ -76,7 +76,7 @@ configuration fingerprint, so results are reproducible and comparable across cha
 | **Recall of 🔴/🟠 clauses, end to end** | **1.0 (7 / 7)** | Of every genuinely problematic clause in the reference set — delimited or not — how many the system actually surfaced to a reader. This is the number a tenant experiences; the conditioned figure below is a diagnostic, not the headline. |
 | **False-tranquility rate, end to end** | **0.0 (0 / 7)** | Genuinely 🔴/🟠 clauses the system called reassuring (🟢), over every problematic clause that exists. With `not_reported` at 0, nothing sits outside this denominator either. |
 | **Recall of 🔴/🟠 clauses, conditioned on segmentation** | **1.0 (7 / 7)** | Of only the problematic clauses the segmentation layer correctly delimited, how many it also flagged as problematic — isolates a classification failure from a segmentation one. It equals the end-to-end figure only because segmentation now delimits every reference clause; the two are kept apart precisely so that stops being an assumption. |
-| **Citation literality** | **not published — checker fixed, no run under it yet** | Every displayed citation is re-resolved from the corpus and re-checked character-for-character, independently of the runtime's own verdict, and one that does not re-verify fails the whole run. Until 14 August it re-resolved at the *run* date even when the answer had been given for an earlier one, so it compared those answers against the wrong redaction; it now re-resolves at the date the answer itself declares. (Only Mode 1 answers declare one — a Mode 2 risk map has no disambiguation gate to move its clock, so its citations were always checked at the date they were produced at.) The archived numbers cannot be recomputed — the artifacts never stored the quote that was checked — so this row stays empty until a run under the fixed checker fills it. |
+| **Citation literality** | **0 of 28 displayed citations failed** | An invariant, not a score — a 98% here would be a bug, not a good result. Every displayed citation is re-resolved from the corpus and re-checked character-for-character, independently of the runtime's own verdict, and one that does not re-verify fails the whole run. This is the **first run measured at the date each answer declares** rather than at the date the run was launched: until 15 August the checker re-resolved at the run date even for an answer given for an earlier one, so it compared those answers against a redaction that did not exist when they were written. The archived numbers cannot be recomputed — the artifacts never stored the quote that was checked — so this figure starts here, at one run of three repetitions, and the history behind it is read as evidence of nothing. |
 | **Judge–reviewer agreement** | **0.96 (48 / 50)** | How often the LLM judge that grades Mode 1 answers agrees with an independent reviewer re-reading its rulings against the article. The reviewer here was a *model*, not a human — see the caveat under the judge's numbers. |
 
 ### Full results
@@ -84,22 +84,26 @@ configuration fingerprint, so results are reproducible and comparable across cha
 Precision is always reported next to its abstention rate, so you can't inflate one by
 hiding behind the other.
 
-Every Mode 1 figure is the **median of 9 repetitions** — three runs of three, on 9, 10 and 13
+Every Mode 1 figure is the **median of 12 repetitions** — four runs of three, on 9, 10, 13 and 15
 August under one byte-identical fingerprint — with the full observed range in brackets. Mode 2's
 are the median of 3. A bare number over 21 cases was not comparable, and neither was a single
 session's range: see the note below.
 
+Two rows are deliberately not that envelope, and both say so in place: citation literality and the
+judge's numbers come from the 15 August run alone, because the harness code that measures them
+changed and the fingerprint does not record it.
+
 | Metric | Value | Denominator |
 | --- | --- | --- |
-| Citation literality (both modes) | **not published** — see below | invariant; a displayed citation that does not re-verify fails the run. The archive reads 0 failures across the first 6 repetitions and 2 on 13 August, but every one of those checks re-resolved the law at the *run* date: in the repetition each of the three runs below keeps per-case detail for, 12–18 of the 27–29 displayed citations belong to cases answered for an earlier signing date, and for those the comparison was against the wrong redaction — in both directions, so neither the passes nor the failures are evidence. What still stands from that archive is the runtime verdict count, which does not depend on a date: Mode 1 showed 25 citations [21–28], Mode 2 showed 56, and Mode 1 discarded 0 in all 9 repetitions |
+| Citation literality (both modes) | **0 failures / 28 displayed (Mode 1)** · **0 / 56 (Mode 2)** | invariant; a displayed citation that does not re-verify fails the run. Mode 1's figure is the 15 August run only — 0 hard failures across its 3 repetitions, 28 displayed citations in the one it keeps per-case detail for — because it is the only Mode 1 run whose checker read the date off the answer. The nine earlier repetitions re-resolved the law at the *run* date: 12–18 of their 27–29 displayed citations belong to cases answered for an earlier signing date, and for those the comparison was against the wrong redaction — in both directions, so neither their passes nor their two failures are evidence. Mode 2's stands as measured: a risk map has no disambiguation gate to move its clock, so its citations were always checked at the date they were produced at. The runtime verdict count survives from the whole archive, depending on no date: over all 12 Mode 1 repetitions, 25.5 citations shown [21–28], 1 discarded in one repetition and 0 in the other eleven |
 | Retrieval recall by layer (Mode 1) | 0.94 [0.92–0.97] · 0.83 [0.75–0.94] · 0.97 [0.94–0.97] · 0.94 [0.89–0.97] | dense · lexical · fused · evidence. Each is the mean of the per-case recalls over the 18 cases that declare gold blocks and reached retrieval (24 gold blocks between them), not a pooled count. The gap that matters is the last two: what the candidate pool holds versus what survives the cut into synthesis |
 | Retrieval recall, first pass (Mode 1) | 0.94 [0.89–0.97] | gold blocks recovered before the agentic loop, over a four-norm corpus |
 | Retrieval recall, final (Mode 1) | 0.89 [0.84–0.92] | over the evidence accumulated across passes. It reads *below* first-pass because the two average over different case sets — a case with no recorded first pass is scored in one and not the other — not because the loop loses ground |
-| Multi-hop recall (Mode 1) | 6 / 8 | gold blocks across the 4 cases that need more than one norm. First repetition only, not banded |
+| Multi-hop recall (Mode 1) | 5–7 / 8 | gold blocks across the 4 cases that need more than one norm. The artifact keeps per-case detail for one repetition, so this is four draws — one per run — and not a band: 6, 7, 7 and 5 on 9, 10, 13 and 15 August. Published as its range because a single draw of it was `6 / 8` on the first run and `7 / 8` on the next two, which is the spread this page keeps warning about, not a trend |
 | Outcome match rate (Mode 1) | 0.90 [0.90–0.90] | cases that reached the outcome they were written for |
-| Disambiguation (Mode 1) | 0.43 [0.38–0.52] | fraction of cases the gate stopped. In the repetition the artifact keeps per-case detail for, all 8 were resumed with the reply their case pins and 0 were left stranded |
-| Judge completeness · unsupported claims (Mode 1) | 0.84 [0.79–0.87] · 0.04 [0.00–0.06] | 13 judged cases, against human-written key points, graded by the new judge. Read with the same caveat as the row above: the judge resolves each cited article at the *run* date, so for a case answered at an earlier signing date it grades against a redaction the answer was not written from. Unlike the guardrail this is a soft metric, and it is not fixed yet — doing so moves both numbers without the fingerprint recording it, so it needs its own run to re-baseline |
-| Judge–reviewer agreement (Mode 1) | 0.96 | 48 / 50 rulings, sampled with seed 25, reviewed by a model — re-done on this run for the new judge; the old judge's record was refused rather than carried forward |
+| Disambiguation (Mode 1) | 0.40 [0.38–0.52] | fraction of cases the gate stopped. In the repetition the artifact keeps per-case detail for, all 8 were resumed with the reply their case pins and 0 were left stranded |
+| Judge completeness · unsupported claims (Mode 1) | 0.85 [0.72–0.86] · 0.04 [0.01–0.06] | 13 judged cases, against human-written key points. **This row is the 15 August run's own 3 repetitions, not the 12-repetition envelope the rest of the table uses**, and that is the point: the judge used to resolve each cited article at the run date, grading an answer given for 2023 against today's law, and it now reads the date off the answer like the guardrail does. The fingerprint records models, prompts, corpus and cases — not the harness code — so it calls the nine earlier repetitions comparable when they were measured by a different grader. Pooling them would hide that. What the fix moved, against 13 August: completeness `−0.006`, unsupported claims `+0.008`, both inside the noise. The defect was real and, on this suite, latent |
+| Judge–reviewer agreement (Mode 1) | 0.96 | 48 / 50 rulings, sampled with seed 25, reviewed by a model. The harness carries a calibration record forward only while the judge *model* is unchanged, and refuses it outright when the model is swapped — but the model is not what changed here, the harness code around it is, so these 50 rulings were produced by the judge before the date fix. The agreement measures the grader's judgement, which the fix does not touch; it does not certify the articles it was shown |
 | Outcome match rate (Mode 2) | 1.00 [1.00–1.00] | 3 / 3 contracts reached the outcome their case declared |
 | Recall 🔴/🟠, end to end (Mode 2) | 1.00 [1.00–1.00] | 7 / 7 problematic clauses in the reference set, delimited or not — the headline |
 | False-tranquility rate, end to end (Mode 2) | 0.00 [0.00–0.00] | 0 / 7 real 🔴/🟠 called reassuring |
@@ -133,8 +137,8 @@ Reading one repetition's `covered=false` as a defect in a particular case, which
 first pass at this did, was reading a draw as a finding.
 
 **Why the brackets.** Two runs of this suite under an identical fingerprint — same models,
-same prompts, same corpus, same cases — disagree. Across the nine repetitions above,
-`disambiguation_rate` spans `0.38–0.52` and completeness `0.79–0.87`; on the July baseline
+same prompts, same corpus, same cases — disagree. Across the twelve repetitions above,
+`disambiguation_rate` spans `0.38–0.52` and mean recall `0.84–0.92`; on the July baseline
 a fourth draw put completeness at `0.70`, below the `0.74–0.80` its three repetitions
 measured. A single number over 21 cases could not tell a real regression from a re-roll,
 so the page reports the median and the range it was drawn from, and a comparison only
@@ -155,7 +159,7 @@ rule that adds both bands back.
 
 The answer is not what I expected, and it is not the one this section said when the drift
 record was first built. **The band does not systematically underestimate the noise. Its own
-width is unstable.** Here is `mean_recall`, same suite, four sessions — the last three under one
+width is unstable.** Here is `mean_recall`, same suite, five sessions — the last four under one
 byte-identical fingerprint, the first under the configuration that preceded it:
 
 | Session | The three repetitions | Band width |
@@ -164,18 +168,19 @@ byte-identical fingerprint, the first under the configuration that preceded it:
 | 9 August | 0.868 · 0.868 · 0.868 | **0.000** |
 | 10 August | 0.921 · 0.842 · 0.895 | **0.079** |
 | 13 August | 0.895 · 0.895 · 0.895 | **0.000** |
+| 15 August | 0.868 · 0.895 · 0.921 | **0.053** |
 
 On 9 August three repetitions returned the identical number and the band said the noise was
 zero. The next day, with nothing changed — the fingerprint is byte-identical `4906958e`, the
 container image predates the change — the same metric spanned 0.079. Three days later it came
-up flat again, at a different value. So a flat band is not evidence that the metric is stable;
-it is one draw that happened to come up flat, and it happens often. Three repetitions are too
-few to measure a width you can lean on, which means a band read as a floor is wrong just as
-often as a band read as a ceiling.
+up flat again, at a different value, and two days after that it spread across 0.053. So a flat
+band is not evidence that the metric is stable; it is one draw that happened to come up flat,
+and it happens often. Three repetitions are too few to measure a width you can lean on, which
+means a band read as a floor is wrong just as often as a band read as a ceiling.
 
-This is why every Mode 1 figure on this page is now the envelope over all nine repetitions
+This is why every Mode 1 figure on this page is now the envelope over all twelve repetitions
 rather than any one session's. Publishing 9 August alone would have claimed `0.868 [0.868,
-0.868]` for a metric whose nine draws span `0.842–0.921`. Rebuild it with
+0.868]` for a metric whose twelve draws span `0.842–0.921`. Rebuild it with
 `make eval-envelope`.
 
 That reframes the drift comparison rather than cancelling it. Across the archive:
@@ -186,21 +191,29 @@ That reframes the drift comparison rather than cancelling it. Across the archive
 | First-pass recall (Mode 1) | 0.083 | 0.056 |
 | Evidence layer recall (Mode 1) | 0.083 | 0.056 |
 | Lexical layer recall (Mode 1) | 0.111 | 0.111 |
-| Judge completeness (Mode 1) | 0.060 | 0.079 |
+| Judge completeness (Mode 1) | 0.140 | 0.079 |
 | Disambiguation rate (Mode 1) | 0.143 | 0.095 |
 | Every headline Mode 2 metric | 0.000 | 0.000 |
+
+Judge completeness is the one row where the two columns are not measured by the same grader:
+the within-session figure is now the 15 August run's own spread (`0.717 · 0.846 · 0.856`), the
+widest any single session has shown and more than double what it was a run ago, while the
+between-session figure comes from July sessions the old judge graded. Read it as the loosest
+row in the table, not the tightest.
 
 The two columns are the same order of magnitude, and which one is larger depends on the
 metric. What is unsafe is not "the band is smaller than the drift" — it is trusting *any*
 single run's band as the noise. The envelope over sessions is the thing to publish against,
 and that is what the drift record is.
 
-**The out-of-sample test passed twice.** The 10 and 13 August runs are evidence the allowance
-had never seen. Against 9 August, all twenty metrics come back `variance` or `drift` — not one
-regression; the only metric outside both bands is lexical recall (`[0.750, 0.806]` against
-`[0.833, 0.944]`, a gap of 0.028 against an allowance of 0.111), precisely the move the old
-rule would have published as a result. Against 10 August, the 13th moves nothing outside the
-noise either: nineteen `variance` and one `drift` (completeness, +0.026).
+**The out-of-sample test passed three times.** The 10, 13 and 15 August runs are evidence the
+allowance had never seen. Against 9 August, all twenty metrics come back `variance` or `drift`
+— not one regression; the only metric outside both bands is lexical recall (`[0.750, 0.806]`
+against `[0.833, 0.944]`, a gap of 0.028 against an allowance of 0.111), precisely the move the
+old rule would have published as a result. Against 10 August, the 13th moves nothing outside the
+noise either: nineteen `variance` and one `drift` (completeness, +0.026). And the 15th against
+the 13th is the cleanest of the three: **all twenty metrics `variance`**, nothing even reaching
+drift — including the two the judge fix could have moved, at `−0.006` and `+0.008`.
 
 The `0.95 → 0.87` mean-recall drop between 5 and 9 August was never a regression either: the
 gap between those runs' ranges is 0.026 against a 0.053 allowance, and `eval compare` now
@@ -222,23 +235,34 @@ The case-level spread is wider than the aggregate suggests too: on the July base
 recall moved `0.89 → 0.95` across repetitions while `mh-02` alone swung the full
 `0.50 → 1.00`. A steady headline number is not evidence that nothing moved underneath it.
 
-Reports: Mode 1 → three runs at one byte-identical fingerprint (`4906958e…`), three
-repetitions each, and every Mode 1 figure above is the envelope over all nine:
+Reports: Mode 1 → four runs at one byte-identical fingerprint (`4906958e…`), three
+repetitions each, and every Mode 1 figure above is the envelope over all twelve:
 [`modo1-20260809T164728Z.json`](eval-runs/modo1-20260809T164728Z.json),
-[`modo1-20260810T193500Z.json`](eval-runs/modo1-20260810T193500Z.json) and
-[`modo1-20260813T181959Z.json`](eval-runs/modo1-20260813T181959Z.json). No metric moves outside
-the measured noise across the three. **The third is marked `passed: false`** and its numbers are
+[`modo1-20260810T193500Z.json`](eval-runs/modo1-20260810T193500Z.json),
+[`modo1-20260813T181959Z.json`](eval-runs/modo1-20260813T181959Z.json) and
+[`modo1-20260815T093825Z.json`](eval-runs/modo1-20260815T093825Z.json). No metric moves outside
+the measured noise across the four. **The third is marked `passed: false`** and its numbers are
 kept here anyway, which needs saying plainly: it recorded two citation-literality hard failures,
 both on `mh-02`, and they are not a quality result — they trace to the checker re-resolving the
 law at the run date while that answer was given for 2023, so it compared the quote against a
-redaction that did not yet exist. The checker now re-resolves at the date the answer declares,
-and the artifact records the quote and that date with every hard failure, which is what a run had
-to be repeated to find out before. The archived runs cannot be re-checked, only re-read: their
-artifacts kept the case, the block and the reason, never the quote. So the historical literality
-record says one thing honestly — nothing was ever *shown* to fail on a citation the runtime's own
-verifier had discarded — and cannot say the stronger thing the row used to claim. The quality
-metrics do not depend on that check. All three are an **experiment
-against**, not a regression on,
+redaction that did not yet exist. The fourth run is the first one under the fixed checker, and it
+passes: every displayed citation re-verified against the redaction its own answer declares. That
+is the run the literality row publishes, and the only one it can. The archived runs cannot be
+re-checked, only re-read: their artifacts kept the case, the block and the reason, never the
+quote — which the artifact now records, together with the date it resolved at, so a hard failure
+no longer has to be reproduced to be diagnosed. So the historical literality record says one
+thing honestly — nothing was ever *shown* to fail on a citation the runtime's own verifier had
+discarded — and cannot say the stronger thing the row used to claim. The quality metrics do not
+depend on that check.
+
+The fourth run also carries a fix to the **judge**, which had the same date defect one layer up:
+it resolved each cited article at the run date, so it graded an answer given for 2023 against
+today's law. That changes how `judge.completeness` and `unsupported_claim_rate` are measured
+while leaving the fingerprint untouched — the fingerprint covers the system under test, not the
+harness testing it — so those two figures are published from this run alone rather than pooled
+with the nine repetitions the old grader produced. Against 13 August both moved less than the
+noise (`−0.006` and `+0.008`), which is worth stating plainly: the defect was real, and on this
+suite it was latent. All four are an **experiment against**, not a regression on,
 [`modo1-20260805T152307Z.json`](eval-runs/modo1-20260805T152307Z.json) (`d1029d9c…`): the
 judge model and the synthesis prompt both changed, so the two are different
 configurations and their judged numbers are not one series. Mode 2 →
@@ -329,6 +353,11 @@ covers it; it does not guarantee it. (Only the first repetition stores per-case 
 the three successes are read off the first-pass recall band reaching `1.00`, which no
 draw could reach with `mh-02` short.)
 
+It then did it again under the fingerprint this page publishes, and in the same shape:
+`1.00` on 9, 10 and 13 August, `0.50` on the 15th — a draw that decomposed into three
+sub-queries and left art. 27 out of the evidence, exactly like the earlier failure. Two
+fingerprints apart, the same case fails the same way about one time in four.
+
 Second, even in the run that retrieves it, the answer still does not mention the cause.
 The block reaches evidence and synthesis declines to use it. So the case that once
 demonstrated a retrieval gap now demonstrates a synthesis one, and completeness — not
@@ -364,10 +393,10 @@ DeepSeek, which came out honestly uncalibrated until the pass was re-done.
 
 **The new agreement figure was again produced by a model reviewer, which is still weaker
 than the claim I set out to make.** The artifact records who read in a `reviewer_kind`
-field the loader will not accept as missing. Here it is `model`: a model re-read 50 of
-this run's 124 rulings (seed 25) and disagreed with 2. Two language models share blind
-spots a human would not, so **0.96 is an upper bound on what a human pass would find**;
-that pass is still open.
+field the loader will not accept as missing. Here it is `model`: a model re-read 50 of the
+124 rulings the 9 August run produced (seed 25) and disagreed with 2. Two language models
+share blind spots a human would not, so **0.96 is an upper bound on what a human pass would
+find**; that pass is still open.
 
 What the two disagreements say is more useful than the score, and the direction has
 flipped. Both are the new judge being *too lenient*: it marked a two-limb key point
@@ -466,6 +495,35 @@ honestly uncalibrated until the pass is re-done.
 deterministic, in CI) protects contracts and code logic; the `eval` harness (real
 model, run and versioned by hand) measures AI quality. Keeping them apart is what lets
 the harness use a real model without ever making CI flaky.
+
+## What I'd do next
+
+Three things I cut on purpose rather than ran out of time for. They are here because a
+limit you can read is worth more than one you have to discover.
+
+**The Mode 2 denominator is tiny.** Recall `1.00` and false tranquility `0.00` rest on
+**7 problematic clauses across 3 contracts**, and the `ilegal` row of the confusion
+matrix is empty — the mode has never been measured on a clause that is outright void.
+Those numbers are true and fragile: a denominator that small cannot tell a tool that
+works from one that got lucky seven times. The fix is not more labelling effort but a
+different construction — assemble each clause *starting from the article it violates*,
+the way the Mode 1 reference set is already built, so the label comes from the norm and
+the generating rule instead of a model's opinion. Grading a classifier against labels
+another model wrote would measure whether the system agrees with itself.
+
+**The fingerprint does not cover the harness.** It pins the models, prompts, corpus and
+cases — everything the system *under* test is made of — and nothing of the code doing
+the testing. So a fix to the citation checker or the judge, like both of the ones behind
+the numbers above, changes how a metric is measured while the fingerprint keeps claiming
+the two runs are comparable. That is what made the historical literality record
+unreadable, and it will happen again. A digest of `lexme.eval` inside `ConfigFingerprint`
+closes it, and it is the first thing I'd build.
+
+**The false-tranquility result deserves a write-up.** Why a binary contract checker
+drifts toward "looks fine", how the spectrum and the ⚪ dissolve that failure, and how it
+is measured — with the run artifacts as the only source of numbers, and the sample size
+stated rather than buried. The honesty about the denominator is the subject, so the
+current one would not weaken the piece.
 
 ## Run it locally
 

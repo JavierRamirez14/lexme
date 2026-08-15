@@ -1,6 +1,6 @@
 {
   "suite": "modo1",
-  "measured_at": "2026-08-13T21:30:15.665180Z",
+  "measured_at": "2026-08-15T10:09:22.633795Z",
   "runs": [
     "modo1-20260726T170157Z.json",
     "modo1-20260727T112714Z.json",
@@ -11,7 +11,8 @@
     "modo1-20260805T171438Z.json",
     "modo1-20260809T164728Z.json",
     "modo1-20260810T193500Z.json",
-    "modo1-20260813T181959Z.json"
+    "modo1-20260813T181959Z.json",
+    "modo1-20260815T093825Z.json"
   ],
   "bands": [
     {
@@ -115,7 +116,7 @@
     {
       "metric": "judge.completeness",
       "between_sessions": 0.07948717948717954,
-      "within_session": 0.06043956043956045,
+      "within_session": 0.1397435897435897,
       "fingerprint": "d870d388891e955c",
       "runs": [
         "modo1-20260727T160707Z.json",
