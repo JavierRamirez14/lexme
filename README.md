@@ -19,8 +19,14 @@ the source.
 > and it is the number the whole design is built to drive down. On the latest run
 > it was **zero**.
 
-<!-- Mode 2 demo GIF goes here: contract intake → spectrum risk map → the ⚪ finding.
-     Capture against the running stack: make contract F=path/to/contrato.pdf -->
+![Mode 2: a rental contract goes in, and a spectrum risk map comes back — five void
+clauses, one negotiable, and thirteen protections the law grants that the contract never
+mentions, each with its literal article](assets/modo2-demo.gif)
+
+*Recorded against the stack this repo builds — `docker compose up`, corpus ingested, one
+of the three reference contracts uploaded through the real UI. The run ends where Mode 2
+is meant to: on a ⚪ the contract is silent about, quoting art. 11 LAU with its BOE link
+and the date that redaction took effect.*
 
 ---
 
