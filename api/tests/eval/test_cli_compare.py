@@ -6,6 +6,8 @@ from pathlib import Path
 
 import pytest
 
+from lexme.config import Settings
+from lexme.eval import cli
 from lexme.eval.artifact import build_artifact
 from lexme.eval.cli import main
 from lexme.eval.fingerprint import ConfigFingerprint
@@ -121,6 +123,22 @@ def test_comparing_a_mode1_and_a_mode2_artifact_is_refused(tmp_path: Path) -> No
 
     with pytest.raises(ValueError, match="Mode 1.*Mode 2"):
         main(["compare", "--base", str(base), "--run", str(run)])
+
+
+def test_a_run_named_by_its_bare_file_name_is_read_from_the_runs_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    """The archive is listed by file name, so a comparison is typed that way too."""
+    _write_mode1_artifact(tmp_path / "base.json")
+    _write_mode1_artifact(tmp_path / "run.json")
+    settings = Settings(database_url="postgresql://unused", eval_runs_dir=str(tmp_path))
+    monkeypatch.setattr(cli, "get_settings", lambda: settings)
+
+    with caplog.at_level("INFO"):
+        exit_code = main(["compare", "--base", "base.json", "--run", "run.json"])
+
+    assert exit_code == 0
+    assert any("mean_recall" in record.message for record in caplog.records)
 
 
 def test_an_old_mode2_artifact_missing_e2e_fields_still_compares(tmp_path: Path) -> None:

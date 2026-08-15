@@ -275,39 +275,45 @@ def _do_run_mode2(
 def _do_compare(args: argparse.Namespace) -> int:
     """Compare a run against a baseline artifact and report the deltas.
 
+    Both artifacts are named the way every other subcommand names one: a bare file
+    name is read from the runs directory, so a comparison is typed the way the
+    archive is listed rather than as a path into the container.
+
     Dispatches on which suite each artifact belongs to -- Mode 2's metrics schema
     is not Mode 1's, so each side is read with its own model. Comparing a Mode 1
     artifact against a Mode 2 one is refused rather than silently misread. The
     suite's drift record is read from beside the baseline unless ``--no-drift``
     says to classify against the repetition bands alone.
     """
-    base_is_mode2 = _is_mode2_artifact(args.base)
-    run_is_mode2 = _is_mode2_artifact(args.run)
+    settings = get_settings()
+    base = _runs_path(args.base, settings)
+    run = _runs_path(args.run, settings)
+    base_is_mode2 = _is_mode2_artifact(base)
+    run_is_mode2 = _is_mode2_artifact(run)
     if base_is_mode2 != run_is_mode2:
         raise ValueError(
             f"cannot compare a Mode 1 artifact against a Mode 2 one: "
-            f"base={args.base} (mode2={base_is_mode2}) run={args.run} (mode2={run_is_mode2})"
+            f"base={base} (mode2={base_is_mode2}) run={run} (mode2={run_is_mode2})"
         )
     suite = MODE2 if base_is_mode2 else MODE1
-    drift = _drift_for_comparison(args, suite)
+    drift = _drift_for_comparison(args, suite, base)
     if base_is_mode2:
-        comparison = compare_mode2(
-            read_mode2_artifact(args.base), read_mode2_artifact(args.run), drift
-        )
+        comparison = compare_mode2(read_mode2_artifact(base), read_mode2_artifact(run), drift)
     else:
-        comparison = compare(read_artifact(args.base), read_artifact(args.run), drift)
+        comparison = compare(read_artifact(base), read_artifact(run), drift)
     _report_comparison(comparison, drift)
     return 0
 
 
-def _drift_for_comparison(args: argparse.Namespace, suite: str) -> DriftRecord | None:
+def _drift_for_comparison(args: argparse.Namespace, suite: str, base: Path) -> DriftRecord | None:
     """The drift record a comparison classifies against, or ``None`` when it has none.
 
     ``--no-drift`` refuses one and ``--drift`` names one, which must exist: a path
     typed by hand and silently missed would classify as if drift had never been
-    measured. Otherwise the record is looked for beside the baseline artifact,
-    where ``eval drift build`` writes it over the archive the baseline belongs to,
-    and its absence is the honest answer that none has been measured yet.
+    measured. Otherwise the record is looked for beside the baseline artifact --
+    ``base`` resolved, not as it was typed, so naming the baseline by its bare file
+    name still finds the record ``eval drift build`` wrote over that archive -- and
+    its absence is the honest answer that none has been measured yet.
     """
     if args.no_drift:
         return None
@@ -316,7 +322,7 @@ def _drift_for_comparison(args: argparse.Namespace, suite: str) -> DriftRecord |
         if record is None:
             raise ValueError(f"no drift record at {args.drift}")
         return record
-    return load_drift(args.base.parent / DRIFT_FILENAME_TEMPLATE.format(suite=suite), suite=suite)
+    return load_drift(base.parent / DRIFT_FILENAME_TEMPLATE.format(suite=suite), suite=suite)
 
 
 def _do_drift(args: argparse.Namespace, *, now: datetime | None) -> int:
