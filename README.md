@@ -147,9 +147,9 @@ construction, so the harness refuses to publish an agreement measured on a grade
 did not use.
 
 **The eval harness is not the test suite.** The unit/integration suite (fake LLM,
-deterministic, in CI) protects contracts and code logic; the `eval` harness (real model, run
-and versioned by hand) measures AI quality. Keeping them apart is what lets the harness use
-a real model without ever making CI flaky.
+deterministic, no network and no API key) protects contracts and code logic; the `eval`
+harness (real model, run and versioned by hand) measures AI quality. Keeping them apart is
+what lets the harness use a real model without ever making the suite flaky.
 
 ## Honest limits
 
